@@ -1,0 +1,1524 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{fontspec}
+\setmonofont{Consolas}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\newtheorem{remark}{Remark}
+
+\newcommand{\ms}{\mathrm{ms}}
+\newcommand{\any}{\mathrm{any}}
+\newcommand{\free}{\mathrm{free}}
+\newcommand{\ksel}{\mathrm{ksel}}
+\newcommand{\ong}{\mathrm{ong}}
+\newcommand{\pole}{\mathrm{pole}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\title{Formulations implemented in \texttt{paper\_experiment}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+\textcolor{red}{We will probably need to lower the MTBF values so that every component is
+significant.}
+
+\noindent
+\textcolor{red}{Since with the current numerical values maintenance start days were
+already effectively restricted to day $1$, $1+\mathrm{QS}$ or $1+2\,\mathrm{QS}$ of the
+period (every repair duration is a multiple of $\mathrm{QS} = 20$), the pricing MILP of
+Section~\ref{sec:pricing} (\texttt{solve\_pricing} in \texttt{fluid\_lp\_cg.jl}, and its
+counterpart \texttt{solve\_pricing\_light} in \texttt{fluid\_cg\_light.jl}) now enforces
+this restriction explicitly: the start-day variables $m^{\rm start}_{m,\tau}$ are only
+created for $\tau$ on this grid, and the technician-capacity constraint (11) is only
+imposed at the grid points instead of on every day $\tau=1,\dots,T$. Because the daily
+penalty is currently uniform over the period, this is \emph{exact}, not an approximation:
+any feasible schedule can be shifted onto the grid without changing its cost (only the
+\emph{number} of penalised days matters, not which days they are) and without breaking
+technician-capacity feasibility (shifting starts onto the grid only tightens/aligns
+overlaps, it cannot create a new one). It cuts pricing-MILP solve time substantially (the
+number of start-day
+variables and technician-capacity constraints drops from $O(T)$ to $O(T/\mathrm{QS})$
+per component). \textbf{This stops being exact if the daily penalty is made
+non-uniform}: the start day would then affect cost, and this grid restriction would
+have to be revisited (either dropped, or re-justified against the new penalty
+structure) before trusting the resulting LP bound.}
+
+\noindent
+This note transcribes, as literally as possible, the three optimisation problems coded in
+\texttt{paper\_experiment/fluid\_lp\_cg.jl} (master LP and pricing MILP of the Full Fluid LP,
+solved by column generation) and \texttt{paper\_experiment/compact\_lp.jl} (Compact Fluid LP).
+The formulations correspond respectively to Sections 3.1--3.2 (full fluid LP / column
+generation) and Section 3.3 (compact fluid LP) of the paper, specialised to the offshore
+substation instance of Section 5 and Appendix C. Index names follow the code exactly
+(function and variable names are given in footnotes) so that every symbol below can be
+matched to a line of Julia.
+
+\section{Notation and data}
+\label{sec:notation}
+
+\paragraph{Poles and components.} An instance has $K$ poles $p = 1,\dots,K$
+(\texttt{inst.n\_poles}). Each pole is a set of $7$ components (converter, water circuit,
+fans, pumps, transformer, cooling, busbar); flattening all poles gives $M$ components
+$m = 1,\dots,M$ (\texttt{fd.M}), with $\pole(m)$ the pole of $m$ and
+$\mathrm{comps\_of\_pole}(p)$ the (sorted) list of components of pole $p$; we write
+$m_1(p) := \mathrm{comps\_of\_pole}(p)[1]$ for the \emph{reference component} of pole $p$.
+
+\paragraph{Component state and cost.} Component $m$ has $n_m$ degradation states
+$x \in \{1,\dots,n_m\}$ (\texttt{fd.n\_states[m]}), $x=1$ being ``as new''. A \emph{mode}
+$a \in \{1,2\}$ indicates whether $m$ is left alone ($a=1$) or maintained/replaced-as-new
+($a=2$) during the period. The per-period cost of $(x,a)$ is
+\[
+  c_m(x,a) \;=\; \begin{cases}
+    \delta_m(x) & a = 1 \quad (\text{expected failure penalty, \texttt{fd.δ[m][x]}}) \\
+    \mathrm{cc}_m & a = 2 \quad (\text{replacement cost, \texttt{fd.cc[m]}}).
+  \end{cases}
+\]
+Degradation follows $p^1_m(x \mid x') := P_m(x \mid x')$ (\texttt{fd.P[m][x,x']}, the
+period transition matrix when $a=1$), while maintenance resets deterministically to the
+as-new state: $p^2_m(x \mid x') := \mathbb 1\{x = 1\}$ (independent of $x'$).
+
+\paragraph{$\alpha$ (\texttt{build\_fluid\_data(inst; alpha=1.0)}).} $\delta_m(x)$ above is
+always $\alpha$ times the cost of leaving $m$ unmaintained this period in state $x$ --
+\texttt{failure\_cost} (day-by-day expectation) or \texttt{failure\_cost\_simplified} (cost
+of staying in $x$ for the whole period, Section~\ref{sec:simplified}), whichever
+\texttt{inst.simplified} selects. $\alpha = 1$ (default) leaves that cost as defined by
+either formula; $\alpha \ne 1$ reweights the failure penalty relative to the (always
+unscaled) replacement cost $\mathrm{cc}_m$ and joint schedule cost $f(b)$, e.g. to study how
+sensitive a method's policy is to that trade-off. $\alpha$ is fixed once, when
+\texttt{fd} is built (\texttt{run\_experiment.jl}'s \texttt{--alpha=<value>}, default
+$1.0$): every method reads it only through the already-scaled \texttt{fd.δ}, so comparing
+methods at different $\alpha$ means building one \texttt{FluidData} per $\alpha$ and
+passing each to the methods separately, not passing $\alpha$ to a method's own solve
+function.
+
+\paragraph{Quota.} Each pole $p$ has an annual quota $K_0(p)$ (\texttt{fd.K0[p]}) of
+penalty-free maintenance days. The \emph{local state} of component $m$ at stage $t$ is the
+pair $(x,k)$, $k \in \{0,\dots,K_0(\pole(m))\}$ being the quota remaining at the
+\emph{start} of period $t$; the \emph{local action} is $(a,\kappa)$, $\kappa \in
+\{0,\dots,k\}$ being the number of free days of the pole used \emph{during} period $t$.
+Every component of a pole is required to carry the same $(k,\kappa)$ distribution
+(Section 5.3 of the paper). We write $\bar K := \max_p K_0(p)$ (\texttt{maximum(fd.K0)}).
+In the code, $k$ and $\kappa$ do not range over every integer in $\{0,\dots,K_0(p)\}$: they
+are restricted to multiples of a fixed step $\mathrm{QS} = 20$ (\texttt{QUOTA\_STEP}), i.e.\
+$k,\kappa \in \{0, \mathrm{QS}, 2\,\mathrm{QS}, \dots\} \cap \{0,\dots,K_0(p)\}$ (helper
+function \texttt{qrange}). This is a coarsening of the quota state/action space, not a
+change of model: it reduces the number of $(k,\kappa)$ pairs the master LP and pricing
+MILP have to enumerate, at the cost of only tracking the quota balance to the nearest
+$\mathrm{QS}$ days. \textbf{Every equation below that quantifies over $k \in
+\{0,\dots,K_0(p)\}$ or $\kappa \in \{0,\dots,k\}$ (or the analogous ranges for
+$\bar K$) should be read as implicitly restricted to this stepped grid}; we keep the
+$\{0,\dots,\cdot\}$ notation throughout for readability rather than writing
+\texttt{qrange}$(\cdot)$ everywhere.
+
+\paragraph{Schedule data.} $T$ is the number of days per period (\texttt{inst.T\_period}),
+$d_m$ the repair duration of $m$ (\texttt{fd.d[m]}), $\rho_m$ its technician requirement
+(\texttt{fd.rho[m]}), $R$ the total available workforce (\texttt{inst.R}), and
+$\mathrm{margin}$ the number of trailing days of a period during which no maintenance may
+start (\texttt{inst.margin}). The last admissible start day of $m$ is
+\[
+  L_m \;:=\; T - d_m + 1 - \mathrm{margin} \qquad (\texttt{last\_start[m]}).
+\]
+If $L_m < 1$, component $m$ can never be maintained and is dropped from the schedule
+variables (its $z_m$ is fixed to $0$). $\mathrm{pen}_p(\tau)$ denotes the capacity-loss
+penalty coefficient of pole $p$ on day $\tau$ of the period
+(\texttt{inst.poles[p].daily\_penalty[\ensuremath{\tau}]}).
+
+\paragraph{Lead margin.} No maintenance may start during the first $\mathrm{LEAD\_MARGIN}$
+days of a period either (\texttt{LEAD\_MARGIN}, \texttt{instances.jl}): it takes that many
+days after a maintenance is planned before it can actually start (ordering parts, etc.).
+The earliest admissible start day of every component is therefore
+\[
+  F \;:=\; \mathrm{LEAD\_MARGIN} + 1 \qquad (\texttt{first\_start}),
+\]
+the same for every component. If $L_m < F$, component $m$ can never be maintained this
+period (same fallback as $L_m < 1$ above). \textbf{Every equation below that quantifies a
+start day $\tau$ or a start-day variable $s_{m,\tau}$ (or $m^{\mathrm{start}}_{m,\tau}$)
+over $\{1,\dots,L_m\}$ should be read as restricted to $\{F,\dots,L_m\}$}, and every sum
+$\sum_{\tau=1}^{L_m}$ as $\sum_{\tau=F}^{L_m}$ -- we keep the $\{1,\dots,L_m\}$ notation
+throughout for readability, exactly as for the $\mathrm{qrange}$ convention above.
+
+\paragraph{Numerical values (\texttt{paper\_experiment/instances.jl}).} $T = 60$
+(\texttt{T\_PERIOD}), $\mathrm{margin} = 0$ (\texttt{MARGIN}),
+$\mathrm{LEAD\_MARGIN} = 15$ (so $F = 16$), $R = 1$
+(\texttt{inst.R}), and $K_0(p) = 30$ for every pole (\texttt{FREE\_QUOTA}), with quota
+step $\mathrm{QS} = 15$ (\texttt{QUOTA\_STEP}), so that $k$ and $\kappa$ only take the
+values $0$, $15$ and $30$. The
+technician requirement $\rho_m$ and repair duration $d_m$ are, per component (converter,
+water circuit, fans, pumps, transformer, converter cooling, busbar):
+\begin{center}
+\begin{tabular}{lccccccc}
+\toprule
+component & converter & water circuit & fans & pumps & transformer & cooling & busbar \\
+\midrule
+$\rho_m$ & $1.0$ & $0.5$ & $0.5$ & $0.5$ & $1.0$ & $0.5$ & $0.5$ \\
+$d_m$    & $30$  & $15$  & $15$  & $15$  & $15$  & $15$  & $15$  \\
+\bottomrule
+\end{tabular}
+\end{center}
+(\texttt{TECHNICIAN\_SHARE}, \texttt{REPAIR\_DURATION}). Every component but the converter
+and the transformer needs half the workforce ($\rho_m=0.5$) for $15$ workdays; the converter
+and the transformer need the whole workforce ($\rho_m=1$), the converter for $30$ workdays
+(twice as long as every other component, including the transformer). Since two components
+with $\rho_m=1$ can never overlap, and at most two with $\rho_m=0.5$ can run simultaneously,
+these values make the technician-capacity constraint (11) of Section~\ref{sec:pricing} bind
+tightly enough to be worth studying on its own: with $L_m$ and $F$ as above, the admissible
+scheduling window has length $L_m - F + 1 = 45$ days for every component ($T - \mathrm{margin}
+- \mathrm{LEAD\_MARGIN} = 60 - 0 - 15$), exactly $3/4$ of the $60$-day window of the
+previous parameters ($\mathrm{margin}=0$, no lead margin), and every duration $d_m$ is also
+exactly $3/4$ of its previous value ($40 \to 30$, $20 \to 15$). This is not a coincidence:
+the new parameters were chosen as a uniform $3/4$ rescaling of the previous ones, so the
+feasibility structure of the scheduling problem (which subsets of components fit
+simultaneously in the window, for any given technician-capacity budget) is exactly
+preserved -- one pole alone still admits $80$ distinct subsets of components with a
+feasible schedule within one period (including the empty one), and the whole $3$-pole
+region (technician capacity shared across poles) still admits $16\,508$.
+
+\paragraph{Stages.} $t = 1,\dots,H$ index the periods of the fluid horizon
+(\texttt{H}). A calendar-year reset of the quota occurs between stage $t$ and $t+1$ iff
+$t$ is the sixth period of its cyclic year (function \texttt{stage\_cyc}); we simply write
+``$t \!\to\! t{+}1$ resets'' for this event below.
+
+\section{Simplified problem: no free-day quota, no within-period transition}
+\label{sec:simplified}
+
+Instances \texttt{one\_pole\_simple}, \texttt{two\_poles\_simple} and
+\texttt{three\_poles\_simple} (\texttt{paper\_experiment/instances.jl},
+\texttt{build\_instance(n\_poles; free\_quota = 0, name\_suffix = "\_simple")}) drop the
+free-day quota entirely, while keeping exactly the same poles, components, technician
+shares, repair durations and replacement costs as \texttt{one\_pole}/\texttt{two\_poles}/
+\texttt{three\_poles} (Section~\ref{sec:notation}) -- so the set of realisable maintenance
+\emph{schedules} $b$ (which components, on which start days, under the same
+technician-capacity constraint (11)) is completely unchanged. Only the cost is simplified,
+to land exactly on the additive formalism of Section 2 of the paper: a sum of per-component
+local costs plus a single cost term that is a function of the joint schedule alone, with no
+quota bookkeeping in between.
+
+\paragraph{How $K_0(p) = 0$ gives this for free.} Setting the annual quota
+$K_0(p) = 0$ (\texttt{free\_quota = 0}) for every pole, with every other data item
+unchanged, already produces exactly this simplified problem, with \emph{no change to any
+of the LP/MILP code} of Sections~\ref{sec:master}--\ref{sec:lift-project}: since
+$\mathrm{qrange}(0) = 0\!:\!\mathrm{QS}\!:\!0 = \{0\}$ (Section~\ref{sec:notation}), every
+pole's $(k,\kappa)$ collapses to the single value $(0,0)$ throughout, so no component can
+ever have $\kappa > 0$, and \texttt{pole\_penalty}'s (\texttt{instances.jl:109--117})
+\texttt{free\_day} branch is never taken. The joint cost of a schedule $b$ then reduces to
+\[
+  f(b) \;=\; \sum_{p=1}^{K} \sum_{\tau=1}^{T} \mathrm{pen}_p(\tau) \cdot \mathbb 1[\text{some component of pole } p \text{ is under maintenance on day } \tau],
+\]
+and since $\mathrm{pen}_p(\tau) \equiv 1$ (\texttt{DAILY\_PENALTY}, Section~\ref{sec:notation}),
+$f(b)$ is exactly, per pole, the \emph{number of days that pole is under maintenance},
+summed over poles -- the ``maintenance cost'' requested for the simplified problem. Total
+period cost is then
+\[
+  \sum_{m=1}^{M} c_m(x_m, a_m) \;+\; f(b),
+\]
+with, on a simplified instance,
+\[
+  c_m(x,1) = \delta_m(x), \qquad c_m(x,2) = \delta_m(x) + \mathrm{cc}_m
+  \qquad (\texttt{local\_cost}, \texttt{fluid\_lp\_cg.jl}).
+\]
+The failure cost $\delta_m(x)$ of the period spent in state $x$ is paid \emph{whatever the
+mode}, also when $m$ is maintained during the period (it is not repaired instantly), and a
+maintained component pays in addition its replacement cost $\mathrm{cc}_m$. (On the original
+instances, $c_m(x,2) = \mathrm{cc}_m$ only, as in Section~\ref{sec:notation}.) This is
+exactly the sum of per-subsystem local costs plus one joint-schedule cost term, with $b$
+ranging over the same combinatorial schedules as before.
+
+\paragraph{Running every method unchanged.} Because $K_0(p) = 0$ only trivialises the
+$(k,\kappa)$ dimension already present in every formulation's variables (it does not
+remove or add any variable, constraint or code path), \texttt{fluid\_cg},
+\texttt{fluid\_cg\_light}, \texttt{compact}, \texttt{fluid\_cg\_order2} and
+\texttt{lift\_project} all run on \texttt{*\_simple} exactly as on the original instances,
+selected by instance name alone (\texttt{run\_experiment.jl <method> one\_pole\_simple
+...}). Verified directly (with $\mathrm{LEAD\_MARGIN}=15$, $d_m \in \{30,15\}$,
+$K_0=30$/$\mathrm{QS}=15$ as above): on \texttt{one\_pole\_simple}, all five methods
+converge (\texttt{fluid\_cg}: $0.0821$, \texttt{fluid\_cg\_light}: $0.0821$,
+\texttt{compact}: $0.0793$, \texttt{fluid\_cg\_order2}: $0.0821$, \texttt{lift\_project}:
+$0.0896$), the same ordering (\texttt{compact} loosest, \texttt{lift\_project} tightest) as
+on the quota-augmented instances.
+
+\paragraph{No within-period transition (\texttt{instances.jl}, \texttt{Instance.simplified}).}
+On top of $K_0(p) = 0$, \texttt{*\_simple} instances also set \texttt{simplified = true},
+which removes the day-by-day degradation transition entirely. A component that is not
+maintained this period no longer evolves day by day through \texttt{P\_daily}: it keeps
+its entering state $x$ for the whole period, and only transitions between periods, through
+$P^{\mathrm{period}} = (P^{\mathrm{daily}})^{T}$ (already the transition kernel $p^1_m$ used
+by the fluid LP itself, Section~\ref{sec:notation}) -- exactly the assumption ``no
+degradation in progress during the period'' requested for this instance. A maintained
+component still resets to the as-new state the moment its repair completes, unaffected.
+
+\emph{Failure cost.} $\delta_m(x)$ is no longer the day-by-day
+expectation of \texttt{failure\_cost} (propagating $x$ through $P^{\mathrm{daily}}$ every
+day, Section~\ref{sec:notation}): it is the cost of staying in state $x$, unchanged, for
+the whole period,
+\[
+  \delta_m(x) \;=\; \alpha \cdot \Big(\sum_{\tau=1}^{T} \mathrm{pen}_p(\tau)\Big) \cdot \frac{100 - P_{\mathrm{evac}}(c,x)}{100}
+  \qquad (\texttt{failure\_cost\_simplified}, \texttt{fluid\_lp\_cg.jl}),
+\]
+where $c$/$p$ are the component/pole of $m$ and $\alpha$ is as in Section~\ref{sec:notation}
+($=1$ by default) -- $T$ repetitions of one day's capacity-loss penalty at the (frozen)
+state $x$, instead of an expectation over the state's day-by-day drift.
+
+\paragraph{The true cost is no longer computed separately.} Since the request is to treat
+the simplified problem's own additive cost model as the true model (not to measure a gap
+against it), \texttt{simulate\_period} (\texttt{simulation.jl}) does not run the day-by-day
+\texttt{pole\_penalty} accounting at all on a \texttt{simplified} instance: the period cost
+is read directly off $b = (\mathrm{start}_m)_m$ and the entering state $x$,
+\[
+  \Big(\sum_{m=1}^{M} \delta_m(x_m)\Big) \;+\; f(b) \quad\text{and}\quad \sum_{m\,:\,a_m = 2} \mathrm{cc}_m,
+\]
+split into the reported \texttt{penalty} and \texttt{replacement\_cost} columns -- together
+exactly $\mathtt{lp\_approx\_cost(fd, x, col)}$ (\texttt{fluid\_lp\_cg.jl}) by construction,
+not merely by empirical coincidence: on a \texttt{simplified} instance, \texttt{mean\_cost}
+and \texttt{mean\_lp\_cost} of \texttt{run\_experiment.jl}'s report are therefore always
+exactly equal (verified: model gap $= 0.00$ on \texttt{one\_pole\_simple}, every scenario).
+This is deliberately \emph{not} extended to the original, non-simplified instances: their
+report keeps tracking \texttt{mean\_cost} (true, non-additive, day-by-day simulated cost)
+against \texttt{mean\_lp\_cost} (the additive proxy) separately, since the gap between the
+two is exactly what those instances are for (Appendix C.4 of the paper;
+Section~\ref{sec:heuristic-extraction}'s discussion of why that gap matters).
+
+\paragraph{Data of the simplified instances.} \texttt{*\_simple} instances use the same
+repair durations and replacement costs as the original instances (Section~\ref{sec:notation}),
+but lower MTBFs and higher technician shares (\texttt{MTBF\_SIMPLE},
+\texttt{TECHNICIAN\_SHARE\_SIMPLE}, \texttt{instances.jl}; the daily matrices are rebuilt with
+the same constructors as \texttt{build\_MC\_utils.jl}, and $P^{\mathrm{period}} =
+(P^{\mathrm{daily}})^{T}$):
+\begin{center}
+\begin{tabular}{lccccccc}
+\toprule
+component & converter & water circuit & fans & pumps & transformer & cooling & busbar \\
+\midrule
+MTBF (years), original   & $588$ & $43$ & $43$ & $43$ & $2222$ & $122$ & $4762$ \\
+MTBF (years), simplified & $10$  & $4$  & $4$  & $4$  & $12$   & $6$   & $15$   \\
+$\rho_m$, original       & $1.0$ & $0.5$ & $0.5$ & $0.5$ & $1.0$ & $0.5$ & $0.5$ \\
+$\rho_m$, simplified     & $1.0$ & $0.3$ & $0.3$ & $0.3$ & $1.0$ & $0.3$ & $0.3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+With the paper's MTBFs, the converter, transformer and busbar essentially never fail over the
+horizon, so most states are healthy and there is rarely more than one component worth
+maintaining at once. Lower MTBFs put several components in degraded, maintenance-worthy
+states at the same time, which is when the choice of which ones to maintain together (and
+how many can fit, with $\rho_m = 0.3$ allowing up to three at once instead of two with
+$\rho_m = 0.5$) matters, and the relaxations differ. They also differ from the original
+instances by the absence of quota and of within-period transition, and by the cost structure
+described above. The MTBF remark at the top of this note applies to the original instances
+only.
+
+\paragraph{\textcolor{red}{Parameters used for the simplified model.}}
+\textcolor{red}{Every \texttt{*\_simple} instance (\texttt{one\_pole\_simple},
+\texttt{two\_poles\_simple}, \texttt{three\_poles\_simple}) uses the following values.}
+\begin{itemize}
+  \item \textcolor{red}{Structure: $K \in \{1,2,3\}$ poles of $7$ components, $n\_\mathrm{years} = 20$
+  years of $6$ periods, $T = 60$ days per period, fluid horizon $H = 6$ periods, $R = 1$
+  shared by all poles.}
+  \item \textcolor{red}{Scheduling: $\mathrm{margin} = 0$, $\mathrm{LEAD\_MARGIN} = 15$ (so
+  $F = 16$), repair durations $d_m = 30$ (converter) and $15$ (every other component),
+  $\mathrm{QS} = 15$.}
+  \item \textcolor{red}{Quota: $K_0(p) = 0$ (no free day).}
+  \item \textcolor{red}{Costs: $\alpha = 1$, $\mathrm{pen}_p(\tau) \equiv 1$,
+  replacement costs $\mathrm{cc}_m = (5,\,0.25,\,0.125,\,0.25,\,10,\,0.5,\,0.25)$ (converter,
+  water circuit, fans, pumps, transformer, cooling, busbar), $\delta_m(x) = \alpha \cdot T \cdot
+  (100 - P_{\mathrm{evac}}(c,x))/100$.}
+  \item \textcolor{red}{Technician shares $\rho = (1,\,0.3,\,0.3,\,0.3,\,1,\,0.3,\,0.3)$
+  (the original instances have $0.5$ instead of $0.3$).}
+  \item \textcolor{red}{MTBF (years) $= (10,\,4,\,4,\,4,\,12,\,6,\,15)$ (the original instances
+  have $(588,\,43,\,43,\,43,\,2222,\,122,\,4762)$).}
+  \item \textcolor{red}{No within-period transition (\texttt{simplified = true}), one
+  transition per period through $P^{\mathrm{period}} = (P^{\mathrm{daily}})^{60}$.}
+\end{itemize}
+\textcolor{red}{\textbf{Caveat:} these MTBFs are not very realistic. They were lowered only
+so that several components degrade noticeably over the horizon and the methods can be told
+apart; they are much shorter than the paper's values (e.g.\ $10$ years instead of $588$ for
+the converter, $12$ instead of $2222$ for the transformer, $15$ instead of $4762$ for the
+busbar).}
+
+\paragraph{Order-2 formulation on a simplified instance.} Since the true cost of a
+simplified instance is additive, there is no joint (non-additive) capacity term for the
+pairwise pseudomarginals of Section~\ref{sec:order2} to correct: $\Delta_{m_1,m_2} \equiv 0$
+for every same-pole pair (\texttt{compute\_Δ\_pairs} sets it directly to the zero matrix
+when \texttt{inst.simplified} holds, without calling \texttt{δ\_joint\_pair} -- that
+function propagates day by day, which is only meaningful against the \emph{original}
+model's own day-by-day $\delta$, not the frozen-state $\delta$ of a simplified instance).
+This does \emph{not} mean \texttt{fluid\_cg\_order2} reduces to \texttt{fluid\_cg} on a
+simplified instance, though: \texttt{build\_master\_order2} still builds the pairwise
+pseudomarginals $p_{\mathrm{pair}}$ (their own Flow constraints and their marginal
+consistency with $q$) for every same-pole pair requested -- only the objective correction
+term is (trivially, since $\Delta \equiv 0$) zero. The pairwise Flow/consistency
+constraints are a valid tightening of the relaxation of the marginals themselves
+regardless of whether there is any objective correction to make (Proposition 9-style
+argument), so the order-2 LP value is still weakly tighter than (never below) the order-1
+one, verified on \texttt{one\_pole\_simple} and \texttt{two\_poles\_simple} with Gurobi's
+default tolerances loosened to $10^{-9}$ (\texttt{OptimalityTol}, \texttt{FeasibilityTol}):
+with the default $10^{-6}$ tolerance, the two independent column-generation runs (order-1
+and order-2 explore different columns, hence different, possibly degenerate, optimal
+bases) can each stop up to that relative tolerance away from the true LP optimum, which
+occasionally makes the reported order-2 value come out a few $10^{-5}$ \emph{below} the
+order-1 one -- a solver-tolerance artefact, not a violation of the tightening property.
+\textbf{$\Delta \equiv 0$ is never used as a skip condition in \texttt{build\_master\_order2}},
+for either a same-pole or a cross-pole pair: a pair with $\Delta \equiv 0$ (every same-pole
+pair on a simplified instance; occasionally a same-pole pair on the original model too)
+still gets its $p_{\mathrm{pair}}$ built, since the pairwise Flow/consistency constraints
+tighten the relaxation of the marginals themselves regardless of whether there is any
+objective correction to make.
+
+\paragraph{Cross-pole pairs are also built, without a shared $(k,\kappa)$.} Two components
+$m_1,m_2$ of \emph{different} poles do not share a single quota state to index
+$p_{\mathrm{pair}}$ against the way a same-pole pair shares its one pole's $(k,\kappa)$
+(Remark~\ref{rem:strengthen}) -- each pole has its own, independent quota. This does not
+mean a cross-pole pair is useless, though: the pairwise Flow constraint (the product kernel
+$p_{m_1}^{a_1}(x_1\mid x_1') \, p_{m_2}^{a_2}(x_2\mid x_2')$) still enforces that the JOINT
+$(x_1,x_2)$ trajectory is consistent with the two components evolving independently given
+their own local actions (Definition 1 of the paper) -- a genuine property of the model that
+$q$'s own, per-component Flow constraints do not enforce on their own (they only pin each
+component's OWN marginal, never the correlation between two components' trajectories).
+\texttt{build\_master\_order2} therefore builds, for a cross-pole pair, $p_{\mathrm{pair}}$
+variables $p_{x_1,x_2,a_1,a_2,t}$ \textbf{without} a $(k,\kappa)$ index, with the same
+Initial condition and Flow as the same-pole case (just without any reset/quota bookkeeping,
+irrelevant here), and Marginal consistency tying $p_{\mathrm{pair}}$ to $q$'s own marginal
+\emph{summed over} $(k,\kappa)$ instead of a shared slice of it:
+\[
+  \sum_{x_2,a_2} p_{x_1,x_2,a_1,a_2,t} = \sum_{k,\kappa} q_{m_1,x_1,a_1,k,\kappa,t}
+  \qquad\text{(and symmetrically for $m_2$).}
+\]
+$\Delta \equiv 0$ always for a cross-pole pair (the penalty decomposes additively across
+poles, Section~\ref{sec:notation}), so the objective correction it contributes is always
+exactly $0$ -- but, as above, this is not why it is built: the tightening comes entirely
+from the Flow/consistency constraints. Verified (same $10^{-9}$-tolerance check as above)
+on \texttt{two\_poles\_simple}: a cross-pole pair's order-2 LP value is weakly tighter than
+(never below) the order-1 one, same as a same-pole pair.
+
+The \texttt{max\_pairs} ranking of \texttt{compute\_Δ\_pairs} ranks every same-pole pair
+before every cross-pole pair, by decreasing impact $\max|\Delta|$ only as a tiebreak within
+each group: on the original model that tiebreak alone already puts every same-pole pair
+before every cross-pole one (cross-pole impact is always $0$, same-pole impact generally is
+not), but on a simplified instance every pair (same-pole or not) has impact $0$, so the
+explicit same-pole-first key is what keeps same-pole pairs prioritised there too -- cross-pole
+pairs are only ever added once \texttt{max\_pairs} exceeds the number of same-pole pairs
+available, filling the remaining budget rather than being skipped or wasted.
+On the original instances $\Delta_{m_1,m_2}$ for a same-pole pair is unchanged (day-by-day
+joint cost of \texttt{$\delta$\_joint\_pair} minus the two individual $\delta$'s).
+
+\section{Full Fluid LP of Section 3.2 of the paper (\texttt{fluid\_cg})}
+\label{sec:paper-fluid}
+
+\textbf{The method \texttt{fluid\_cg} of \texttt{run\_experiment.jl} is now exactly the Full
+fluid LP of Section 3.2 of \texttt{paper.tex}} (\texttt{fluid\_cg\_paper.jl}), with its fluid
+policy of Section 3.4. The only departure from the paper is the discretisation of the quota
+in steps of $\mathrm{QS}$ days (Section~\ref{sec:notation}), which is kept. The former
+implementation, described in Sections~\ref{sec:master} and~\ref{sec:pricing}, is still
+available as \texttt{fluid\_cg\_legacy}. The methods \texttt{compact}, \texttt{fluid\_cg\_order2}
+and \texttt{lift\_project} now also follow Sections 3.3, 4.2 and 4.3 of the paper (see below),
+their former implementations being available as \texttt{compact\_legacy},
+\texttt{fluid\_cg\_order2\_legacy} and \texttt{lift\_project\_legacy}.
+
+\paragraph{True cost and simulator.} On the original instances (with quota), the simulator
+(\texttt{simulate\_period}, \texttt{simulation.jl}) now evaluates the true cost $\mathrm{Tc}$
+of Section 2.2 of the paper (\texttt{true\_period\_cost}, \texttt{fluid\_lp\_cg.jl}). There is
+no degradation during the period. The state of component $m$ on day $\tau$ is $1$ if its repair
+is complete on day $\tau$ and its entering state otherwise. The capacity loss of pole $p$ on day
+$\tau$ is $1$ if some component of $p$ is under repair, and the maximum of the capacity losses
+$\ell_m = (100 - P_{\mathrm{evac}})/100$ of its components otherwise. The penalty is $\pi$ times
+this loss on every day that is not declared penalty-free, the declared days exempting every
+loss, due to maintenance or to degradation. A maintained component returns to the new state,
+and every other component transitions once, through $P^{\mathrm{period}}$, at the end of the
+period. The cost recorded for a trajectory (\texttt{total\_cost} in the result files) is this
+true cost, not its separable approximation (reported separately as \texttt{lp\_cost}). The
+result files now carry the suffix \texttt{\_paper} (\texttt{MODEL\_VERSION}), so that the
+results and caches computed with the former cost model are never resumed. The simplified
+instances keep their own simulator (Section~\ref{sec:simplified}).
+
+\paragraph{Master LP.} For the observed state $(x_0, k_0)$ and a fluid horizon $H$, the master
+LP (\texttt{build\_master\_paper}) has the variables $\mu^1_b$, $b \in \mathcal B'_1 \subseteq
+\mathcal B(x_0)$, with the true cost $c_\otimes(x_0, b) = \mathrm{Tc}$ above as objective
+coefficient, the variables $q^m_{(n,k),(\mathrm{mode},\kappa),t}$ for $t \in [2:H]$ and
+$\kappa \le k$ (local state-action constraint), with the separable cost of the paper
+\[
+  \tilde c_m\big((n,k),(\mathrm{mode},\kappa)\big) = \mathbb 1_{\{\mathrm{mode} = 2\}}\,\mathrm{cc}_m
+  + (T - \kappa)\,\pi\,\ell_m(n)
+  \qquad (\texttt{paper\_local\_cost}),
+\]
+and the variables $\mu_{b,t}$, $b \in \mathcal B'_t \subseteq \mathcal B$, $t \in [2:H]$, with the
+joint action cost $f(b)$ (\texttt{column\_penalty}). The constraints are $\sum_b \mu^1_b = 1$,
+the initial condition
+\[
+  \sum_{\mathrm{mode},\kappa} q^m_{(n,k),(\mathrm{mode},\kappa),2}
+  = \sum_{b \in \mathcal B'_1} p_m(n \mid n_{0,m}, \delta_m(b))\,
+    \mathbb 1_{\{k = \phi_1(k_{0,p(m)}, \kappa_{p(m)}(b))\}}\, \mu^1_b,
+\]
+the local flow constraints for $t \in [3:H]$ (with the yearly reset of the quota), the
+consistency constraints $\sum_{n,k} q^m_{(n,k),(\mathrm{mode},\kappa),t} = \sum_{b \mid A_m(b) =
+(\mathrm{mode},\kappa)} \mu_{b,t}$ for $t \in [2:H]$, and the quota consistency constraints
+between the components of a pole for $t \in [2:H]$.
+
+\paragraph{Pricing problems.} At $t \ge 2$, the pricing problem is \texttt{solve\_pricing}
+(Section~\ref{sec:pricing}), whose objective $f(b) + \sum_m \lambda_t^{m,A_m(b)}$ is the reduced
+cost of the paper. At $t = 1$, \texttt{solve\_pricing\_first} minimises $c_\otimes(x_0, b) +
+\sum_m \sum_x \nu^m_x\, p_m(x \mid x_{0,m}, A_m(b)) - \eta$ over $\mathcal B(x_0)$, i.e.\ with
+the quota constraint $\kappa_p \le k_{0,p}$. The true cost is linearised with continuous
+auxiliary variables, $L_{p,\tau} \ge \ell_m(n_{0,m}) - (\ell_m(n_{0,m}) - \ell_m(1))\,
+\mathrm{done}_{m,\tau}$ for every $m$ of $p$ (maximum of the losses, $\mathrm{done}_{m,\tau}$
+being $1$ iff the repair of $m$ is complete on day $\tau$), $u_{p,\tau} \ge \mathrm{any}_{p,\tau}
+- \mathrm{free}_{p,\tau}$ (maintenance day not declared penalty-free) and $v_{p,\tau} \ge
+L_{p,\tau} - \mathrm{any}_{p,\tau} - \mathrm{free}_{p,\tau}$ (day without maintenance not declared
+penalty-free), with objective $\sum_m \mathrm{cc}_m z_m + \sum_{p,\tau} \pi_\tau (u_{p,\tau} +
+v_{p,\tau})$. These variables only appear in the objective, with nonnegative coefficients, so
+they take the values they represent at the optimum.
+
+\paragraph{Policy.} The applied joint action is the column of largest weight $\mu^{1\star}_b$
+(Section 3.4 of the paper). The shared heuristic of Section~\ref{sec:heuristic-extraction}
+(\texttt{--no-heuristic}) does not apply to \texttt{fluid\_cg}. The columns found for a state
+are kept, per $(t_0, H)$, to initialise the column generation of the next states.
+
+\paragraph{Order 2 (\texttt{fluid\_cg\_order2}, Section 4.2 of the paper).} With
+\texttt{pairs = same\_pole\_pairs(fd)}, the master LP also has, for every pair $G = (m_1, m_2)$ of
+components of a same pole and every $t \in [2:H]$, the variables
+$q^G_{(n_1,n_2,k),(d_1,d_2,\kappa),t}$, indexed by the single quota $k$ and number of declared
+days $\kappa \le k$ of the pole (which enforces the constraints (eq:order-k-admissible) and
+(eq:order-k-copies)), with the cost of order 2 $-(T - \kappa)\,\pi\,\min(\ell_{m_1}(n_1),
+\ell_{m_2}(n_2))$ (\texttt{paper\_pair\_cost}). Its constraints are the initial condition of
+order 2 at $t = 2$ (in the $\mu^1_b$), the flow of order 2 for $t \in [3:H]$ with the product
+kernel $p_{m_1} p_{m_2}$, the consistency of order 2 $\sum_{x_G} q^G_{x_G,a_G,t} = \sum_{b \mid
+A_G(b) = a_G} \mu_{b,t}$, and the marginalisation onto each component of the pair. Only the
+pairs of a same pole are used, not every group of $\mathcal G_2$: for several poles, the pairs
+of components of different poles would carry the quotas of two poles and multiply the size of
+the LP, while the cost of order 2 only concerns the pairs of a same pole. This family of groups
+is closed under taking subsets, so that the LP is still a relaxation (Proposition 9 applies
+unchanged). The pricing problems include the duals of the constraints of order 2, through the
+indicators $\mathbb 1\{A_G(b) = a_G\}$, linearised by $w = z_{m_1} \wedge z_{m_2} \wedge
+\ksel_{p,\kappa}$. The transition probabilities of the pairs range down to $10^{-16}$, and the
+master LP is solved without presolve (\texttt{Presolve = 0}), which avoids the numerical trouble
+of Gurobi (quad precision, Markowitz tolerance) observed with presolve.
+
+\paragraph{Lift-and-project (\texttt{lift\_project}, Section 4.3 of the paper).} With
+\texttt{cuts = true}, the cuts (C) of Proposition 11 are generalised to the local actions, for the
+pairs $m_1 \ne m_2$ of components of a same pole, the local states $x_i = (n_i, k)$ and the local
+actions $a_i = (d_i, \kappa)$ with the same quota $k$ and number of declared days $\kappa$ (the
+joint probability of different quotas of a same pole being $0$):
+\[
+  q^{m_1}_{x_1,a_1,t} + q^{m_2}_{x_2,a_2,t} \;\le\;
+  \sum_{b \mid A_{m_1}(b) = a_1 \text{ or } A_{m_2}(b) = a_2} \mu_{b,t} \;+\; \tau^+,
+\]
+with $\tau^+ = \sum p_{m_1}(n_1 \mid n_1', d_1')\, p_{m_2}(n_2 \mid n_2', d_2')\,
+\min\big(q^{m_1}_{(n_1',k'),(d_1',\kappa'),t-1}, q^{m_2}_{(n_2',k'),(d_2',\kappa'),t-1}\big)$, the sum
+being over $(d_1', d_2')$, $(n_1', n_2')$ and the predecessor quotas $(k', \kappa')$ of $k$, for
+$t \ge 3$, and with the exact joint distribution $\sum_b \mu^1_b\, p_{m_1}(n_1 \mid n_{0,m_1},
+\delta_{m_1}(b))\, p_{m_2}(n_2 \mid n_{0,m_2}, \delta_{m_2}(b))\, \mathbb 1\{k = \phi_1(k_0,
+\kappa(b))\}$ of the two local states for $t = 2$, since the state at $t = 1$ is fixed. Each
+$\min$ is represented by a variable $z \le q_1$, $z \le q_2$. The cuts are generated by a
+cutting-plane loop (at most \texttt{max\_cuts\_per\_round} most violated cuts per round, then
+column generation again). The columns added after a cut enter its right-hand side
+(\texttt{add\_column\_paper!}, \texttt{add\_first\_column!}), and the duals of the cuts enter
+the pricing problems, so that the column generation stays exact. This corrects the former
+implementation (\texttt{lift\_project\_legacy}), whose cuts ignored the columns added after them
+and whose pricing problems ignored the duals of the cuts.
+
+\paragraph{Compact fluid LP (\texttt{compact}, Section 3.3 of the paper).}
+\texttt{compact\_paper.jl} builds the LP (eq:compact-fluid) for the observed state. The variables
+$q^m_{x,a,t}$ are defined for every $t \in [1:H]$, with the initial condition at $t = 1$, the
+local flow, the quota consistency, and the cost $\tilde c_m$ at $t \ge 2$ only. For every $t$,
+the variables of the MILP formulation of $\mathcal B$ (start days on the grid, penalty-free days,
+indicators of the number of declared days) are relaxed into $[0,1]$. At $t = 1$, they also
+satisfy the quota constraint $\kappa \le k_0$, and carry the auxiliary variables $L$, $u$, $v$ of
+the true cost, the cost of the first time step being $c_\otimes(x_0, \bar b_1) = \sum_m
+\mathrm{cc}_m z_{m,1} + \sum \pi (u + v)$. At $t \ge 2$, the cost is $f(\bar b_t) = \sum \pi
+(\mathrm{any} - w)$. The consistency constraints are $\sum q^m_{x,(2,\kappa),t} = z_{m,t}$ and
+$\sum \kappa\, q^m_{x,(d,\kappa),t} = \sum_\tau \free_{p(m),\tau,t}$, for every $t$. The policy
+maintains the components with $z_{m,1}^\star > 1/2$ (\texttt{schedule\_paper}): each one starts
+on the earliest day of the grid compatible with the technician capacity, the most degraded first,
+and the declared penalty-free days of each pole are its days of largest loss, maintenance days
+first, their number being the largest multiple of $\mathrm{QS}$ at most the remaining quota and at
+most the number of days with a positive loss.
+
+\section{Master LP of the Full Fluid LP (column generation)}
+\label{sec:master}
+
+Coded in \texttt{fluid\_lp\_cg.jl}, function \texttt{build\_master} (variables
+\texttt{q}) together with \texttt{add\_column!} (variables $\mu$, added incrementally by
+column generation). This is Eq.~(4) of the paper (Section 3.1), together with its
+consistency-to-columns constraint of Section 3.2 (Eq.~(4c)/(5)).
+
+\begin{remark}[Strengthening the intra-pole link]
+\label{rem:strengthen}
+A first version of this master LP tied the components of a pole together only through an
+\emph{intra-pole quota-copy} constraint, requiring every component of a pole to have the
+same marginal \emph{over $(k,\kappa)$ only} as a reference component (i.e.\ the same
+probability of being at quota $k$ and using $\kappa$ free days, regardless of which joint
+action $b$ produced that $\kappa$). This is strictly weaker than requiring the components
+to agree on the full joint distribution of $(k,b)$. We now enforce the stronger property
+directly: every component of a pole is tied to the very \emph{same} variable
+$\mu^{(p)}_{k,b,t}$ below, so that ``the pole's quota is $k$ and the chosen action is $b$''
+is a single shared random event for all of its components, not just a matching marginal.
+The former quota-copy constraint is then implied and dropped from the master (it is kept,
+unchanged, in the Compact Fluid LP of Section~\ref{sec:compact}, which has no notion of a
+discrete action $b$ to refine against).
+\end{remark}
+
+\subsection*{Variables}
+\begin{align*}
+  q_{m,x,a,k,\kappa,t} &\ge 0
+  &&\forall m \in [M],\ x \in [n_m],\ a \in \{1,2\},\
+     0 \le \kappa \le k \le K_0(\pole(m)),\ t \in [H], \\
+  \mu_{b,t} &\ge 0
+  &&\forall b \in \mathcal B' \subseteq \mathcal B,\ t \in [H], \\
+  \mu^{(p)}_{k,b,t} &\ge 0
+  &&\forall p \in [K],\ b \in \mathcal B',\ k \in \{\kappa_p(b),\dots,K_0(p)\},\ t \in [H],
+\end{align*}
+where $\mathcal B'$ is the restricted set of columns generated so far (each column
+$b = (\mathrm{start}, \mathrm{free})$ fixes a start day $\mathrm{start}_m \in \{0\} \cup
+\{1,\dots,L_m\}$ for every component, $0$ meaning ``not maintained'', and a set of free
+days $\mathrm{free}_p \subseteq \{1,\dots,T\}$ for every pole; \texttt{Column} struct).
+Write $A_m(b) := 2$ if $\mathrm{start}_m > 0$, else $1$ (\texttt{column\_mode}), and
+$\kappa_p(b) := |\mathrm{free}_p|$ (\texttt{column\_kappa}). The new variable
+$\mu^{(p)}_{k,b,t}$ (only created for $k \ge \kappa_p(b)$, i.e.\ for the quota states at
+which using $b$ is feasible on pole $p$) is the joint probability that pole $p$'s quota is
+exactly $k$ \emph{and} the chosen action is $b$, at stage $t$; it does not depend on which
+component of the pole we consider (Remark~\ref{rem:strengthen}).
+
+\subsection*{Objective}
+\[
+  \min \; \sum_{m,x,a,k,\kappa,t} c_m(x,a)\, q_{m,x,a,k,\kappa,t}
+  \;+\; \sum_{b \in \mathcal B',\,t} f(b)\, \mu_{b,t},
+\]
+where $f(b)$ is the joint (schedule) cost of column $b$ (\texttt{column\_penalty}):
+\[
+  f(b) \;=\; \sum_{p=1}^K \; \sum_{\tau=1}^T \mathrm{pen}_p(\tau)\cdot
+    \mathbb 1\bigl\{\, \tau \notin \mathrm{free}_p \ \text{and}\ \exists\, m \in
+    \mathrm{comps\_of\_pole}(p):\ \mathrm{start}_m \le \tau \le \mathrm{start}_m+d_m-1 \,\bigr\}.
+\]
+
+\subsection*{Constraints}
+
+\textbf{Initial condition} ($x_0, k_0$ the current observed state):
+\[
+  \sum_{a=1}^{2}\ \sum_{\kappa=0}^{k_0(\pole(m))} q_{m,x,a,k_0(\pole(m)),\kappa,1}
+  \;=\; \mathbb 1\{x = x_{0,m}\}
+  \qquad \forall m \in [M],\ x \in [n_m]. \tag{Init}
+\]
+
+\textbf{Flow, no reset between $t{-}1$ and $t$} ($t \ge 2$):
+\[
+  \sum_{a=1}^{2}\ \sum_{\kappa=0}^{k_n} q_{m,x,a,k_n,\kappa,t}
+  \;=\;
+  \sum_{x' \in [n_m]}\ \sum_{a=1}^{2}\ \sum_{\kappa'=0}^{K_0(\pole(m))-k_n}
+    p^a_m(x \mid x')\; q_{m,x',a,\,k_n+\kappa',\,\kappa',\,t-1}
+  \tag{Flow}
+\]
+for all $m, x \in [n_m], k_n \in \{0,\dots,K_0(\pole(m))\}$.
+
+\textbf{Flow, reset between $t{-}1$ and $t$} ($t \ge 2$):
+\[
+  \sum_{a=1}^{2}\ \sum_{\kappa=0}^{k_n} q_{m,x,a,k_n,\kappa,t} \;=\; 0
+  \qquad \text{if } k_n \ne K_0(\pole(m)),
+\]
+\[
+  \sum_{a=1}^{2}\ \sum_{\kappa=0}^{K_0(\pole(m))} q_{m,x,a,K_0(\pole(m)),\kappa,t}
+  \;=\;
+  \sum_{x'}\ \sum_{a=1}^{2}\ \sum_{k=0}^{K_0(\pole(m))}\ \sum_{\kappa=0}^{k}
+    p^a_m(x \mid x')\; q_{m,x',a,k,\kappa,t-1}
+  \qquad \text{if } k_n = K_0(\pole(m)). \tag{Flow-reset}
+\]
+
+\textbf{Consistency with the joint action, at a specific quota $k$} (this is where the
+columns enter the master; $\mathrm{cons}[m,a,k,\kappa,t]$ in the code):
+\[
+  \sum_{x \in [n_m]}\ q_{m,x,a,k,\kappa,t}
+  \;-\;
+  \sum_{\substack{b \in \mathcal B':\\ A_m(b)=a,\ \kappa_{\pole(m)}(b)=\kappa}} \mu^{(\pole(m))}_{k,b,t}
+  \;=\; 0
+  \tag{Cons}
+\]
+for all $m \in [M]$, $a \in \{1,2\}$, $0 \le \kappa \le k \le K_0(\pole(m))$, $t \in [H]$.
+Unlike a first version, the right-hand side is \emph{not} aggregated over $k \ge \kappa$
+any more: it isolates the exact quota level $k$, and --- crucially --- uses the same
+variable $\mu^{(\pole(m))}_{k,b,t}$ for \emph{every} component $m$ of the pole
+(Remark~\ref{rem:strengthen}), which is what makes the $(k,b)$ joint marginal identical
+across components rather than merely their $(k,\kappa)$ marginals.
+
+\textbf{Disaggregation} (ties the new variables back to $\mu_{b,t}$; created together with
+$b$ itself in \texttt{add\_column!}, so it never needs a $\mathcal B'$-independent
+statement):
+\[
+  \sum_{k=\kappa_p(b)}^{K_0(p)} \mu^{(p)}_{k,b,t} \;=\; \mu_{b,t}
+  \qquad \forall p \in [K],\ b \in \mathcal B',\ t \in [H]. \tag{Disagg}
+\]
+
+Every new column $b$ is added (\texttt{add\_column!}) by, for every $t$ and every pole
+$p$: creating $\mu_{b,t}$ (objective coefficient $f(b)$) and, for every
+$k \in \{\kappa_p(b),\dots,K_0(p)\}$, a variable $\mu^{(p)}_{k,b,t}$ entering
+$(\mathrm{Disagg})_{p,b,t}$ with coefficient $+1$ and $(\mathrm{Cons})$ at
+$\bigl(m, A_m(b), k, \kappa_p(b)\bigr)$ with coefficient $-1$, for \emph{every}
+$m \in \mathrm{comps\_of\_pole}(p)$ (including the components $b$ does not maintain,
+which then get a $-1$ in their own $a=1$ row).
+
+\textbf{Non-negativity:} $q,\mu,\mu^{(p)} \ge 0$.
+
+\begin{remark}[Why $(\mathrm{Cons})$ is needed at $a=1$ too]
+\label{rem:sum-to-one}
+$(\mathrm{Cons})$ is imposed for \emph{both} $a=1$ (not maintained) and $a=2$ (maintained)
+--- not only for $a=2$ --- and this is what guarantees $\sum_{b \in \mathcal B'} \mu_{b,t}=1$
+for every $t$, as it must be since the $\mu_{b,t}$ are meant to be a probability
+distribution over $\mathcal B'$. Fix $m \in [M]$ and sum $(\mathrm{Cons})$ over
+$a \in \{1,2\}$ and every valid $(k,\kappa)$:
+\[
+  \underbrace{\sum_{a=1}^2\ \sum_{0 \le \kappa \le k \le K_0(\pole(m))}\ \sum_{x} q_{m,x,a,k,\kappa,t}}_{=\ 1
+  \text{ (total probability mass of component } m \text{, by (Init)/(Flow)/(Flow-reset))}}
+  \;=\;
+  \sum_{a,k,\kappa}\ \sum_{\substack{b \in \mathcal B':\\ A_m(b)=a,\ \kappa_{\pole(m)}(b)=\kappa}} \mu^{(\pole(m))}_{k,b,t}.
+\]
+Every $b \in \mathcal B'$ has a single, well-defined $\bigl(A_m(b), \kappa_{\pole(m)}(b)\bigr)$,
+so as $(a,\kappa)$ ranges over all valid pairs, each $b$ contributes on the right-hand side
+exactly once, at its own pair, and then once more summed over $k$; by $(\mathrm{Disagg})$
+that inner sum over $k$ equals $\mu_{b,t}$. Hence the right-hand side is exactly
+$\sum_{b \in \mathcal B'} \mu_{b,t}$, and the identity above reads $1 = \sum_b \mu_{b,t}$.
+Had $(\mathrm{Cons})$ been imposed only for $a=2$, the ``not maintained'' part of $q$ would
+be left unconstrained by any column, and nothing would force this sum to $1$.
+\end{remark}
+
+\begin{remark}
+Dualising $(\mathrm{Cons})$ gives, for a fixed stage $t$, the dual vector
+$\lambda_t^{m,a,k,\kappa} := \mathrm{dual}\bigl((\mathrm{Cons})_{m,a,k,\kappa,t}\bigr)$
+(\texttt{consistency\_duals}), used by the pricing problem of Section~\ref{sec:pricing}.
+The dual of $(\mathrm{Disagg})$ is never used: that constraint is created afresh with $b$
+itself, so it carries no information available to future pricing iterations.
+\end{remark}
+
+\section{Pricing MILP of the Full Fluid LP}
+\label{sec:pricing}
+
+Coded in \texttt{fluid\_lp\_cg.jl}, function \texttt{solve\_pricing}. Solved once per
+stage $t \in [H]$ at every column-generation iteration, given the dual vector
+$\lambda_t = (\lambda_t^{m,a,k,\kappa})$ of Section~\ref{sec:master}. This is problem
+(5)/(13) of the paper: find the column of smallest reduced cost
+$\breve c(b,t) = f(b) + \sum_{m} \lambda_t^{m,A_m(b),k,\kappa_{\pole(m)}(b)}$, where $k$ is
+now also chosen by the pricing problem (see Remark~\ref{rem:pricing-k}).
+
+\subsection*{Variables}
+\begin{align*}
+  z_m &\in \{0,1\} &&\forall m \in [M]
+    &&\text{($m$ is maintained this period)}\\
+  s_{m,\tau} &\in \{0,1\} &&\forall m \in [M],\ \tau \in [L_m]
+    &&\text{(maintenance of $m$ starts on day $\tau$; not created if $L_m<1$, then $z_m{=}0$)}\\
+  \any_{p,\tau} &\in [0,1] &&\forall p \in [K],\ \tau \in [T]
+    &&\text{(relaxed: some component of $p$ under maintenance on day $\tau$)}\\
+  \free_{p,\tau} &\in \{0,1\} &&\forall p \in [K],\ \tau \in [T]
+    &&\text{(day $\tau$ of pole $p$ declared penalty-free)}\\
+  w_{p,\tau} &\in [0,1] &&\forall p \in [K],\ \tau \in [T]
+    &&\text{(relaxed linearisation of $\any_{p,\tau} \wedge \free_{p,\tau}$)}\\
+  \ksel_{p,(k,\kappa)} &\in \{0,1\} &&\forall p \in [K],\ 0 \le \kappa \le k \le K_0(p)
+    &&\text{(pole $p$'s quota is $k$ and $\kappa$ free days are used)}\\
+  y_{m,k,\kappa} &\in [0,1] &&\forall m \in [M],\ 0 \le \kappa \le k \le K_0(\pole(m))
+    &&\text{(linearisation of $z_m \wedge \ksel_{\pole(m),(k,\kappa)}$).}
+\end{align*}
+\begin{remark}[Pricing must also choose $k$]
+\label{rem:pricing-k}
+Since the master now disaggregates $\mu_{b,t}$ by the pole's remaining quota $k$
+(Section~\ref{sec:master}), pricing must decide, for every pole, not only how many free
+days $\kappa$ to use but also \emph{at which quota level $k \ge \kappa$} the new mass is
+attached: this is why the selection variable $\ksel_{p,\kappa}$ of a first version is
+enlarged from $\kappa$ alone to valid pairs $(k,\kappa)$. The McCormick linearisation
+$y_{m,k,\kappa} = z_m \wedge \ksel_{\pole(m),(k,\kappa)}$ has the exact same structure as
+before, just re-indexed.
+
+\textcolor{red}{The $k$ found by the pricing MILP is only a \emph{witness}: it certifies
+that, for pole $p$, there exists at least one quota level $k \ge \kappa$ at which schedule
+$b$ has negative reduced cost, which is enough to justify adding $b$ to $\mathcal B'$. Once
+$b$ is accepted, \texttt{add\_column!} does \emph{not} restrict itself to that particular
+$k$: it creates $\mu^{(p)}_{k,b,t}$ for \emph{every} valid $k \in \{\kappa_p(b),\dots,K_0(p)\}$
+(Section~\ref{sec:master}). It is then the master LP itself that decides, across all of
+these, how much mass to actually place at each $k$.}
+\end{remark}
+\begin{remark}
+$\any$ and $w$ are declared \emph{continuous} in $[0,1]$ (not binary) in the code: since
+the objective below penalises $\any_{p,\tau}$ and rewards $w_{p,\tau}$, and both are
+sandwiched between binary quantities by the constraints below, they take integral values
+at every optimal solution --- relaxing them only speeds up the solver.
+\end{remark}
+
+\begin{remark}[Only two of the three usual AND-linearisation constraints]
+\label{rem:w-linearisation}
+$w_{p,\tau}$ linearises $\any_{p,\tau} \wedge \free_{p,\tau}$, and the textbook
+linearisation of an AND of two binaries needs three constraints:
+$w \le \any$, $w \le \free$, and $w \ge \any + \free - 1$ (to stop $w$ from being picked
+\emph{smaller} than the true AND). Below, only the first two are imposed. This is safe
+here because $w_{p,\tau}$ enters the objective solely through the term
+$-\mathrm{pen}_p(\tau)\, w_{p,\tau}$, with $\mathrm{pen}_p(\tau) \ge 0$, in a
+\emph{minimisation}: increasing $w_{p,\tau}$, up to its upper bound
+$\min(\any_{p,\tau}, \free_{p,\tau})$, only ever decreases the objective and is never
+penalised elsewhere, so the solver always pushes $w_{p,\tau}$ up to exactly
+$\min(\any_{p,\tau}, \free_{p,\tau})$ at any optimum --- precisely the AND value once
+$\any_{p,\tau}, \free_{p,\tau} \in \{0,1\}$. The third constraint would therefore never
+change the optimal solution; it is dropped as redundant, matching the pricing MILP of
+\texttt{column\_generation/column\_generation.jl} that this code was adapted from. (The
+Compact Fluid LP of Section~\ref{sec:compact} keeps all three inequalities on its own
+$w_{p,\tau,t}$, by the same reasoning applying just as well there; they are kept there
+only for extra caution, not because they are needed.)
+\end{remark}
+Define the auxiliary expression (not a variable; \texttt{ong} in the code)
+\[
+  \ong_{m,\tau} \;:=\; \sum_{s\,=\,\max(1,\tau-d_m+1)}^{\min(\tau,L_m)} s_{m,s}
+  \qquad(\text{$1$ iff $m$ is under maintenance on day }\tau).
+\]
+
+\subsection*{Constraints}
+\begin{align}
+  \sum_{\tau=1}^{L_m} s_{m,\tau} &= z_m
+    &&\forall m \in [M] \tag{10}\\
+  \sum_{m=1}^{M} \rho_m\, \ong_{m,\tau} &\le R
+    &&\forall \tau \in [T] \tag{11}\\
+  \any_{p,\tau} &\ge \ong_{m,\tau}
+    &&\forall p \in [K],\ m \in \mathrm{comps\_of\_pole}(p),\ \tau \in [T] \\
+  w_{p,\tau} &\le \free_{p,\tau}, \qquad w_{p,\tau} \le \any_{p,\tau}
+    &&\forall p \in [K],\ \tau \in [T] \\
+  \sum_{0 \le \kappa \le k \le K_0(p)} \ksel_{p,(k,\kappa)} &= 1
+    &&\forall p \in [K] \tag{12a}\\
+  \sum_{\tau=1}^{T} \free_{p,\tau} &= \sum_{0 \le \kappa \le k \le K_0(p)} \kappa\, \ksel_{p,(k,\kappa)}
+    &&\forall p \in [K] \tag{12b}\\
+  y_{m,k,\kappa} &\le z_m, \qquad y_{m,k,\kappa} \le \ksel_{\pole(m),(k,\kappa)}, \qquad
+    y_{m,k,\kappa} \ge z_m + \ksel_{\pole(m),(k,\kappa)} - 1
+    &&\forall m \in [M],\ \kappa \le k \le K_0(\pole(m))
+\end{align}
+
+\subsection*{Objective (reduced cost of Eq.~(13))}
+\[
+  \min\;\; \underbrace{\sum_{p=1}^K \sum_{\tau=1}^T \mathrm{pen}_p(\tau)\,
+      \bigl(\any_{p,\tau} - w_{p,\tau}\bigr)}_{=\ f(b)}
+  \;+\;
+  \sum_{m=1}^{M}\ \sum_{0 \le \kappa \le k \le K_0(\pole(m))}
+    \Bigl[\, \lambda_t^{m,1,k,\kappa}\, \ksel_{\pole(m),(k,\kappa)}
+    \;+\; \bigl(\lambda_t^{m,2,k,\kappa} - \lambda_t^{m,1,k,\kappa}\bigr)\, y_{m,k,\kappa} \,\Bigr].
+\]
+\begin{remark}
+The bracketed term equals $\sum_m \lambda_t^{m,A_m(b),k^\star,\kappa^\star}$: for a
+component with $z_m=0$ (not maintained) $y_{m,k,\kappa}=0$ for every $(k,\kappa)$, so its
+contribution reduces to $\lambda_t^{m,1,k^\star,\kappa^\star}$ where $(k^\star,\kappa^\star)$
+is the pair selected by $\ksel_{\pole(m),\cdot}$; for a component with $z_m=1$, the
+McCormick constraints force $y_{m,k,\kappa}=\ksel_{\pole(m),(k,\kappa)}$, so the
+contribution reduces to $\lambda_t^{m,2,k^\star,\kappa^\star}$. Since $\ksel_{p,\cdot}$ is
+shared by every component of pole $p$, all of them agree on the same $(k^\star,\kappa^\star)$
+--- consistently with the master's variable $\mu^{(p)}_{k^\star,b,t}$ being common to the
+whole pole.
+\end{remark}
+
+\subsection*{Extraction of the column}
+$\mathrm{start}_m = \tau$ if $z_m=1$ and $s_{m,\tau}=1$, else $0$; $\mathrm{free}_p =
+\{\tau : \free_{p,\tau}=1\}$. The column is added to $\mathcal B'$ (Section
+\ref{sec:master}) whenever its reduced cost is below a tolerance $-\mathrm{tol}$.
+
+\section{Light Fluid LP: quota as a subsystem}
+\label{sec:light}
+
+Coded in \texttt{fluid\_cg\_light.jl}, functions \texttt{build\_master\_light} /
+\texttt{add\_column\_light!} (master LP) and \texttt{solve\_pricing\_light} (pricing MILP).
+This is an alternative to the Master LP of Section~\ref{sec:master}: instead of giving every
+component $m$ of a pole its own copy of the pole's quota state, so that $q$ carries
+$(x,k,\kappa)$ jointly (Section~\ref{sec:master}'s local state $(x,k)$ and local action
+$(a,\kappa)$), we introduce one extra \emph{quota subsystem} per pole $p$, whose local state
+is $k \in \{0,\dots,K_0(p)\}$ and local action is $\kappa \in \{0,\dots,k\}$, and let every
+real component $m$ carry only its own $(x,a)$. This drops the exact correlation between a
+component's state and its pole's quota level that Section~\ref{sec:master}'s design tracks,
+giving a (weakly) looser bound $Z^{\mathrm{light}} \le Z$, but removes the $(k,\kappa)$
+blow-up of every component's index and the disaggregated $\mu^{(p)}_{k,b,t}$ variables
+entirely: consistency ties each real component straight to $\mu_{b,t}$ on its own mode, and
+each quota subsystem straight to $\mu_{b,t}$ on its own $\kappa$, with no per-$k$
+bookkeeping needed on either side.
+
+\subsection*{Variables}
+\begin{align*}
+  q_{m,x,a,t} &\ge 0
+  &&\forall m \in [M],\ x \in [n_m],\ a \in \{1,2\},\ t \in [H], \\
+  q^{\kappa}_{p,k,\kappa,t} &\ge 0
+  &&\forall p \in [K],\ 0 \le \kappa \le k \le K_0(p),\ t \in [H], \\
+  \mu_{b,t} &\ge 0
+  &&\forall b \in \mathcal B' \subseteq \mathcal B,\ t \in [H],
+\end{align*}
+where $q^{\kappa}_{p,k,\kappa,t}$ is the probability that pole $p$'s quota subsystem is in
+state $k$ and takes action $\kappa$ at stage $t$ (\texttt{qk} in the code); $q_{m,x,a,t}$ no
+longer carries $(k,\kappa)$ at all, unlike Section~\ref{sec:master}.
+
+\subsection*{Objective}
+\[
+  \min \; \sum_{m,x,a,t} c_m(x,a)\, q_{m,x,a,t}
+  \;+\; \sum_{b \in \mathcal B',\,t} f(b)\, \mu_{b,t},
+\]
+with $c_m$ and $f$ exactly as in Section~\ref{sec:master} ($q^{\kappa}$ carries no cost).
+
+\subsection*{Constraints}
+
+\textbf{Initial condition} ($x_0, k_0$ the current observed state):
+\[
+  \sum_{a=1}^{2} q_{m,x,a,1} \;=\; \mathbb 1\{x = x_{0,m}\}
+  \qquad \forall m \in [M],\ x \in [n_m],
+\]
+\[
+  \sum_{\kappa=0}^{k} q^{\kappa}_{p,k,\kappa,1} \;=\; \mathbb 1\{k = k_{0}(p)\}
+  \qquad \forall p \in [K],\ k \in \{0,\dots,K_0(p)\}.
+\]
+
+\textbf{Flow of a real component} ($t \ge 2$; ordinary single-component MDP flow, with no
+quota entanglement at all):
+\[
+  \sum_{a=1}^{2} q_{m,x,a,t}
+  \;=\;
+  \sum_{x' \in [n_m]}\ \sum_{a=1}^{2} p^a_m(x \mid x')\; q_{m,x',a,t-1}
+  \qquad \forall m \in [M],\ x \in [n_m]. \tag{Flow-$q$}
+\]
+
+\textbf{Flow of a quota subsystem, no reset between $t{-}1$ and $t$} ($t \ge 2$):
+\[
+  \sum_{\kappa=0}^{k} q^{\kappa}_{p,k,\kappa,t}
+  \;=\;
+  \sum_{\kappa'=0}^{K_0(p)-k} q^{\kappa}_{p,\,k+\kappa',\,\kappa',\,t-1}
+  \qquad \forall p \in [K],\ k \in \{0,\dots,K_0(p)\}. \tag{Flow-$q^\kappa$}
+\]
+
+\textbf{Flow of a quota subsystem, reset between $t{-}1$ and $t$} ($t \ge 2$):
+\[
+  \sum_{\kappa=0}^{k} q^{\kappa}_{p,k,\kappa,t} \;=\; 0 \quad \text{if } k \ne K_0(p),
+  \qquad
+  \sum_{\kappa=0}^{K_0(p)} q^{\kappa}_{p,K_0(p),\kappa,t}
+  \;=\;
+  \sum_{k'=0}^{K_0(p)}\ \sum_{\kappa'=0}^{k'} q^{\kappa}_{p,k',\kappa',t-1}
+  \quad \text{if } k = K_0(p). \tag{Flow-$q^\kappa$-reset}
+\]
+
+\textbf{Consistency, real components:}
+\[
+  \sum_{x \in [n_m]} q_{m,x,a,t}
+  \;-\;
+  \sum_{\substack{b \in \mathcal B':\\ A_m(b)=a}} \mu_{b,t}
+  \;=\; 0
+  \qquad \forall m \in [M],\ a \in \{1,2\},\ t \in [H]. \tag{Cons-$q$}
+\]
+
+\textbf{Consistency, quota subsystems:}
+\[
+  \sum_{k=\kappa}^{K_0(p)} q^{\kappa}_{p,k,\kappa,t}
+  \;-\;
+  \sum_{\substack{b \in \mathcal B':\\ \kappa_p(b)=\kappa}} \mu_{b,t}
+  \;=\; 0
+  \qquad \forall p \in [K],\ \kappa \in \{0,\dots,K_0(p)\},\ t \in [H]. \tag{Cons-$q^\kappa$}
+\]
+
+Every new column $b$ is added (\texttt{add\_column\_light!}) by, for every $t$: creating
+$\mu_{b,t}$ (objective coefficient $f(b)$) and entering it with coefficient $-1$ in
+$(\mathrm{Cons}\text{-}q)_{m,A_m(b),t}$ for every $m \in [M]$, and in
+$(\mathrm{Cons}\text{-}q^\kappa)_{p,\kappa_p(b),t}$ for every $p \in [K]$ -- no
+disaggregation step is needed, unlike Section~\ref{sec:master}.
+
+\textbf{Non-negativity:} $q, q^\kappa, \mu \ge 0$.
+
+\subsection*{Pricing MILP}
+
+Coded in \texttt{fluid\_cg\_light.jl}, function \texttt{solve\_pricing\_light}. Dualising
+$(\mathrm{Cons}\text{-}q)$ and $(\mathrm{Cons}\text{-}q^\kappa)$ gives, at a fixed stage $t$,
+duals $\lambda_t^{m,a} := \mathrm{dual}((\mathrm{Cons}\text{-}q)_{m,a,t})$ and
+$\lambda^{\kappa}_{t,p,\kappa} := \mathrm{dual}((\mathrm{Cons}\text{-}q^\kappa)_{p,\kappa,t})$
+(\texttt{consistency\_duals\_light}). The pricing problem is
+\[
+  \min_{b \in \mathcal B} \;\; f(b) \;+\; \sum_{m=1}^M \lambda_t^{m,A_m(b)}
+  \;+\; \sum_{p=1}^K \lambda^{\kappa}_{t,p,\kappa_p(b)}.
+\]
+Since neither dual depends jointly on $(a,\kappa)$ any more, the reduced cost is already
+linear in the schedule variables separately: it uses the same variables
+$z_m, s_{m,\tau}, \any_{p,\tau}, \free_{p,\tau}, w_{p,\tau}$ as Section~\ref{sec:pricing}, and
+a selector $\kappa\mathrm{sel}_{p,\kappa} \in \{0,1\}$, $\kappa \in \{0,\dots,K_0(p)\}$
+(\emph{without} $k$, unlike $\ksel_{p,(k,\kappa)}$ of Section~\ref{sec:pricing}), subject to
+constraints (10), (11) and
+\[
+  \sum_{\kappa=0}^{K_0(p)} \kappa\mathrm{sel}_{p,\kappa} = 1,
+  \qquad
+  \sum_{\tau=1}^{T} \free_{p,\tau} = \sum_{\kappa=0}^{K_0(p)} \kappa\, \kappa\mathrm{sel}_{p,\kappa}
+  \qquad \forall p \in [K],
+\]
+with objective
+\[
+  \min\;\; \underbrace{\sum_{p=1}^K \sum_{\tau=1}^T \mathrm{pen}_p(\tau)\,
+      \bigl(\any_{p,\tau} - w_{p,\tau}\bigr)}_{=\ f(b)}
+  \;+\; \sum_{m=1}^M \Bigl[\lambda_t^{m,1} + \bigl(\lambda_t^{m,2}-\lambda_t^{m,1}\bigr) z_m\Bigr]
+  \;+\; \sum_{p=1}^K \sum_{\kappa=0}^{K_0(p)} \lambda^{\kappa}_{t,p,\kappa}\, \kappa\mathrm{sel}_{p,\kappa}.
+\]
+\begin{remark}
+No McCormick linearisation is needed: the component term is already linear in $z_m$ (it
+equals $\lambda_t^{m,1}$ at $z_m=0$ and $\lambda_t^{m,2}$ at $z_m=1$), and the quota term is
+already linear in $\kappa\mathrm{sel}_{p,\cdot}$, since $\lambda^\kappa_{t,p,\kappa}$ does not
+depend on $k$. This is the direct counterpart of Remark~\ref{rem:pricing-k}: there is no $k$
+left for the pricing problem to choose a witness for, since $q^\kappa$ is not disaggregated
+by $b$ in the first place.
+\end{remark}
+
+\section{Order-2 higher-order formulation (Section 4.2)}
+\label{sec:order2}
+
+Coded in \texttt{fluid\_cg\_order2.jl}, function \texttt{build\_master\_order2}: adds
+pairwise pseudomarginals on top of the master LP of Section~\ref{sec:master} (built
+unchanged by \texttt{build\_master}), without touching the pricing MILP of
+Section~\ref{sec:pricing} or the columns $\mathcal B'$ at all.
+
+\subsection*{Why pairwise pseudomarginals help here}
+The failure cost $\delta_m(x)$ of Section~\ref{sec:master} is computed component by
+component, assuming every \emph{other} component of the pole is at full capacity
+(\texttt{failure\_cost} in \texttt{instances.jl}). This is exactly the source of
+looseness of Section 4.1: the true capacity of a pole is the \emph{minimum} of its
+components' individual capacities (\texttt{pole\_penalty}), not additively separable, so
+summing $\delta_m$ over the components of a pole under-estimates the cost of two of them
+being degraded \emph{simultaneously}. Cross-pole pairs never interact this way: the
+penalty decomposes additively across poles (\texttt{instance\_penalty}), so for
+$m_1, m_2$ of \emph{different} poles, summing $\delta_{m_1}(x_1) + \delta_{m_2}(x_2)$ is
+already \emph{exact} --- see the remark below for how this is handled.
+
+\subsection*{The pairwise correction $\Delta$}
+For two components $m_1 \ne m_2$ of the \emph{same} pole $p$ (with
+$c_i := \mathrm{comp\_of}(m_i)$, $P_{\mathrm{evac}}$ and $P_{\mathrm{daily}}$ as in
+\texttt{instances.jl}), define the joint failure cost of the pair when neither is
+maintained, propagating their (independent, given no maintenance) daily degradation
+forward from $(x_1,x_2)$:
+\[
+  \delta^{\mathrm{joint}}_{m_1,m_2}(x_1,x_2) \;:=\; \sum_{\tau=1}^{T}
+  \mathrm{pen}_p(\tau) \left(1 - \frac{1}{100} \sum_{s_1,s_2}
+  v_1^{(\tau)}(s_1)\, v_2^{(\tau)}(s_2)\, \min\bigl(P_{\mathrm{evac}}(c_1,s_1),\,
+  P_{\mathrm{evac}}(c_2,s_2)\bigr) \right),
+\]
+where $v_i^{(1)} := \mathbb 1_{x_i}$ and $v_i^{(\tau+1)} := P_{\mathrm{daily}}(c_i)\,
+v_i^{(\tau)}$ (the marginal degradation of component $m_i$ evolved day by day, weather-free).
+The pairwise correction is
+\[
+  \Delta_{m_1,m_2}(x_1,x_2) \;:=\; \delta^{\mathrm{joint}}_{m_1,m_2}(x_1,x_2)
+  - \delta_{m_1}(x_1) - \delta_{m_2}(x_2) \;\le\; 0 \qquad (m_1, m_2 \text{ of the same pole}),
+\]
+(never positive: capacity under the true minimum-of-two model is always at least as good
+as under the additive model, so the joint cost is never larger than the sum of the two
+separate costs). For $m_1, m_2$ of \emph{different} poles, $\delta^{\mathrm{joint}}$ has no
+physical meaning (there is no shared capacity to take a minimum of), and instead
+$\Delta_{m_1,m_2} \equiv 0$ is set directly, by the exact-decomposition argument above.
+
+\begin{remark}[Which pairs are tracked]
+By default, \texttt{compute\_Δ\_pairs} computes $\Delta_{m_1,m_2}$ and tracks \emph{every}
+pair of distinct components, same-pole \emph{and} cross-pole alike --- all
+$\binom{M}{2}$ of them (e.g.\ $\binom{7}{2}=21$ for one pole, $\binom{14}{2}=91$ for two).
+Cross-pole pairs are legitimate to request and are never rejected; since
+$\Delta_{m_1,m_2} \equiv 0$ for them, \texttt{build\_master\_order2} recognises this and
+skips building their (expensive) variables and constraints entirely, so tracking them
+costs nothing beyond computing the (trivially zero) correction once. Two restriction
+mechanisms exist but are \emph{off} unless explicitly requested, in the same spirit as
+lift-and-project (Section~\ref{sec:lift-project}, ``adding only a few well chosen cuts''):
+if \texttt{max\_pair\_states} is given, pairs with $n_{m_1} n_{m_2} >
+\texttt{max\_pair\_states}$ (the most expensive to track) are dropped first; and if
+\texttt{max\_pairs} is given, only that many of the remaining pairs, ranked by largest
+impact $\max_{x_1,x_2} |\Delta_{m_1,m_2}(x_1,x_2)|$, are kept (a pair whose
+$\Delta$ correction is negligible everywhere is not worth its cost). Since every
+cross-pole pair has impact exactly $0$, this ranking naturally sorts them last, so
+restricting to a small \texttt{max\_pairs} automatically prioritises same-pole pairs
+first, without needing to treat the two kinds of pairs separately. Both keywords are
+exposed by \texttt{make\_policy\_fluid\_cg\_order2} for instances where tracking every
+pair is not tractable; a user-supplied explicit list \texttt{pairs} bypasses both filters
+entirely and may freely mix same-pole and cross-pole pairs.
+\end{remark}
+
+\subsection*{Variables}
+For every pair $(m_1,m_2)$ with $\Delta_{m_1,m_2} \not\equiv 0$ (i.e.\ every \emph{same-pole}
+pair that was kept; cross-pole pairs are skipped entirely, see the remark above), writing
+$p$ for their common pole:
+\[
+  p^{\mathrm{pair}}_{m_1,m_2,x_1,x_2,a_1,a_2,k,\kappa,t} \ge 0
+  \qquad \forall x_1 \in [n_{m_1}],\ x_2 \in [n_{m_2}],\ a_1,a_2 \in \{1,2\},\
+  0 \le \kappa \le k \le K_0(p),\ t \in [H]
+\]
+(both local modes $a_1, a_2$, not only ``neither maintained''; see
+Remark~\ref{rem:order2-both-modes} below for why both are needed).
+
+\subsection*{Constraints}
+\textbf{Initial condition} (product of the two deterministic initial states, mirroring
+(Init)):
+\[
+  \sum_{a_1,a_2,\kappa} p^{\mathrm{pair}}_{m_1,m_2,x_1,x_2,a_1,a_2,k_0(p),\kappa,1}
+  \;=\; \mathbb 1\{x_1=x_{0,m_1}\} \cdot \mathbb 1\{x_2=x_{0,m_2}\}
+  \qquad \forall x_1, x_2.
+\]
+
+\textbf{Flow} (mirroring (Flow)/(Flow-reset), with the \emph{product} transition kernel
+$p_{m_1}^{a_1}(x_1\mid x_1') \, p_{m_2}^{a_2}(x_2\mid x_2')$, since the two components
+evolve independently given their own local actions --- Definition~1 of the paper): for
+every $t \ge 2$, $x_1, x_2$, $k_n \in \{0,\dots,K_0(p)\}$, writing
+$\sigma_n := \sum_{a_1,a_2,\kappa \le k_n} p^{\mathrm{pair}}_{m_1,m_2,x_1,x_2,a_1,a_2,k_n,\kappa,t}$,
+\[
+  \sigma_n = 0 \ \text{ if reset and } k_n \ne K_0(p); \qquad \text{otherwise}
+\]
+\[
+  \sigma_n \;=\; \sum_{x_1',x_2'}\ \sum_{a_1,a_2}\ p_{m_1}^{a_1}(x_1\mid x_1')\,
+  p_{m_2}^{a_2}(x_2\mid x_2') \!\!
+  \sum_{\substack{(k,\kappa) \to k_n \\ \text{(same predecessors as (Flow))}}} \!\!
+  p^{\mathrm{pair}}_{m_1,m_2,x_1',x_2',a_1,a_2,k,\kappa,t-1}.
+\]
+
+\textbf{Marginal consistency with $q$, at every stage} (not only $t=1$):
+\[
+  \sum_{x_2,a_2} p^{\mathrm{pair}}_{m_1,m_2,x_1,x_2,a_1,a_2,k,\kappa,t} = q_{m_1,x_1,a_1,k,\kappa,t}
+  \quad \forall x_1, a_1, \qquad
+  \sum_{x_1,a_1} p^{\mathrm{pair}}_{m_1,m_2,x_1,x_2,a_1,a_2,k,\kappa,t} = q_{m_2,x_2,a_2,k,\kappa,t}
+  \quad \forall x_2, a_2.
+\]
+This is the general definition of a \emph{consistent} order-$2$ pseudomarginal (Section
+4.2: ``marginalising a higher-order pseudomarginal down to a lower order recovers it''),
+specialised from constraint (9c) of Proposition~9's LP (Appendix A of the paper) to a pair
+of \emph{distinct} local actions $a_1,a_2$ instead of one action shared by both.
+
+\subsection*{Objective}
+Only the ``neither maintained'' slice $a_1=a_2=1$ carries a $\Delta$ term (it is the only
+mode combination for which $\delta^{\mathrm{joint}}_{m_1,m_2}$ was computed):
+\[
+  \sum_{(m_1,m_2)} \ \sum_{k,\kappa,t} \ \sum_{x_1,x_2}
+  \Delta_{m_1,m_2}(x_1,x_2)\; p^{\mathrm{pair}}_{m_1,m_2,x_1,x_2,1,1,k,\kappa,t}
+\]
+added to the objective of Section~\ref{sec:master}.
+
+\begin{remark}[Why $p^{\mathrm{pair}}$ needs both modes, and both Flow and marginal consistency]
+\label{rem:order2-both-modes}
+A first version of this master defined $p^{\mathrm{pair}}$ only for $a_1=a_2=1$, tied to
+$q$ solely by the two inequalities $\sum_{x_2} p^{\mathrm{pair}} \le q_{m_1,x_1,1,k,\kappa,t}$
+and symmetrically for $m_2$, with no Flow constraint at all. A second version added Flow
+(the product-kernel recursion above) but dropped the marginal-consistency constraint,
+reasoning that it followed from Flow by induction on $t$. \emph{That argument is wrong}:
+$q$'s own (Flow) constraint (Section~\ref{sec:master}) only pins the sum over \emph{both}
+mode \emph{and} $\kappa$ at every stage, never an individual mode --- so nothing forces
+$p^{\mathrm{pair}}$'s mode split to track $q$'s actual (column-determined) mode split
+beyond $t=1$, and even at $t=1$ only the sum over $(a_1,a_2,\kappa)$ is pinned, not the
+individual split. Without an explicit tie, the solver is free to route as much mass as it
+likes into the $a_1=a_2=1$ slice (rewarded by $\Delta \le 0$) independently of what $q$ is
+actually doing, which is unsound: in testing it let the order-2 bound fall \emph{below}
+the order-1 one, the reverse of a valid tightening. Both Flow (which pins the
+\emph{correlation} between $x_1$ and $x_2$ via genuine dynamics, avoiding an
+adversarially-chosen joint shape) and marginal consistency at every $t$ (which pins the
+mode split to $q$'s real one) are needed together, mirroring how Proposition~9's own LP
+(Appendix A) uses both (9c) (consistency) and (9e) (a flow-like recursion) for its
+pairwise variable.
+\end{remark}
+
+\begin{remark}
+$p^{\mathrm{pair}}$ constrains $q$ only through equalities that do not touch $\mu$: no
+column of $\mathcal B'$ is priced against it, so the pricing MILP of
+Section~\ref{sec:pricing} and the duals $\lambda_t^{m,a,k,\kappa}$ of
+Section~\ref{sec:master} are used completely unchanged --- column generation for this
+order-2 master proceeds exactly as in Algorithm~1, just against a larger master LP.
+\end{remark}
+
+\section{Compact Fluid LP}
+\label{sec:compact}
+
+Coded in \texttt{compact\_lp.jl}, function \texttt{build\_compact\_LP}. This is Eq.~(6) of
+the paper (Section 3.3), specialised as in Appendix C.4: the integrality of the joint
+action polytope is relaxed and one continuous copy of it is embedded \emph{per period},
+which removes the need for column generation at the price of a looser bound. It reuses
+exactly the $q_{m,x,a,k,\kappa,t}$ variables and the (Init), (Flow), (Flow-reset)
+constraints of Section~\ref{sec:master} --- \emph{unchanged} --- and replaces
+$(\mathrm{Cons})$/$(\mathrm{Disagg})$ by a relaxed, per-period copy of the pricing schedule
+of Section~\ref{sec:pricing}.
+
+\begin{remark}[No $(k,b)$ strengthening here]
+Since the Compact Fluid LP has no discrete action $b$ at all (it is replaced by a
+continuous relaxation of the schedule polytope, one copy per period), the strengthening of
+Remark~\ref{rem:strengthen} does not apply: there is no $\mu^{(p)}_{k,b,t}$ to share
+between components. We therefore keep, unchanged, the original \emph{intra-pole quota
+copy} constraint --- every component of a pole shares the same $(k,\kappa)$ marginal as a
+reference component $m_1(p) := \mathrm{comps\_of\_pole}(p)[1]$:
+\[
+  \sum_{x \in [n_m]}\ \sum_{a=1}^{2} q_{m,x,a,k,\kappa,t}
+  \;=\;
+  \sum_{x \in [n_{m_1(p)}]}\ \sum_{a=1}^{2} q_{m_1(p),x,a,k,\kappa,t}
+  \tag{Quota-copy}
+\]
+for all $p \in [K]$, $m \in \mathrm{comps\_of\_pole}(p) \setminus \{m_1(p)\}$,
+$0 \le \kappa \le k \le K_0(p)$, $t \in [H]$.
+\end{remark}
+
+\begin{remark}[Warm start across states: one template per $(t_0^{\mathrm{cyc}}, H)$, not one
+model per state]
+\label{rem:compact-warmstart}
+Unlike the Full Fluid LP, whose master is warm-started across states through its reused
+\emph{columns} (Section~\ref{sec:master}), the Compact Fluid LP has no such combinatorial
+object to carry over: its structure (every variable, every constraint, every coefficient)
+depends only on $(t_0^{\mathrm{cyc}}, H)$, never on the specific state $(x_0, k_0)$ being
+solved for -- $x_0$ and $k_0$ only ever enter through (a) the right-hand side of the
+initial-condition constraint (Init) and (b) which $q_{m,x,a,k,\kappa,1}$ are fixed to $0$ at
+$t=1$ (only the $k_0(p)$ slice of each pole is free). \texttt{build\_compact\_template}
+(\texttt{compact\_lp.jl}) therefore builds the model once per $(t_0^{\mathrm{cyc}}, H)$ --
+in practice a handful of distinct pairs, since $H$ only shrinks near the very end of the
+$n_{\mathrm{years}}$-year horizon and $t_0^{\mathrm{cyc}} \in [6]$ -- with every $q_{\cdot,1}$
+fixed to $0$ and every (Init) right-hand side at $0$. \texttt{configure\_compact\_LP!} then
+points that SAME model (mutated in place, never rebuilt) at each new $(x_0,k_0)$ sharing that
+$(t_0^{\mathrm{cyc}}, H)$: it updates the $M \times \max_m n_m$ (Init) right-hand sides via
+\texttt{set\_normalized\_rhs}, and re-fixes/unfixes only the (at most) two $k$-slices that
+change per pole (the previous $k_0(p)$ back to $0$, the new one to free) rather than
+touching every $k$. Because only bounds and right-hand sides change -- no variable or
+constraint is ever added or removed -- Gurobi's simplex (\texttt{Method=1}, dual simplex, in
+place of the barrier method without crossover used previously, which has no comparable warm
+start) resumes from the previous solve's basis instead of solving from scratch.
+\texttt{make\_policy\_compact\_lp} keeps one template per $(t_0^{\mathrm{cyc}}, H)$ for the
+whole simulation and reconfigures it for every new state, instead of calling
+\texttt{build\_compact\_LP} (still available, e.g.\ for a one-off solve, but now just
+\texttt{build\_compact\_template} immediately followed by a single
+\texttt{configure\_compact\_LP!}) for every one. Measured on \texttt{one\_pole\_simple}
+(MTBFs and technician shares of Section~\ref{sec:simplified}), this reduced the mean time
+per solve from $0.21$s to $0.02$s (a $10\times$ speed-up), making \texttt{compact} faster
+per solve than \texttt{fluid\_cg} ($0.07$s) on the same instance -- consistent with
+\texttt{compact} needing no pricing MILP at all, unlike \texttt{fluid\_cg}.
+\end{remark}
+
+\subsection*{Additional variables (one full copy of the schedule per stage $t \in [H]$)}
+\begin{align*}
+  z_{m,t} &\in [0,1], \quad
+  s_{m,\tau,t} \in [0,1]\ (\tau \in [L_m]), \quad
+  \any_{p,\tau,t} \in [0,1], \\
+  \free_{p,\tau,t} &\in [0,1], \quad
+  w_{p,\tau,t} \in [0,1], \quad
+  \ksel_{p,\kappa,t} \in [0,1]\ (\kappa \le \bar K,\ \text{fixed }0\text{ if } \kappa>K_0(p)).
+\end{align*}
+with $\ong_{m,\tau,t} := \sum_{s=\max(1,\tau-d_m+1)}^{\min(\tau,L_m)} s_{m,s,t}$.
+
+\subsection*{Objective}
+\[
+  \min\;\; \sum_{m,x,a,k,\kappa,t} c_m(x,a)\, q_{m,x,a,k,\kappa,t}
+  \;+\; \sum_{t=1}^{H}\sum_{p=1}^{K}\sum_{\tau=1}^{T} \mathrm{pen}_p(\tau)\,
+        \bigl(\any_{p,\tau,t} - w_{p,\tau,t}\bigr).
+\]
+
+\subsection*{Constraints}
+(Init), (Flow), (Flow-reset) as in Section~\ref{sec:master}, (Quota-copy) as restated
+above, plus, for every $t \in [H]$:
+\begin{align}
+  \sum_{\tau=1}^{L_m} s_{m,\tau,t} &= z_{m,t}
+    &&\forall m \in [M] \tag{10$'$}\\
+  \sum_{m=1}^{M} \rho_m\, \ong_{m,\tau,t} &\le R
+    &&\forall \tau \in [T] \tag{11$'$}\\
+  \any_{p,\tau,t} &\ge \ong_{m,\tau,t}
+    &&\forall p,\ m \in \mathrm{comps\_of\_pole}(p),\ \tau \\
+  w_{p,\tau,t} &\le \free_{p,\tau,t}, \quad
+  w_{p,\tau,t} \le \any_{p,\tau,t}, \quad
+  w_{p,\tau,t} \ge \free_{p,\tau,t} + \any_{p,\tau,t} - 1
+    &&\forall p,\ \tau \\
+  \sum_{\kappa=0}^{\bar K} \ksel_{p,\kappa,t} &= 1, \qquad
+  \sum_{\tau=1}^{T} \free_{p,\tau,t} = \sum_{\kappa=0}^{\bar K} \kappa\, \ksel_{p,\kappa,t}
+    &&\forall p \tag{12$'$}
+\end{align}
+and the two coupling constraints tying the relaxed schedule to the state-action variables
+$q$ (Appendix C.4):
+\[
+  \sum_{x \in [n_m]}\ \sum_{k=0}^{K_0(\pole(m))}\ \sum_{\kappa=0}^{k} q_{m,x,2,k,\kappa,t}
+  \;\le\; z_{m,t}
+  \qquad \forall m \in [M],\ t \in [H], \tag{Coupling-$z$}
+\]
+\[
+  \sum_{x \in [n_{m_1(p)}]}\ \sum_{a=1}^{2}\ \sum_{k=0}^{K_0(p)}\ \sum_{\kappa=0}^{k}
+    \kappa\; q_{m_1(p),x,a,k,\kappa,t}
+  \;=\; \sum_{\tau=1}^{T} \free_{p,\tau,t}
+  \qquad \forall p \in [K],\ t \in [H]. \tag{Coupling-$\kappa$}
+\]
+
+\begin{remark}[A slack exploited by the relaxation]
+\label{rem:slack}
+$(\mathrm{Coupling}\text{-}z)$ is an \emph{inequality}, exactly as written in Appendix C.4
+of the paper, so nothing directly forces $z_{m,t}$ down to the actual replacement mass
+$\sum_{x,k,\kappa} q_{m,x,2,k,\kappa,t}$. This alone would not be a problem if inflating
+$z_{m,t}$ always had a cost elsewhere (a legitimate optimum would then keep it tight): a
+larger $z_{m,t}$ forces more $m_{m,\tau,t}'$ mass (Eq.~$(10')$), hence more
+$\ong_{m,\tau,t}$ and $\any_{p,\tau,t}$, which \emph{does} cost $\mathrm{pen}_p(\tau)$
+per day \emph{unless} that day is also declared free ($w_{p,\tau,t}=\any_{p,\tau,t}$).
+The reason this cost can always be dodged is a second, compounding slack:
+$(\mathrm{Coupling}\text{-}\kappa)$ sums $\kappa \, q_{m_1(p),x,a,k,\kappa,t}$ over
+\emph{both} modes $a$, not only $a=2$. Since the mode-$1$ (``not maintained'') mass
+completely dominates $q$ in practice (components rarely fail), and nothing else in the
+LP ties a component's $\kappa$-attribution while unmaintained to anything physical, the
+solver is free to book a sizeable share of that mode-$1$ mass at $\kappa > 0$, manufacturing
+$\free_{p,\tau,t}$ supply through $(\mathrm{Coupling}\text{-}\kappa)$ out of thin air. That
+manufactured free-day supply is then exactly what pays for the inflated, purely fictitious
+schedule of $z_{m,t}$, closing the loop at zero net objective cost. This was confirmed
+numerically: for a component whose true replacement mass is $O(10^{-11})$ (so $a=2$ is
+essentially unused) and $z_{m,1} \approx 0.21$, the mode-$1$ mass at $t=1$ splits as
+$\approx 0.61$ at $\kappa=0$ and $\approx 0.39$ at $\kappa=1$ --- the model is ``spending''
+a free day on a component it has no intention of maintaining, purely to subsidise
+$z_{m,t}$ elsewhere. Consequently, the policy-extraction step
+(\texttt{extract\_policy\_compact}) reads the maintenance decision from the replacement
+mass $\sum_{x,k,\kappa} q_{m,x,2,k,\kappa,1}$ rather than from $z_{m,1}$.
+\end{remark}
+
+\subsection*{Policy extraction (rounding and repair heuristic)}
+The compact LP is solved once per re-optimisation (no pricing loop). Its solution is
+generally fractional and, per Section 3.5 of the paper, is turned into an admissible
+action of stage $t=1$ by a repair heuristic (not itself part of the LP, and not to be
+confused with the LP variables it reads from): components with replacement mass
+$\sum_{x,k,\kappa} q_{m,x,2,k,\kappa,1}$ above $\tfrac12$ are the candidates, examined in
+decreasing order of $\rho_m$ (their own technician requirement of constraint $(11)$ ---
+placing the components hardest to fit, resource-wise, first). For each candidate $m$, the
+relaxed start-day weights $s_{m,\tau,1}$, $\tau \in \{1,\dots,L_m\}$, of Eq.~$(10')$ are
+used to rank candidate days \emph{twice over}: first among the days already opened by an
+earlier candidate of the same pole (highest $s_{m,\tau,1}$ first), to concentrate
+maintenance on as few distinct days as possible --- essential for the free-day quota to
+cover them all, see the discussion after Eq.~$(12')$ --- and only if none of those fits
+$(11')$, among every remaining day in $\{1,\dots,L_m\}$ (again by decreasing
+$s_{m,\tau,1}$); a component that fits nowhere is left unmaintained this period. Free days
+are then chosen, per pole, among the days that end up under maintenance, capped at the
+quota $k_p$ actually remaining and prioritising the highest-penalty days.
+
+\section{Lift-and-project cuts (Section 4.3)}
+\label{sec:lift-project}
+
+Coded in \texttt{lift\_project.jl}. Proposition 10 of the paper bounds
+$q^{m_1}_{x_1,a,t} + q^{m_2}_{x_2,a,t}$ by $\mu_{a,t}$ plus a correction term
+$\tau^+_{m_1,m_2,t}(x_1,x_2)$ obtained by \emph{propagating}, through one step of the
+transition kernel, a bound on the order-1 marginals of stage $t-1$; this is well suited to
+a D-MDP where every subsystem shares the exact same global action $a$ (Definition 1), so
+that $q^{m_1}_{x_1,a,t}$ and $q^{m_2}_{x_2,a,t}$ can both be written against that same $a$.
+
+\subsection*{Why this needs to be adapted}
+In our setting there is no such shared global action: a joint action (column) $b$ assigns
+independent local modes $A_{m_1}(b) \ne A_{m_2}(b)$ in general. Propagating a
+transition-based bound as in Proposition 10 is not the right tool here, because our
+columns already give us something the D-MDP toy example does not have: for every
+generated column $b \in \mathcal B'$, we know \emph{exactly} which local mode it assigns
+to every component, so the joint probability that ``$m_1$ is maintained this way \emph{and}
+$m_2$ is maintained that way'' is directly and exactly computable from the existing
+$\mu_{b,t}$ variables, with no need to go through order-1 information from a previous
+stage at all. The cut below uses this instead.
+
+\subsection*{A first attempt, and why it is very loose on this problem}
+\label{sec:lift-project-first-attempt}
+A first version of this note bounded $\mathbb P[E \cup F]$ by
+$\nu_{p,(k,\kappa),t} := \sum_{x,a} q_{m,x,a,k,\kappa,t}$ (any component $m$ of pole $p$,
+Remark~\ref{rem:sum-to-one}) and $\mathbb P[E \cap F]$ by the \emph{exact} probability
+$\rho_{m_1,m_2,(a_1,a_2,\kappa),t} := \sum_{b \in \mathcal B': A_{m_1}(b)=a_1,\,
+A_{m_2}(b)=a_2,\, \kappa_p(b)=\kappa} \mu_{b,t}$ that a column maintaining $m_1$ \emph{and}
+$m_2$ in exactly the prescribed way was chosen. Both quantities are exact, but this
+combination is a poor fit for the offshore substation instance:
+$\nu_{p,(k,\kappa),t}$ ignores $a_1, a_2$ entirely (it aggregates over \emph{every} mode of
+\emph{every} component of the pole), so it is far looser than necessary, while
+$\rho_{m_1,m_2,(a_1,a_2,\kappa),t}$ requires a \emph{single} generated column to maintain
+$m_1$ and $m_2$ \emph{simultaneously} in the exact prescribed way, which technician
+capacity (11) makes rare: with $R$ technicians shared by up to $M=7$ components,
+few (if any) generated columns maintain two specific components on the very same day in
+the very same period, so $\rho$ is $0$, or close to it, for most $(a_1,a_2)$, making the
+cut needlessly tight on the wrong term while staying needlessly loose on the other.
+
+\subsection*{The adapted cut}
+We instead bound each side of the inclusion--exclusion identity with the tool best suited
+to it: the \emph{union} $E \cup F$, which only asks that \emph{at least one} of the two
+prescribed local actions was used, is bounded exactly from the already-tracked
+disaggregated variables $\mu^{(p)}_{k,b,t}$ of Section~\ref{sec:master}; the
+\emph{intersection} $E \cap F$, which asks about the joint \emph{state} of $m_1$ and
+$m_2$ regardless of their actions, is bounded as in Proposition 10, by propagating a
+$\min$ of order-1 marginals of stage $t-1$ through the transition kernel.
+
+Fix a pole $p$, two distinct components $m_1 \ne m_2 \in \mathrm{comps\_of\_pole}(p)$,
+modes $a_1, a_2 \in \{1,2\}$, a valid quota pair $0 \le \kappa \le k \le K_0(p)$, and a
+stage $t \ge 2$ (a transition is propagated, so, as in Proposition 10, $t=1$ is excluded --
+harmlessly, since the state is deterministic at $t=1$ anyway). Define
+\[
+  \sigma_{m_1,m_2,(a_1,a_2,k,\kappa),t} \;:=\;
+  \sum_{\substack{b \in \mathcal B':\\ A_{m_1}(b)=a_1 \ \text{or}\ A_{m_2}(b)=a_2,\ \ \kappa_p(b)=\kappa}}
+  \mu^{(p)}_{k,b,t},
+\]
+\[
+  \tau^+_{m_1,m_2,t}(x_1,x_2;k) \;:=\;
+  \sum_{(k',\kappa') \to k} \ \sum_{a_1',a_2' \in \{1,2\}} \ \sum_{x_1',x_2'}
+  p_{m_1}^{a_1'}(x_1 \mid x_1')\, p_{m_2}^{a_2'}(x_2 \mid x_2')\,
+  \min\bigl(q_{m_1,x_1',a_1',k',\kappa',t-1},\, q_{m_2,x_2',a_2',k',\kappa',t-1}\bigr),
+\]
+where ``$(k',\kappa') \to k$'' ranges over the same predecessor quota states summed by
+(Flow)/(Flow-reset) for target $k$ at stage $t$ (Section~\ref{sec:master}), and $a_1', a_2'$
+are dummy (summed-out) mode labels for stage $t-1$, unrelated to the fixed $a_1, a_2$ of
+the cut itself. Let
+$E := \{X_{m_1,t}=x_1,\ A_{m_1}(B_t)=a_1,\ K_{p,t}=k,\ \mathrm K_{p,t}=\kappa\}$ and
+$F := \{X_{m_2,t}=x_2,\ A_{m_2}(B_t)=a_2,\ K_{p,t}=k,\ \mathrm K_{p,t}=\kappa\}$, so
+$\mathbb P[E] = q_{m_1,x_1,a_1,k,\kappa,t}$ and $\mathbb P[F] = q_{m_2,x_2,a_2,k,\kappa,t}$
+exactly, as before.
+\begin{itemize}
+\item $E \cup F$ implies $\{(A_{m_1}(B_t)=a_1 \text{ or } A_{m_2}(B_t)=a_2),\ K_{p,t}=k,\
+  \mathrm K_{p,t}=\kappa\}$ (dropping the state conditions $X_{m_1,t}=x_1$, $X_{m_2,t}=x_2$
+  only enlarges the event), whose probability is \emph{exactly}
+  $\sigma_{m_1,m_2,(a_1,a_2,k,\kappa),t}$ (a disjoint union over the qualifying columns),
+  so $\mathbb P[E \cup F] \le \sigma_{m_1,m_2,(a_1,a_2,k,\kappa),t}$.
+\item $E \cap F$ implies $\{X_{m_1,t}=x_1,\ X_{m_2,t}=x_2,\ K_{p,t}=k\}$ (dropping the
+  action conditions $A_{m_1}(B_t)=a_1$, $A_{m_2}(B_t)=a_2$, $\mathrm K_{p,t}=\kappa$ this
+  time), whose probability is bounded, exactly as $\tau_{m_1,m_2,t}(x_1,x_2)$ in the proof
+  of Proposition 10, by propagating the transition kernel one step from stage $t-1$:
+  $\mathbb P[E \cap F] \le \tau^+_{m_1,m_2,t}(x_1,x_2;k)$.
+\end{itemize}
+By inclusion--exclusion,
+\[
+  q_{m_1,x_1,a_1,k,\kappa,t} + q_{m_2,x_2,a_2,k,\kappa,t}
+  \;=\; \mathbb P[E] + \mathbb P[F]
+  \;=\; \mathbb P[E \cup F] + \mathbb P[E \cap F]
+  \;\le\; \sigma_{m_1,m_2,(a_1,a_2,k,\kappa),t} + \tau^+_{m_1,m_2,t}(x_1,x_2;k),
+  \tag{C$'$}
+\]
+which holds for every occupation measure realisable by an admissible policy, for all
+$p \in [K]$, $m_1 \ne m_2 \in \mathrm{comps\_of\_pole}(p)$, $x_1 \in [n_{m_1}]$,
+$x_2 \in [n_{m_2}]$, $a_1, a_2 \in \{1,2\}$, $0 \le \kappa \le k \le K_0(p)$, $t \ge 2$.
+
+\begin{remark}
+$\sigma$ is tighter than the first attempt's $\nu$ because it only counts columns
+consistent with \emph{at least one} of the two prescribed actions, using the
+already-tracked $\mu^{(p)}_{k,b,t}$ rather than the coarser, action-blind $q$-aggregate.
+$\tau^+$ replaces the first attempt's $\rho$ because it asks a strictly easier question of
+the generated columns: whether $m_1$ and $m_2$ can \emph{jointly reach} states
+$(x_1,x_2)$ from \emph{any} pair of order-1 histories at $t-1$ (via the same
+$\min$-of-marginals argument as Proposition 10), rather than whether a single column was
+ever generated that maintains both of them in the exact prescribed way at $t$ -- the
+latter being needlessly hard to satisfy under a shared technician-capacity constraint,
+which is exactly the source of the "very suboptimal" cut of the first attempt.
+\end{remark}
+
+\section{Policy extraction: a method-agnostic heuristic}
+\label{sec:heuristic-extraction}
+
+Coded in \texttt{heuristic\_extraction.jl} (function \texttt{extract\_policy\_heuristic},
+\texttt{schedule\_true\_optimal}). Every \texttt{make\_policy\_*} function of
+Sections~\ref{sec:master}--\ref{sec:lift-project} takes a keyword argument
+\texttt{heuristic\_extraction}, \texttt{true} by default: instead of letting each method's
+own machinery also decide the \emph{schedule} (which day each maintained component starts,
+which specific days are declared free) -- the column with the largest weight
+$\mu_{b,1}$ for fluid\_cg/fluid\_cg\_light/fluid\_cg\_order2/lift\_project, or the
+LP-weight-based greedy day picker of \texttt{extract\_policy\_compact} for the Compact Fluid
+LP -- every method now goes through the \emph{same} two-step rule.
+
+\begin{remark}[Why the schedule needs a shared rule]
+The additive per-component cost used by every formulation above,
+$c_m(x,a) = \delta_m(x)$ if $a=1$ and $\mathrm{cc}_m$ if $a=2$ (Section~\ref{sec:notation}),
+never depends on \emph{which day} of the period a maintained component ($a=2$) actually
+starts: replacing a component is charged $\mathrm{cc}_m$ flat, as if the repair happened
+instantly, with no term charging the days spent still-degraded while waiting for the
+repair to start. The true, non-additive cost (\texttt{pole\_penalty}, \texttt{instances.jl})
+has no such blind spot: a component left in a bad state for longer keeps contributing to
+the pole's capacity loss every day until it is actually repaired. Since the additive
+proxy is indifferent between an early and a late start of the very same maintained
+component, which day gets picked is entirely a tie-break of the underlying solver (column
+pool composition and weights, or LP degeneracy) -- and nothing stops it from landing on
+the worst one. This was observed directly in \texttt{results/report\_one\_pole.txt}:
+scenario 100, period 119, \texttt{fluid\_cg\_order2} started the repair of a
+badly-degraded component on day 41 instead of day 1 (both give the exact same
+$\mathtt{lp\_cost} = 0.5025$), incurring $40$ extra units of true penalty from $40$ days of
+avoidable pre-repair exposure that \texttt{compact} (which happened to tie-break toward day
+1) did not pay.
+\end{remark}
+
+\paragraph{Step 1 -- read the aggregate decision off $q$.} For every component $m$, at the
+known current state $x_0(m)$, read
+\[
+  \mathrm{mode}_m \;:=\; \argmax_{a \in \{1,2\}}\ q_{m,x_0(m),a,K_0(\pole(m)),\kappa,1}
+  \ \text{summed over}\ \kappa \in \mathrm{qrange}(K_0(\pole(m))).
+\]
+For every pole $p$, at the known current quota $K_0(p)$, read
+\[
+  \kappa_p \;:=\; \argmax_{\kappa \in \mathrm{qrange}(K_0(p))}\
+  \sum_{a=1}^{2} q_{m_1(p),x_0(m_1(p)),a,K_0(p),\kappa,1},
+\]
+using the pole's reference component $m_1(p)$ (every component of a pole shares the same
+$(k,\kappa)$ distribution, Section~\ref{sec:notation}, so any component would give the same
+answer). For \texttt{fluid\_cg\_light} (Section~\ref{sec:light}), whose $q$ has no $(k,\kappa)$
+index, the same two reads use $q_{m,x_0(m),a,1}$ directly for $\mathrm{mode}_m$ and the
+pole's own quota-subsystem variable $q^\kappa_{p,K_0(p),\kappa,1}$ for $\kappa_p$.
+
+\paragraph{Step 2 -- re-derive the schedule for the true cost.} Given the maintained set
+$S = \{m : \mathrm{mode}_m = 2\}$ and $(\kappa_p)_{p\in[K]}$, function
+\texttt{schedule\_true\_optimal} builds the actual $(\mathrm{start}_m)_{m\in S}$ and free
+days by:
+\begin{itemize}
+  \item scheduling every $m \in S$ on the \emph{earliest} feasible day of the start-day grid
+  ($1, 1+\mathrm{QS}, 1+2\,\mathrm{QS}, \dots$, Section~\ref{sec:pricing}) compatible with
+  the shared technician capacity $R$, most urgent component first (components are sorted
+  by decreasing $\delta_m(x_0(m))$, ties broken by decreasing $\rho_m$, and packed by a
+  simple earliest-fit greedy against a single shared demand profile, since $R$ is shared
+  across every pole). Since $\delta_m(x) \ge 0$ and repairing a component only ever resets
+  it to the as-new state, starting earlier is always weakly better for the true cost --
+  never worse -- so this is not a further approximation on top of the $S$ chosen at Step 1,
+  it removes exactly the blind spot described above. A component the greedy cannot fit this
+  period (a rare artefact of Step 1 deciding $\mathrm{mode}_m$ independently for every
+  component) is simply left unmaintained rather than left infeasible;
+  \item placing the $\kappa_p$ free days of pole $p$ on the first $\kappa_p$ days (in day
+  order) among the days some component of $p$ is actually under maintenance -- the only
+  days \texttt{pole\_penalty} ever waives on a declared free day (a free day with no
+  maintenance ongoing changes nothing: \texttt{instances.jl}, lines 109--117).
+\end{itemize}
+
+Passing \texttt{heuristic\_extraction = false} restores each method's original, bespoke
+extraction (column argmax alone, or \texttt{extract\_policy\_compact}), kept for comparison.
+The command-line driver \texttt{run\_experiment.jl} exposes this as \texttt{--no-heuristic}.
+
+\section{Baseline 1: two-step optimisation (simplified problem)}
+\label{sec:baseline1}
+
+Coded in \texttt{baseline1.jl} (\texttt{optimize\_thresholds}, \texttt{schedule\_min\_cost},
+\texttt{make\_policy\_baseline1}), run with \texttt{run\_experiment.jl baseline1
+one\_pole\_simple ...}. It is only defined for the simplified instances of
+Section~\ref{sec:simplified} (it raises an error otherwise) and uses no LP relaxation.
+
+\paragraph{Step 1: one threshold policy per component (offline, once per instance).}
+Each component $m$ is optimised alone, among the policies ``maintain iff $x \ge \theta_m$'',
+$\theta_m \in \{1,\dots,n_m+1\}$ ($\theta_m = n_m+1$ means never maintain). Component $m$ alone
+is a Markov chain over the periods: in state $x$,
+\[
+  \text{if } x < \theta_m:\ \text{cost } \delta_m(x),\ x \to x' \sim P^{\mathrm{period}}_m(\cdot \mid x);
+  \qquad
+  \text{if } x \ge \theta_m:\ \text{cost } \delta_m(x) + \mathrm{cc}_m + \gamma\, d_m\,\bar{\mathrm{pen}}_p,\ x \to 1,
+\]
+where $\bar{\mathrm{pen}}_p = \frac1T\sum_\tau \mathrm{pen}_p(\tau)$ ($=1$ here), so the
+maintenance cost is $\gamma$ times the duration $d_m$ of the maintenance, in addition to the
+replacement cost $\mathrm{cc}_m$. The failure cost $\delta_m(x)$ of the period is paid in both
+cases (Section~\ref{sec:simplified}): maintaining does not avoid the failure cost of the
+period in which it happens, it only resets the state for the next periods, so a preventive
+maintenance can pay off.
+$\gamma \in [0,1]$ is a parameter of the method (\texttt{gamma}, \texttt{--gamma=<value>} in
+\texttt{run\_experiment.jl}, default $\gamma = 1$; a value outside $[0,1]$ is rejected). It
+represents the fact that several components are often maintained at the same time and share
+the same maintenance days, so the whole cost of these days cannot be charged to a single
+component: $\gamma < 1$ charges only a fraction of them to $m$, and $\gamma = 1$ charges all
+of them. $\gamma$ only enters this step: Step~2 below always uses the true costs.
+\textcolor{red}{In theory $\gamma$ could depend on the component (a component that is
+usually maintained together with others would get a smaller $\gamma_m$ than one that is
+usually maintained alone). For now, the same $\gamma$ is used for every component: the
+policies are computed with a single $\gamma$, independent of the component.}
+$\theta_m$ is the
+value minimising the expected total cost of this chain over the horizon of the simulation
+($n_{\mathrm{years}} \times 6$ periods, starting in state $1$), computed exactly by propagating
+the state distribution (ties go to the smallest $\theta_m$). This step ignores the
+technician-capacity constraint and any coupling between components or poles.
+$\gamma$ only acts through the thresholds, which take a finite number of values as $\gamma$
+varies: the larger $\gamma$, the later a component is maintained. \texttt{tune\_gamma.jl}
+scans a fine grid of $\gamma \in [0,1]$, keeps the distinct threshold vectors and simulates
+each of them on the same $1000$ scenarios. On \texttt{one\_pole\_simple} (MTBFs of the
+original instances) the best vector is $\theta = (11,2,4,3,3,3,3)$, obtained for
+$\gamma \in [0.944, 1]$ (mean cost $56.6$, standard error $1.5$); the next ones are $57.7$
+for $\gamma \in [0.568, 0.922]$ and $60.0$ for $\gamma \le 0.555$. (For reference, a scan up
+to $\gamma = 100$, before restricting $\gamma$ to $[0,1]$, found nothing better: larger
+$\gamma$ only give later thresholds and higher costs, from $63.1$ up to $644.9$.) The
+default $\gamma = 1$ lies in the best range, so it is kept.
+
+\paragraph{Step 2: schedule for the joint state (online).} In the simulation, at the joint
+state $x$, the set of components to maintain is $S = \{m : x_m \ge \theta_m\}$. The schedule
+is then the one that maintains exactly the components of $S$, with the smallest period cost.
+\begin{itemize}
+  \item If a schedule maintaining all of $S$ exists (start days on the grid, lead margin,
+  shared technician capacity (11)), the schedule is the one with the fewest maintenance days
+  $f(b)$ among those: since the set of maintained components is fixed, this is the minimiser
+  of the period cost $\sum_m \delta_m(x_m) + \sum_{m \in \mathrm{maintained}(b)} \mathrm{cc}_m + f(b)$
+  (Section~\ref{sec:simplified}).
+  \item Otherwise, the components of $S$ are considered by decreasing priority
+  $x_m - \theta_m$ (how far the state is above the threshold; ties: decreasing $\delta_m(x_m)$).
+  Each one is kept if a feasible schedule still exists for the set kept so far plus this
+  component, and is otherwise left unmaintained for this period (it will be considered again
+  at the next period, as long as $x_m \ge \theta_m$). The schedule is then the one with the
+  fewest maintenance days for the final set.
+\end{itemize}
+Feasibility and the schedule are computed with the pricing MILP of
+Section~\ref{sec:pricing}, in which the maintenance of the wanted set is imposed by a large
+negative cost on ``maintained'' (and a huge cost for the components outside the set); the
+remaining objective is then $f(b)$ plus the replacement costs, constant for a given set.
+The schedule is applied for the period, and the procedure is repeated at the next period.
+Schedules are cached by joint state.
+\end{document}

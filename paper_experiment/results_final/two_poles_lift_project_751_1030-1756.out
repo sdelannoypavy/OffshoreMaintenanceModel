@@ -1,0 +1,33 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 13 scenarios already complete
+  cache loaded: 1037 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final/two_poles_lift_project_751_policy.csv
+policy cache: 1097 decisions (60 copied from the other chunks)
+  cache loaded: 1097 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final/two_poles_lift_project_751_policy.csv
+lift_project two_poles scenarios 751..1000  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 764 (751..1000)  cost 3.12  maintenances 11  2765s
+policy cache: 107 decisions copied from the other chunks
+scenario 765 (751..1000)  cost 4.62  maintenances 19  706s
+policy cache: 34 decisions copied from the other chunks
+scenario 766 (751..1000)  cost 4.00  maintenances 17  954s
+policy cache: 43 decisions copied from the other chunks
+scenario 767 (751..1000)  cost 4.25  maintenances 19  684s
+policy cache: 32 decisions copied from the other chunks
+scenario 768 (751..1000)  cost 3.62  maintenances 16  76s
+policy cache: 6 decisions copied from the other chunks
+scenario 769 (751..1000)  cost 2.62  maintenances 12  280s
+policy cache: 23 decisions copied from the other chunks
+scenario 770 (751..1000)  cost 3.25  maintenances 15  304s
+policy cache: 12 decisions copied from the other chunks
+scenario 771 (751..1000)  cost 3.75  maintenances 17  658s
+policy cache: 34 decisions copied from the other chunks
+scenario 772 (751..1000)  cost 3.12  maintenances 12  661s
+policy cache: 35 decisions copied from the other chunks
+scenario 773 (751..1000)  cost 3.88  maintenances 15  344s
+policy cache: 16 decisions copied from the other chunks
+scenario 774 (751..1000)  cost 3.38  maintenances 16  1259s
+policy cache: 65 decisions copied from the other chunks
+scenario 775 (751..1000)  cost 3.12  maintenances 14  119s
+policy cache: 7 decisions copied from the other chunks

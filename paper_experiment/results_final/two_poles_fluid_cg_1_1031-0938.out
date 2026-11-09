@@ -1,0 +1,31 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 22 scenarios already complete
+  cache loaded: 28 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final/two_poles_fluid_cg_1_policy.csv
+policy cache: 79 decisions (51 copied from the other chunks)
+  cache loaded: 79 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final/two_poles_fluid_cg_1_policy.csv
+fluid_cg two_poles scenarios 1..33  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 23 (1..33)  cost 4.62  maintenances 20  711s
+policy cache: 69 decisions copied from the other chunks
+scenario 24 (1..33)  cost 3.38  maintenances 14  638s
+policy cache: 107 decisions copied from the other chunks
+scenario 25 (1..33)  cost 6.75  maintenances 25  283s
+policy cache: 76 decisions copied from the other chunks
+scenario 26 (1..33)  cost 3.50  maintenances 16  178s
+policy cache: 49 decisions copied from the other chunks
+scenario 27 (1..33)  cost 3.12  maintenances 16  117s
+policy cache: 54 decisions copied from the other chunks
+scenario 28 (1..33)  cost 5.38  maintenances 24  404s
+policy cache: 146 decisions copied from the other chunks
+scenario 29 (1..33)  cost 2.50  maintenances 11  125s
+policy cache: 38 decisions copied from the other chunks
+scenario 30 (1..33)  cost 3.25  maintenances 16  122s
+policy cache: 34 decisions copied from the other chunks
+scenario 31 (1..33)  cost 3.50  maintenances 15  55s
+policy cache: 10 decisions copied from the other chunks
+scenario 32 (1..33)  cost 2.88  maintenances 12  65s
+policy cache: 18 decisions copied from the other chunks
+scenario 33 (1..33)  cost 4.25  maintenances 19  66s
+done

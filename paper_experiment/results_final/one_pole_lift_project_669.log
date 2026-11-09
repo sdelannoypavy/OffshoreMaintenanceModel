@@ -1,0 +1,41 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+lift_project one_pole scenarios 669..835  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 669 (669..835)  cost 2.25  maintenances 9  577s
+scenario 670 (669..835)  cost 1.75  maintenances 9  155s
+scenario 671 (669..835)  cost 2.12  maintenances 10  95s
+scenario 672 (669..835)  cost 1.25  maintenances 5  66s
+scenario 673 (669..835)  cost 1.88  maintenances 9  53s
+scenario 674 (669..835)  cost 3.62  maintenances 14  85s
+scenario 675 (669..835)  cost 0.50  maintenances 3  23s
+scenario 676 (669..835)  cost 2.12  maintenances 9  39s
+scenario 677 (669..835)  cost 1.38  maintenances 6  122s
+scenario 678 (669..835)  cost 1.38  maintenances 8  10s
+scenario 679 (669..835)  cost 2.00  maintenances 10  0s
+scenario 680 (669..835)  cost 0.88  maintenances 6  6s
+scenario 681 (669..835)  cost 1.25  maintenances 6  9s
+scenario 682 (669..835)  cost 1.12  maintenances 5  9s
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 1
+resume: 14 scenarios already complete
+lift_project one_pole scenarios 669..835  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 683 (669..835)  cost 2.25  maintenances 9  578s
+scenario 684 (669..835)  cost 0.88  maintenances 4  347s
+scenario 685 (669..835)  cost 0.75  maintenances 4  108s
+scenario 686 (669..835)  cost 0.62  maintenances 3  35s
+scenario 687 (669..835)  cost 2.12  maintenances 9  112s
+scenario 688 (669..835)  cost 2.00  maintenances 8  77s
+scenario 689 (669..835)  cost 1.75  maintenances 9  74s
+scenario 690 (669..835)  cost 2.38  maintenances 10  111s
+scenario 691 (669..835)  cost 3.00  maintenances 12  37s
+scenario 692 (669..835)  cost 1.50  maintenances 8  29s
+scenario 693 (669..835)  cost 3.12  maintenances 12  355s
+scenario 694 (669..835)  cost 4.75  maintenances 8  456s
+scenario 695 (669..835)  cost 0.88  maintenances 4  49s
+scenario 696 (669..835)  cost 1.75  maintenances 7  151s
+scenario 697 (669..835)  cost 1.62  maintenances 7  26s
+scenario 698 (669..835)  cost 0.38  maintenances 2  61s

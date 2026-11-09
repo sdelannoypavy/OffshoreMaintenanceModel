@@ -1,0 +1,72 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Motivation: offshore substations maintenance}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}The offshore substations maintenance problem}{2}{subsection.1.2}%
+\contentsline {paragraph}{Literature gap.}{3}{section*.3}%
+\contentsline {subsection}{\numberline {1.3}Literature review}{4}{subsection.1.3}%
+\contentsline {paragraph}{Methodologies for MDPs with combinatorial actions.}{4}{section*.4}%
+\contentsline {paragraph}{Linear programming for MDPs.}{4}{section*.5}%
+\contentsline {subsection}{\numberline {1.4}Contributions and outline}{5}{subsection.1.4}%
+\contentsline {section}{\numberline {2}MDP model}{5}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Problem statement}{5}{subsection.2.1}%
+\contentsline {paragraph}{State.}{6}{section*.7}%
+\contentsline {paragraph}{Joint action.}{6}{section*.8}%
+\contentsline {paragraph}{Transitions.}{7}{section*.9}%
+\contentsline {paragraph}{Cost.}{7}{section*.10}%
+\contentsline {paragraph}{Joint actions and joint cost.}{8}{section*.12}%
+\contentsline {paragraph}{Policies and objective.}{8}{section*.13}%
+\contentsline {subsection}{\numberline {2.2}Relation to decomposable and weakly coupled MDPs}{9}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Fluid approximations}{10}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Exact LP}{10}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Marginal and local polytopes}{11}{subsection.3.2}%
+\contentsline {paragraph}{Subsets of variables.}{11}{section*.16}%
+\contentsline {paragraph}{Sufficient statistics.}{11}{section*.17}%
+\contentsline {paragraph}{Marginal polytope.}{12}{section*.18}%
+\contentsline {paragraph}{Local polytope.}{12}{section*.19}%
+\contentsline {subsection}{\numberline {3.3}Joint fluid LP}{13}{subsection.3.3}%
+\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{13}{section*.21}%
+\contentsline {paragraph}{Marginal polytope.}{14}{section*.24}%
+\contentsline {paragraph}{Cost approximation.}{14}{section*.25}%
+\contentsline {paragraph}{Local polytope.}{15}{section*.26}%
+\contentsline {paragraph}{Joint fluid LP.}{16}{section*.27}%
+\contentsline {paragraph}{Column generation.}{17}{section*.28}%
+\contentsline {subsection}{\numberline {3.4}Compact fluid LP}{18}{subsection.3.4}%
+\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{18}{section*.29}%
+\contentsline {paragraph}{Marginal polytope.}{18}{section*.31}%
+\contentsline {paragraph}{Local polytope.}{18}{section*.32}%
+\contentsline {paragraph}{Cost approximation.}{19}{section*.33}%
+\contentsline {paragraph}{LP.}{19}{section*.34}%
+\contentsline {subsection}{\numberline {3.5}Fluid LPs with a quota subsystem}{20}{subsection.3.5}%
+\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{20}{section*.35}%
+\contentsline {paragraph}{Cost approximation.}{21}{section*.37}%
+\contentsline {paragraph}{Fluid LPs with a quota subsystem.}{21}{section*.38}%
+\contentsline {subsection}{\numberline {3.6}Fluid policies}{21}{subsection.3.6}%
+\contentsline {section}{\numberline {4}Hierarchy of approximations}{21}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Limits of the fluid approximation}{21}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Hierarchy of higher-order formulations}{22}{subsection.4.2}%
+\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{22}{section*.39}%
+\contentsline {paragraph}{Cost approximation.}{22}{section*.41}%
+\contentsline {paragraph}{Local polytope.}{22}{section*.42}%
+\contentsline {paragraph}{Order $k$.}{23}{section*.43}%
+\contentsline {subsection}{\numberline {4.3}Lift-and-project inequalities}{23}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Numerical experiments}{23}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Setup}{24}{subsection.5.1}%
+\contentsline {paragraph}{Instances.}{24}{section*.45}%
+\contentsline {paragraph}{Methods.}{24}{section*.47}%
+\contentsline {paragraph}{Two-step baseline.}{25}{section*.48}%
+\contentsline {paragraph}{Policy evaluation.}{25}{section*.49}%
+\contentsline {subsection}{\numberline {5.2}Simplified model}{26}{subsection.5.2}%
+\contentsline {paragraph}{Model.}{26}{section*.50}%
+\contentsline {paragraph}{Main observations.}{27}{section*.54}%
+\contentsline {subsection}{\numberline {5.3}Full model}{27}{subsection.5.3}%
+\contentsline {paragraph}{Main observations.}{28}{section*.57}%
+\contentsline {section}{\numberline {6}Conclusion}{29}{section.6}%
+\contentsline {section}{\numberline {A}Proof of the upper bound~\eqref {eq:intro-cost-approx}}{31}{appendix.A}%
+\contentsline {section}{\numberline {B}MILP formulation of the joint action cost minimization}{31}{appendix.B}%
+\contentsline {paragraph}{Pricing problems.}{32}{section*.59}%
+\contentsline {section}{\numberline {C}The fluid LPs with a quota subsystem}{32}{appendix.C}%
+\contentsline {paragraph}{Joint fluid LP with quota subsystem.}{33}{section*.60}%
+\contentsline {paragraph}{Compact fluid LP with quota subsystem.}{34}{section*.61}%
+\contentsline {section}{\numberline {D}The order-$2$ fluid LP}{34}{appendix.D}%
+\contentsline {section}{\numberline {E}Application to decomposable MDPs}{35}{appendix.E}%
+\contentsline {paragraph}{The fluid approximation can be arbitrarily bad.}{35}{section*.62}%
+\contentsline {paragraph}{Improving the approximation.}{36}{section*.63}%

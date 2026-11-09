@@ -1,0 +1,7 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+MTBF of the 9 components: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+  cache loaded: 4589 policies from paper_experiment/results/interactions9_mtbf20\resched_S1_policy.csv
+S=4  conflict periods 264  resolved at no cost 202  unresolved 62 (scenarios 2 3 5 7 10 13 15 18 20 22 24 25 27 28 35 36 37 39 41 42 43 45 46 47 48 51 52 54 55 56 60 63 66 69 72 73 76 78 84 85 86 91 92 93 95 98 100)

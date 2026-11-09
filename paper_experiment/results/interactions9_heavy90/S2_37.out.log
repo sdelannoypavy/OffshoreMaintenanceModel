@@ -1,0 +1,12 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+MTBF of the 9 components: [588.0, 43.0, 43.0, 43.0, 3333.0, 122.0, 4762.0, 43.0, 20.0]
+PARAMSET heavy_pumps: MTBF [588.0, 43.0, 43.0, 43.0, 3333.0, 122.0, 4762.0, 20.0, 20.0]  costs [2.0, 0.25, 0.125, 0.25, 3.0, 0.5, 0.25, 0.25, 0.0]  shares [1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 0.5, 1.0, 0.5]  durations [30, 15, 15, 30, 15, 15, 15, 30, 15]
+replacement costs of the 9 components: [2.0, 0.25, 0.125, 0.25, 3.0, 0.5, 0.25, 0.25, 0.0]
+  cache loaded: 54 policies from paper_experiment/results/interactions9_heavy90\S2_37_policy.csv
+  cache loaded: 971 policies from paper_experiment/results/interactions9_heavy90\S1for2_37_policy.csv
+S=2 scenarios 37..37  QUOTA_STEP=15  (0 already done)
+scenario 37  cost S 83.250  sum alone 77.250  diff +6.0000  maint 47/47  1789s
+done

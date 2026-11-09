@@ -1,0 +1,36 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 0 scenarios already complete
+fluid_cg two_poles scenarios 751..1000  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+  master LP solved after a numerical failure, attempt 2 ["Method" => 1]
+scenario 751 (751..1000)  cost 2.75  maintenances 12  470s
+scenario 752 (751..1000)  cost 3.00  maintenances 13  158s
+scenario 753 (751..1000)  cost 3.88  maintenances 16  225s
+scenario 754 (751..1000)  cost 3.50  maintenances 18  143s
+scenario 755 (751..1000)  cost 3.12  maintenances 12  47s
+scenario 756 (751..1000)  cost 2.00  maintenances 10  59s
+scenario 757 (751..1000)  cost 3.75  maintenances 18  83s
+scenario 758 (751..1000)  cost 3.62  maintenances 15  94s
+scenario 759 (751..1000)  cost 4.25  maintenances 18  81s
+scenario 760 (751..1000)  cost 3.12  maintenances 16  31s
+scenario 761 (751..1000)  cost 3.25  maintenances 15  33s
+scenario 762 (751..1000)  cost 3.12  maintenances 16  69s
+scenario 763 (751..1000)  cost 2.25  maintenances 9  8s
+scenario 764 (751..1000)  cost 3.12  maintenances 11  87s
+scenario 765 (751..1000)  cost 4.62  maintenances 19  34s
+scenario 766 (751..1000)  cost 4.00  maintenances 17  68s
+scenario 767 (751..1000)  cost 4.25  maintenances 19  42s
+scenario 768 (751..1000)  cost 3.62  maintenances 16  12s
+scenario 769 (751..1000)  cost 2.62  maintenances 12  15s
+scenario 770 (751..1000)  cost 3.25  maintenances 15  14s
+scenario 771 (751..1000)  cost 3.75  maintenances 17  40s
+scenario 772 (751..1000)  cost 3.12  maintenances 12  38s
+scenario 773 (751..1000)  cost 3.88  maintenances 15  26s
+scenario 774 (751..1000)  cost 3.38  maintenances 16  63s
+scenario 775 (751..1000)  cost 3.12  maintenances 14  24s
+scenario 776 (751..1000)  cost 3.88  maintenances 17  47s
+scenario 777 (751..1000)  cost 2.50  maintenances 13  107s
+scenario 778 (751..1000)  cost 2.38  maintenances 12  13s
+scenario 779 (751..1000)  cost 4.38  maintenances 20  32s

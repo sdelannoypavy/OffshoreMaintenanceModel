@@ -1,0 +1,31 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+lift_project one_pole scenarios 335..501  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 335 (335..501)  cost 0.75  maintenances 4  389s
+scenario 336 (335..501)  cost 0.62  maintenances 5  383s
+scenario 337 (335..501)  cost 1.50  maintenances 8  136s
+scenario 338 (335..501)  cost 2.62  maintenances 9  79s
+scenario 339 (335..501)  cost 2.00  maintenances 10  79s
+scenario 340 (335..501)  cost 1.38  maintenances 6  56s
+scenario 341 (335..501)  cost 1.75  maintenances 9  73s
+scenario 342 (335..501)  cost 1.12  maintenances 6  14s
+scenario 343 (335..501)  cost 2.25  maintenances 11  19s
+scenario 344 (335..501)  cost 1.00  maintenances 4  16s
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 1
+resume: 10 scenarios already complete
+lift_project one_pole scenarios 335..501  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 345 (335..501)  cost 2.38  maintenances 10  876s
+scenario 346 (335..501)  cost 1.88  maintenances 9  162s
+scenario 347 (335..501)  cost 0.75  maintenances 4  569s
+scenario 348 (335..501)  cost 1.12  maintenances 6  117s
+scenario 349 (335..501)  cost 2.50  maintenances 10  144s
+scenario 350 (335..501)  cost 2.75  maintenances 11  228s
+scenario 351 (335..501)  cost 2.00  maintenances 7  67s
+scenario 352 (335..501)  cost 1.12  maintenances 6  102s
+scenario 353 (335..501)  cost 1.75  maintenances 9  413s
+scenario 354 (335..501)  cost 1.38  maintenances 7  170s

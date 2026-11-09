@@ -1,0 +1,7 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 3
+MTBF of the 9 components: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+  cache loaded: 3 policies from paper_experiment/results/interactions9_mtbf20\S3_11_policy.csv
+S=3 scenarios 11..11  QUOTA_STEP=15  (0 already done)

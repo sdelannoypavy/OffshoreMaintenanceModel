@@ -1,0 +1,23 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 55 scenarios already complete
+  cache loaded: 3621 policies from paper_experiment/results/order2_simple/one_pole_simple_order2_4_policy.csv
+policy cache: 3626 decisions (5 copied from the other chunks)
+  cache loaded: 3626 policies from paper_experiment/results/order2_simple/one_pole_simple_order2_4_policy.csv
+order2 one_pole_simple scenarios 751..1000  MOB=0.00  MTBF_SCALE=1.00  QUOTA_STEP=15
+scenario 806 (751..1000)  cost 675.25  maintenances 75  121s
+policy cache: 21 decisions copied from the other chunks
+scenario 807 (751..1000)  cost 759.88  maintenances 84  98s
+policy cache: 26 decisions copied from the other chunks
+scenario 808 (751..1000)  cost 536.25  maintenances 68  84s
+policy cache: 16 decisions copied from the other chunks
+scenario 809 (751..1000)  cost 521.12  maintenances 65  119s
+policy cache: 19 decisions copied from the other chunks
+scenario 810 (751..1000)  cost 622.12  maintenances 69  260s
+policy cache: 42 decisions copied from the other chunks
+scenario 811 (751..1000)  cost 530.88  maintenances 75  8s
+policy cache: 1 decisions copied from the other chunks
+scenario 812 (751..1000)  cost 880.38  maintenances 76  94s
+policy cache: 22 decisions copied from the other chunks

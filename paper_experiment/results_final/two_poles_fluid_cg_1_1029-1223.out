@@ -1,0 +1,29 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 0 scenarios already complete
+fluid_cg two_poles scenarios 1..250  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 1 (1..250)  cost 2.00  maintenances 11  473s
+scenario 2 (1..250)  cost 1.12  maintenances 7  119s
+  master LP solved after a numerical failure, attempt 2 ["Method" => 1]
+scenario 3 (1..250)  cost 4.62  maintenances 21  166s
+scenario 4 (1..250)  cost 4.25  maintenances 19  200s
+scenario 5 (1..250)  cost 4.12  maintenances 19  65s
+scenario 6 (1..250)  cost 4.38  maintenances 18  55s
+scenario 7 (1..250)  cost 4.25  maintenances 18  63s
+scenario 8 (1..250)  cost 4.25  maintenances 17  143s
+scenario 9 (1..250)  cost 4.25  maintenances 19  143s
+scenario 10 (1..250)  cost 2.88  maintenances 12  26s
+scenario 11 (1..250)  cost 3.75  maintenances 17  67s
+scenario 12 (1..250)  cost 2.88  maintenances 14  20s
+scenario 13 (1..250)  cost 3.50  maintenances 14  54s
+scenario 14 (1..250)  cost 3.25  maintenances 15  53s
+scenario 15 (1..250)  cost 4.38  maintenances 16  109s
+scenario 16 (1..250)  cost 3.12  maintenances 15  59s
+scenario 17 (1..250)  cost 5.25  maintenances 22  155s
+scenario 18 (1..250)  cost 4.25  maintenances 17  38s
+scenario 19 (1..250)  cost 3.38  maintenances 17  29s
+scenario 20 (1..250)  cost 2.62  maintenances 11  165s
+scenario 21 (1..250)  cost 3.62  maintenances 18  26s
+scenario 22 (1..250)  cost 3.75  maintenances 15  34s

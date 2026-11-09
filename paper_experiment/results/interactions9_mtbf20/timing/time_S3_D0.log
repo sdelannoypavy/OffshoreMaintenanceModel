@@ -1,0 +1,50 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+MTBF of the 9 components: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+replacement costs of the 9 components: [5.0, 0.25, 0.125, 0.25, 10.0, 0.5, 0.25, 0.25, 0.25]
+S = 3, M = 27, DISTINCT = false, threads = 2
+    iter   1  master 0.50s  pricing 0.96s  new   3  cuts   0  LP 4.722934
+    iter   2  master 1.18s  pricing 3.05s  new  19  cuts   0  LP 3.994142
+    iter   3  master 2.01s  pricing 4.86s  new  30  cuts   0  LP 1.895909
+    iter   4  master 0.80s  pricing 1.74s  new  21  cuts   0  LP 1.304355
+    iter   5  master 1.26s  pricing 5.99s  new  31  cuts   0  LP 1.203402
+    iter   6  master 1.45s  pricing 5.87s  new  26  cuts   0  LP 1.172148
+    iter   7  master 1.93s  pricing 8.88s  new  33  cuts   0  LP 1.113458
+    iter   8  master 2.59s  pricing 20.14s  new  33  cuts   0  LP 1.074969
+    iter   9  master 2.18s  pricing 114.14s  new  41  cuts   0  LP 1.073313
+    iter  10  master 1.46s  pricing 94.12s  new  31  cuts   0  LP 1.062256
+    iter  11  master 1.57s  pricing 130.18s  new  33  cuts   0  LP 1.032472
+    iter  12  master 3.70s  pricing 84.72s  new  33  cuts   0  LP 1.012266
+    iter  13  master 3.60s  pricing 151.58s  new  33  cuts   0  LP 1.002529
+    iter  14  master 2.09s  pricing 144.02s  new  32  cuts   0  LP 0.999435
+    iter  15  master 26.58s  pricing 42.00s  new  29  cuts   0  LP 0.995732
+    iter  16  master 7.94s  pricing 116.48s  new  24  cuts   0  LP 0.989530
+    iter  17  master 1.97s  pricing 108.97s  new  30  cuts   0  LP 0.980062
+    iter  18  master 1.38s  pricing 72.83s  new  28  cuts   0  LP 0.977911
+    iter  19  master 2.03s  pricing 124.35s  new  27  cuts   0  LP 0.977384
+    iter  20  master 2.44s  pricing 106.68s  new  26  cuts   0  LP 0.977078
+    iter  21  master 1.43s  pricing 104.89s  new  22  cuts   0  LP 0.975777
+    iter  22  master 1.29s  pricing 131.74s  new  19  cuts   0  LP 0.974773
+    iter  23  master 1.43s  pricing 129.76s  new  18  cuts   0  LP 0.974611
+    iter  24  master 1.09s  pricing 87.01s  new  21  cuts   0  LP 0.974494
+    iter  25  master 2.55s  pricing 98.08s  new   9  cuts   0  LP 0.974392
+    iter  26  master 0.35s  pricing 116.93s  new  14  cuts   0  LP 0.974385
+    iter  27  master 0.45s  pricing 91.64s  new  15  cuts   0  LP 0.974368
+    iter  28  master 1.03s  pricing 81.86s  new   8  cuts   0  LP 0.974339
+    iter  29  master 0.35s  pricing 88.86s  new  12  cuts   0  LP 0.974320
+    iter  30  master 0.41s  pricing 50.57s  new   3  cuts   0  LP 0.974305
+    iter  31  master 0.45s  pricing 108.66s  new   4  cuts   0  LP 0.974305
+    iter  32  master 0.18s  pricing 159.03s  new   6  cuts   0  LP 0.974297
+    iter  33  master 0.26s  pricing 114.56s  new   6  cuts   0  LP 0.974283
+    iter  34  master 0.48s  pricing 145.73s  new   7  cuts   0  LP 0.974255
+    iter  35  master 5.94s  pricing 149.44s  new   3  cuts   0  LP 0.974248
+    iter  36  master 0.12s  pricing 62.81s  new   3  cuts   0  LP 0.974244
+    iter  37  master 0.34s  pricing 57.76s  new   6  cuts   0  LP 0.974241
+    iter  38  master 0.36s  pricing 42.70s  new   7  cuts   0  LP 0.974239
+    iter  39  master 0.33s  pricing 43.92s  new   4  cuts   0  LP 0.974230
+    iter  40  master 0.36s  pricing 103.47s  new  14  cuts   0  LP 0.974230
+    iter  41  master 1.19s  pricing 73.69s  new   7  cuts   0  LP 0.974233
+    iter  42  master 0.39s  pricing 83.80s  new   0  cuts   0  LP 0.974233
+TOTAL 3563.8 s  pricing 3468.0 s  master 89.4 s  iterations 42  converged true  columns 800  LP 0.974233

@@ -1,0 +1,4 @@
+Report -- instance=one_pole_simple  scenarios=200  fluid horizon=6  (generated 2026-09-27T08:24:55.798)
+
+method                mean_cost          std    CVaR_0.95 mean_lp_cost total_solve_time_s
+fluid_cg                  51.88        47.17       161.12        51.88               38.3

@@ -1,0 +1,9 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 36 scenarios already complete
+  cache loaded: 7532 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final\three_poles_fluid_cg_1_policy.csv
+policy cache: 7559 decisions (27 copied from the other chunks)
+  cache loaded: 7559 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final\three_poles_fluid_cg_1_policy.csv
+fluid_cg three_poles scenarios 1..250  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15

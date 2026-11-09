@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f paper_compile1.log paper_compile2.log paper.aux paper.log paper.out)",
+      "Bash(pdfinfo paper.pdf)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\sodel\\MultiHorizonMaintenanceModel"
+    ]
+  }
+}

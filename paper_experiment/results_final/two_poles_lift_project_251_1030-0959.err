@@ -1,0 +1,70 @@
+error in running finalizer: ReadOnlyMemoryError()
+unsafe_store! at .\pointer.jl:178 [inlined]
+unsafe_store! at .\pointer.jl:178 [inlined]
+jlunsafe_store! at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\types.jl:55 [inlined]
+_write at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\io\dataio.jl:46 [inlined]
+jlwrite at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\io\dataio.jl:11 [inlined]
+#write_header_message#29 at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\object_headers.jl:28
+write_header_message at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\object_headers.jl:25 [inlined]
+write_continuation_placeholder at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\object_headers.jl:49 [inlined]
+#attach_message#108 at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\explicit_datasets.jl:412
+attach_message at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\explicit_datasets.jl:368 [inlined]
+attach_message at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\explicit_datasets.jl:368 [inlined]
+save_group at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\groups.jl:346
+close at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\JLD2.jl:439
+jld_finalizer at C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\JLD2.jl:474
+unknown function (ip: 0000017efa9a665b) at (unknown file)
+run_finalizer at C:/workdir/src\gc-common.c:180
+jl_gc_run_finalizers_in_list at C:/workdir/src\gc-common.c:270
+run_finalizers at C:/workdir/src\gc-common.c:316
+jl_mutex_unlock at C:/workdir/src\julia_locks.h:80 [inlined]
+jl_type_infer at C:/workdir/src\gf.c:488
+jl_compile_method_internal at C:/workdir/src\gf.c:3516
+_jl_invoke at C:/workdir/src\gf.c:4006 [inlined]
+ijl_apply_generic at C:/workdir/src\gf.c:4214
+#showerror#848 at .\errorshow.jl:117
+showerror at .\errorshow.jl:115
+unknown function (ip: 0000017efa9b9583) at (unknown file)
+show_exception_stack at .\errorshow.jl:1016
+display_error at .\client.jl:110
+unknown function (ip: 0000017efa9b6180) at (unknown file)
+display_error at .\client.jl:113
+jfptr_display_error_70984.1 at C:\Users\sodel\.julia\juliaup\julia-1.12.7+0.x64.w64.mingw32\lib\julia\sys.dll (unknown line)
+jl_apply at C:/workdir/src\julia.h:2394 [inlined]
+jl_f_invokelatest at C:/workdir/src\builtins.c:881
+exec_options at .\client.jl:320
+_start at .\client.jl:550
+jfptr__start_59066.1 at C:\Users\sodel\.julia\juliaup\julia-1.12.7+0.x64.w64.mingw32\lib\julia\sys.dll (unknown line)
+jl_apply at C:/workdir/src\julia.h:2394 [inlined]
+true_main at C:/workdir/src\jlapi.c:985
+jl_repl_entrypoint at C:/workdir/src\jlapi.c:1153
+mainCRTStartup at C:/workdir/cli\loader_exe.c:58
+BaseThreadInitThunk at C:\Windows\System32\KERNEL32.DLL (unknown line)
+RtlUserThreadStart at C:\Windows\SYSTEM32\ntdll.dll (unknown line)
+ERROR: LoadError: SystemError: truncate: Permission denied
+Stacktrace:
+  [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+    @ Base .\error.jl:186
+  [2] systemerror
+    @ .\error.jl:185 [inlined]
+  [3] truncate(s::IOStream, n::Int64)
+    @ Base .\iostream.jl:129
+  [4] truncate_and_close(io::JLD2.MmapIO, endpos::Int64)
+    @ JLD2 C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\io\mmapio.jl:162
+  [5] close(f::JLD2.JLDFile{JLD2.MmapIO})
+    @ JLD2 C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\JLD2.jl:450
+  [6] jldopen(::Function, ::String, ::Vararg{String}; kws::@Kwargs{})
+    @ JLD2 C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\loadsave.jl:6
+  [7] jldopen
+    @ C:\Users\sodel\.julia\packages\JLD2\rm5a0\src\loadsave.jl:1 [inlined]
+  [8] append_cache_entry!(cache_file::String, next_id::Base.RefValue{Int64}, key::Tuple{NTuple{14, Int64}, Tuple{Int64, Int64}, Int64, Int64}, value::Tuple{Vector{Int64}, Vector{Vector{Int64}}, Float64, Float64, Int64, Int64, Bool})
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_lp_cg.jl:93
+  [9] top-level scope
+    @ C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\sim_range.jl:43
+ [10] include(mod::Module, _path::String)
+    @ Base .\Base.jl:306
+ [11] exec_options(opts::Base.JLOptions)
+    @ Base .\client.jl:317
+ [12] _start()
+    @ Base .\client.jl:550
+in expression starting at C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\sim_range.jl:34

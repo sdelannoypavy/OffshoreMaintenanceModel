@@ -1,0 +1,56 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{enumitem}
+
+\title{Ordre du jour de la réunion du \rule{3cm}{0.4pt}}
+\author{Solène Delannoy-Pavy}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. Modifications du plan depuis la dernière réunion}
+
+\begin{itemize}
+\item \textbf{Suppression du formalisme des MDP décomposables à action combinatoire.} Nous souhaitons mettre le
+problème RTE au centre de l'article. Or ce formalisme s'écarte du problème RTE sur deux points. Le coût n'est pas
+séparable, et les jours sans pénalité sont des variables globales.
+\item \textbf{Lien avec les modèles graphiques probabilistes établi dès le début de la section~3.} Il permet de
+montrer que toutes les approximations sont construites selon le même schéma.
+\begin{enumerate}
+\item On définit des groupes de variables (clusters) et des marginales sur ces groupes, qui sont les variables du
+programme linéaire.
+\item On approche le coût par une fonction linéaire de ces marginales, ce qui donne l'objectif du programme linéaire.
+\item On remplace le polytope marginal (les marginales atteignables par les politiques du MDP) par le polytope local
+(les marginales localement cohérentes), ce qui donne l'ensemble admissible du programme linéaire.
+\end{enumerate}
+\item \textbf{Résultats numériques uniquement sur le problème RTE.}
+\end{itemize}
+
+\section*{2. Questions sur la version actuelle}
+
+\begin{enumerate}
+\item \textbf{Rédaction.} Globalement, la rédaction actuelle me semble lourde. Comment l'améliorer ?
+\item \textbf{Résultat sur les MDP décomposables.} Faut-il garder le résultat selon lequel l'approximation fluide peut
+être arbitrairement mauvaise pour ces MDP ? Il s'éloigne un peu du problème RTE.
+\item \textbf{Modèle simplifié.} Les résultats sur le modèle simplifié restent intéressants. Le modèle étant plus
+simple, ses résultats sont plus faciles à interpréter. Faut-il les conserver ?
+\item \textbf{Choix des reviewers.} Mettre en avant les modèles graphiques probabilistes risque d'attirer des
+reviewers différents. Est-ce un problème ?
+\item \textbf{Baseline.} Nous comparons nos formulations à une heuristique en deux temps.
+\begin{itemize}
+\item Hors ligne, on optimise les politiques de maintenance composant par composant.
+\item En ligne, on choisit le planning de coût minimal qui réalise les maintenances données par ces politiques.
+\end{itemize}
+Cette heuristique ne s'étend pas facilement au cas avec quotas. Dans les tests actuels, on optimise les maintenances
+par composant sans tenir compte des quotas, puis on attribue les quotas en ligne de manière gloutonne, pour couvrir
+tous les jours de maintenance jusqu'à épuisement du quota. Cette baseline est-elle suffisante ?
+\item \textbf{Light fluid LP.} Faut-il présenter la formulation avec un sous-système supplémentaire qui représente les
+quotas (Light fluid LP) ? Elle est plus légère, mais moins performante que notre formulation principale, le Full
+fluid LP. Sur une sous-station, elle est 7 fois plus rapide par décision pour un coût 10\,\% plus élevé.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,7 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+MTBF of the 9 components: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+S=2 scenarios 1..50  QUOTA_STEP=15  (0 already done)
+scenario 1  cost S 53.250  sum alone 53.250  diff +0.0000  maint 41/41  6399s

@@ -1,0 +1,22 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+  cache loaded: 24 policies from paper_experiment/results/interactions9\S2_1_policy.csv
+S=2 scenarios 1..50  QUOTA_STEP=15  (0 already done)
+scenario 1  cost S 3.250  sum alone 3.250  diff +0.0000  maint 14/14  2977s
+scenario 2  cost S 17.625  sum alone 17.625  diff +0.0000  maint 11/11  906s
+scenario 3  cost S 4.250  sum alone 4.250  diff +0.0000  maint 17/17  968s
+scenario 4  cost S 3.250  sum alone 3.250  diff +0.0000  maint 15/15  1062s
+scenario 5  cost S 2.750  sum alone 2.750  diff +0.0000  maint 12/12  636s
+scenario 6  cost S 4.000  sum alone 4.000  diff +0.0000  maint 16/16  446s
+scenario 7  cost S 3.625  sum alone 3.625  diff +0.0000  maint 16/16  504s
+scenario 8  cost S 3.750  sum alone 3.750  diff +0.0000  maint 16/16  315s
+scenario 9  cost S 2.625  sum alone 2.625  diff +0.0000  maint 11/11  119s
+scenario 10  cost S 3.750  sum alone 3.750  diff +0.0000  maint 16/16  231s
+scenario 11  cost S 3.375  sum alone 3.375  diff +0.0000  maint 15/15  1081s
+scenario 12  cost S 3.000  sum alone 3.000  diff +0.0000  maint 12/12  209s
+scenario 13  cost S 3.875  sum alone 3.875  diff +0.0000  maint 16/16  400s
+scenario 14  cost S 2.500  sum alone 2.500  diff +0.0000  maint 11/11  344s
+scenario 15  cost S 3.000  sum alone 3.000  diff +0.0000  maint 13/13  615s
+scenario 16  cost S 2.875  sum alone 2.875  diff +0.0000  maint 13/13  108s

@@ -1,0 +1,31 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 40 scenarios already complete
+  cache loaded: 18771 policies from paper_experiment/results/lift_project_simple/three_poles_simple_lift_project_177_policy.csv
+policy cache: 18933 decisions (162 copied from the other chunks)
+  cache loaded: 18933 policies from paper_experiment/results/lift_project_simple/three_poles_simple_lift_project_177_policy.csv
+lift_project three_poles_simple scenarios 177..264  MOB=0.00  MTBF_SCALE=1.00  QUOTA_STEP=15
+scenario 217 (177..264)  cost 2347.50  maintenances 253  1296s
+policy cache: 172 decisions copied from the other chunks
+scenario 218 (177..264)  cost 1701.00  maintenances 200  1970s
+policy cache: 341 decisions copied from the other chunks
+scenario 219 (177..264)  cost 2011.75  maintenances 236  2135s
+policy cache: 360 decisions copied from the other chunks
+scenario 220 (177..264)  cost 1919.12  maintenances 203  2390s
+policy cache: 349 decisions copied from the other chunks
+scenario 221 (177..264)  cost 1999.75  maintenances 212  2256s
+policy cache: 358 decisions copied from the other chunks
+scenario 222 (177..264)  cost 2297.50  maintenances 266  1772s
+policy cache: 345 decisions copied from the other chunks
+scenario 223 (177..264)  cost 1655.00  maintenances 241  1096s
+policy cache: 352 decisions copied from the other chunks
+scenario 224 (177..264)  cost 1902.75  maintenances 236  1069s
+policy cache: 349 decisions copied from the other chunks
+scenario 225 (177..264)  cost 1828.38  maintenances 227  1213s
+policy cache: 336 decisions copied from the other chunks
+scenario 226 (177..264)  cost 2056.25  maintenances 216  1343s
+policy cache: 336 decisions copied from the other chunks
+scenario 227 (177..264)  cost 1803.62  maintenances 215  1421s
+policy cache: 346 decisions copied from the other chunks

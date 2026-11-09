@@ -1,0 +1,62 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand*\HyPL@Entry[1]{}
+\HyPL@Entry{0<</S/D>>}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Notation and data}{1}{section.1}\protected@file@percent }
+\newlabel{sec:notation}{{1}{1}{Notation and data}{section.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Poles and components.}{1}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Component state and cost.}{1}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{$\alpha $ (\texttt  {build\_fluid\_data(inst; alpha=1.0)}).}{2}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Quota.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Schedule data.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Lead margin.}{2}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Numerical values (\texttt  {paper\_experiment/instances.jl}).}{3}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Stages.}{3}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Simplified problem: no free-day quota, no within-period transition}{3}{section.2}\protected@file@percent }
+\newlabel{sec:simplified}{{2}{3}{Simplified problem: no free-day quota, no within-period transition}{section.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{How $K_0(p) = 0$ gives this for free.}{3}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Running every method unchanged.}{4}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{No within-period transition (\texttt  {instances.jl}, \texttt  {Instance.simplified}).}{4}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The true cost is no longer computed separately.}{5}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Data of the simplified instances.}{5}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\textcolor {red}{Parameters used for the simplified model.}}{5}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Order-2 formulation on a simplified instance.}{6}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Cross-pole pairs are also built, without a shared $(k,\kappa )$.}{6}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Full Fluid LP of Section 3.2 of the paper (\texttt  {fluid\_cg})}{7}{section.3}\protected@file@percent }
+\newlabel{sec:paper-fluid}{{3}{7}{Full Fluid LP of Section 3.2 of the paper (\texttt {fluid\_cg})}{section.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{True cost and simulator.}{7}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Master LP.}{7}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Pricing problems.}{8}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Policy.}{8}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Order 2 (\texttt  {fluid\_cg\_order2}, Section 4.2 of the paper).}{8}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Lift-and-project (\texttt  {lift\_project}, Section 4.3 of the paper).}{8}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Compact fluid LP (\texttt  {compact}, Section 3.3 of the paper).}{9}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Master LP of the Full Fluid LP (column generation)}{9}{section.4}\protected@file@percent }
+\newlabel{sec:master}{{4}{9}{Master LP of the Full Fluid LP (column generation)}{section.4}{}}
+\newlabel{rem:strengthen}{{1}{9}{Strengthening the intra-pole link}{remark.1}{}}
+\newlabel{rem:sum-to-one}{{2}{11}{Why $(\mathrm {Cons})$ is needed at $a=1$ too}{remark.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Pricing MILP of the Full Fluid LP}{11}{section.5}\protected@file@percent }
+\newlabel{sec:pricing}{{5}{11}{Pricing MILP of the Full Fluid LP}{section.5}{}}
+\newlabel{rem:pricing-k}{{4}{11}{Pricing must also choose $k$}{remark.4}{}}
+\newlabel{rem:w-linearisation}{{6}{12}{Only two of the three usual AND-linearisation constraints}{remark.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Light Fluid LP: quota as a subsystem}{13}{section.6}\protected@file@percent }
+\newlabel{sec:light}{{6}{13}{Light Fluid LP: quota as a subsystem}{section.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Order-2 higher-order formulation (Section 4.2)}{15}{section.7}\protected@file@percent }
+\newlabel{sec:order2}{{7}{15}{Order-2 higher-order formulation (Section 4.2)}{section.7}{}}
+\newlabel{rem:order2-both-modes}{{10}{17}{Why $p^{\mathrm {pair}}$ needs both modes, and both Flow and marginal consistency}{remark.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Compact Fluid LP}{17}{section.8}\protected@file@percent }
+\newlabel{sec:compact}{{8}{17}{Compact Fluid LP}{section.8}{}}
+\newlabel{rem:compact-warmstart}{{13}{17}{Warm start across states: one template per $(t_0^{\mathrm {cyc}}, H)$, not one model per state}{remark.13}{}}
+\newlabel{rem:slack}{{14}{19}{A slack exploited by the relaxation}{remark.14}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Lift-and-project cuts (Section 4.3)}{19}{section.9}\protected@file@percent }
+\newlabel{sec:lift-project}{{9}{19}{Lift-and-project cuts (Section 4.3)}{section.9}{}}
+\newlabel{sec:lift-project-first-attempt}{{9}{20}{A first attempt, and why it is very loose on this problem}{section*.72}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {10}Policy extraction: a method-agnostic heuristic}{21}{section.10}\protected@file@percent }
+\newlabel{sec:heuristic-extraction}{{10}{21}{Policy extraction: a method-agnostic heuristic}{section.10}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 1 -- read the aggregate decision off $q$.}{21}{section*.75}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Step 2 -- re-derive the schedule for the true cost.}{22}{section*.76}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11}Baseline 1: two-step optimisation (simplified problem)}{22}{section.11}\protected@file@percent }
+\newlabel{sec:baseline1}{{11}{22}{Baseline 1: two-step optimisation (simplified problem)}{section.11}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 1: one threshold policy per component (offline, once per instance).}{22}{section*.77}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Step 2: schedule for the joint state (online).}{23}{section*.78}\protected@file@percent }
+\gdef \@abspage@last{23}

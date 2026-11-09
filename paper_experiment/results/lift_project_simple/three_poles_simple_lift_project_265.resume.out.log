@@ -1,0 +1,13 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 5 scenarios already complete
+  cache loaded: 2593 policies from paper_experiment/results/lift_project_simple/three_poles_simple_lift_project_265_policy.csv
+policy cache: 2817 decisions (224 copied from the other chunks)
+  cache loaded: 2817 policies from paper_experiment/results/lift_project_simple/three_poles_simple_lift_project_265_policy.csv
+lift_project three_poles_simple scenarios 265..352  MOB=0.00  MTBF_SCALE=1.00  QUOTA_STEP=15
+scenario 270 (265..352)  cost 1942.50  maintenances 217  495s
+policy cache: 137 decisions copied from the other chunks
+scenario 271 (265..352)  cost 2210.88  maintenances 234  931s
+policy cache: 344 decisions copied from the other chunks

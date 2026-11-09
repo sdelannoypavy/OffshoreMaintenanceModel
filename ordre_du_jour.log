@@ -1,0 +1,221 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex 2025.9.16)  27 OCT 2026 17:03
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**./ordre_du_jour.tex
+(ordre_du_jour.tex
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-01-04>
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\size11.clo
+File: size11.clo 2023/05/17 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count187
+\c@section=\count188
+\c@subsection=\count189
+\c@subsubsection=\count190
+\c@paragraph=\count191
+\c@subparagraph=\count192
+\c@figure=\count193
+\c@table=\count194
+\abovecaptionskip=\skip48
+\belowcaptionskip=\skip49
+\bibindent=\dimen140
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty
+Package: inputenc 2021/02/14 v1.3d Input encoding file
+\inpenc@prehook=\toks17
+\inpenc@posthook=\toks18
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\fontenc.sty
+Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
+Package: babel 2024/01/07 v24.1 The Babel package
+\babel@savecnt=\count195
+\U@D=\dimen141
+\l@unhyphenated=\language79
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.def)
+\bbl@readstream=\read2
+\bbl@dirlevel=\count196
+
+*************************************
+* Local config file bblopts.cfg used
+*
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/arabi\bblopts.cfg
+File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
+ babel
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/babel-french\french.l
+df
+Language: french 2025-08-15 v4.0e French support from the babel system
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/babel-french\french3.
+ldf
+Language: french 2025-08-15 v3.7e French support from the babel system
+\FB@stdchar=\count197
+Package babel Info: Making : an active character on input line 273.
+Package babel Info: Making ; an active character on input line 274.
+Package babel Info: Making ! an active character on input line 275.
+Package babel Info: Making ? an active character on input line 276.
+\FBguill@level=\count198
+\FBold@everypar=\toks19
+\FB@Mht=\dimen142
+\mc@charclass=\count199
+\mc@charfam=\count266
+\mc@charslot=\count267
+\std@mcc=\count268
+\dec@mcc=\count269
+\FB@pardim=\dimen143
+\listindentFB=\dimen144
+\descindentFB=\dimen145
+\labelindentFB=\dimen146
+\labelwidthFB=\dimen147
+\leftmarginFB=\dimen148
+\parindentFFN=\dimen149
+\FBfnindent=\dimen150
+)))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/babel/locale/fr\babel
+-french.tex
+Package babel Info: Importing font and identification data for french
+(babel)             from babel-fr.ini. Reported on input line 11.
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/carlisle\scalefnt.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks20
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty
+Package: iftex 2022/02/03 v1.0f TeX engine tests
+))
+\Gm@cnth=\count270
+\Gm@cntv=\count271
+\c@Gm@tempcnt=\count272
+\Gm@bindingoffset=\dimen151
+\Gm@wd@mp=\dimen152
+\Gm@odd@mp=\dimen153
+\Gm@even@mp=\dimen154
+\Gm@layoutwidth=\dimen155
+\Gm@layoutheight=\dimen156
+\Gm@layouthoffset=\dimen157
+\Gm@layoutvoffset=\dimen158
+\Gm@dimlist=\toks21
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.cfg))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/enumitem\enumitem.sty
+Package: enumitem 2025/02/06 v3.11 Customized lists
+\labelindent=\skip50
+\enit@outerparindent=\dimen159
+\enit@toks=\toks22
+\enit@inbox=\box51
+\enit@count@id=\count273
+\enitdp@description=\count274
+)
+Package french3.ldf Info: Setting StandardItemizeEnv=true for
+(french3.ldf)             compatibility with enumitem package,
+(french3.ldf)             reported on input line 12.
+Package french3.ldf Info: Setting StandardEnumerateEnv=true for
+(french3.ldf)             compatibility with enumitem package,
+(french3.ldf)             reported on input line 12.
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
+tex.def
+File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count275
+\l__pdf_internal_box=\box52
+)
+No file ordre_du_jour.aux.
+\openout1 = `ordre_du_jour.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Info: Redefining \degres on input line 12.
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: a4paper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(71.13188pt, 455.24411pt, 71.13188pt)
+* v-part:(T,H,B)=(71.13188pt, 702.78308pt, 71.13188pt)
+* \paperwidth=597.50787pt
+* \paperheight=845.04684pt
+* \textwidth=455.24411pt
+* \textheight=702.78308pt
+* \oddsidemargin=-1.1381pt
+* \evensidemargin=-1.1381pt
+* \topmargin=-38.1381pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=11.0pt
+* \footskip=30.0pt
+* \marginparwidth=50.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 13.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 13.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 13.
+[1
+
+{C:/Users/sodel/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
+(ordre_du_jour.aux)
+ ***********
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-01-04>
+ ***********
+ ) 
+Here is how much of TeX's memory you used:
+ 3499 strings out of 474486
+ 62219 string characters out of 5743755
+ 1934542 words of memory out of 5000000
+ 25800 multiletter control sequences out of 15000+600000
+ 565732 words of font info for 52 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 57i,6n,65p,204b,385s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\sodel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx
+1095.pk> <C:\Users\sodel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi60
+0\ecrm1095.pk> <C:\Users\sodel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec
+/dpi600\ecbx1440.pk> <C:\Users\sodel\AppData\Local\MiKTeX\fonts/pk/ljfour/jknap
+pen/ec/dpi600\ecrm1200.pk> <C:\Users\sodel\AppData\Local\MiKTeX\fonts/pk/ljfour
+/jknappen/ec/dpi600\ecrm1728.pk>
+Output written on ordre_du_jour.pdf (1 page, 57403 bytes).
+PDF statistics:
+ 176 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

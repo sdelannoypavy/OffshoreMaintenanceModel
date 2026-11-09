@@ -1,0 +1,319 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\geometry{margin=2.5cm}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\title{Instance numérique à 25 composants : maintenance d'un poste offshore\\
+\large Génération de colonnes vs.\ contraintes en espérance}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Description de l'instance}
+
+On reprend exactement le formalisme de \emph{Fluid approximation with column generation and an
+application to offshore substations maintenance} --- le document qui décrit précisément le modèle codé
+dans \texttt{MultiHorizonMaintenanceModel} --- pour construire une instance à 25 composants comparant
+les deux méthodes de résolution : le LP maître restreint (RMP) résolu par génération de colonnes
+(Méthode 1, Sections 3.3--3.4 du document de référence) et sa relaxation directe, dite à contraintes en
+espérance (Méthode 2, Section 5).
+
+\paragraph{Données de l'instance.}
+\begin{itemize}
+  \item $C = 25$ composants.
+  \item Étapes (\emph{stages}) de $T=60$ jours (2 mois), comme dans le code existant. Avec un horizon
+        de 20 ans et 6 étapes par an, $\bar{T} = 120$ étapes.
+  \item Chaque composant a 3 états (1 = neuf, 2 = dégradé, 3 = en panne), MTBF $=40$ ans, identique pour
+        tous les composants.
+  \item Pas d'aléa météo : un seul scénario ($S=1$), le poste est toujours accessible et la production
+        toujours à son maximum ($p_\tau \equiv 100$ chaque jour accessible). Une maintenance planifiée se
+        déroule donc toujours exactement comme prévu, sans retard ni interruption.
+  \item $R=3$ techniciens ; chaque opération de maintenance nécessite $r_c=1$ technicien, sans partage.
+  \item Chaque composant $c$ est associé à une opération de maintenance qui le ramène à l'état 1, de durée
+        $d_c \in \{1,\dots,10\}$ (entier tiré une fois pour toutes uniformément, donnée fixe de l'instance).
+  \item Coût de remplacement $\mathrm{ccc}_c = 100$ pour tout $c$ (terme additif dans l'objectif, en
+        plus de la pénalité de capacité).
+  \item Quota annuel $K_0=10$ jours de maintenance gratuits, renouvelé tous les 6 étapes (1er janvier).
+  \item Puisqu'il n'y a pas de météo, on peut toujours supposer que les plannings de maintenance
+        commencent au jour 1 de l'étape (indifférence des jours).
+\end{itemize}
+
+\section{Coûts précalculés}
+
+\paragraph{Transitions de dégradation.} Sans maintenance ($m=1$), $p_{c,x,x',1,t}$ est la matrice de
+transition sur 60 jours obtenue, comme dans \texttt{build\_MC\_utils.jl}, en élevant à la puissance 60 la
+matrice journalière absorbante linéaire calibrée sur le MTBF :
+$$ p := \frac{2}{40\times365}, \qquad P_{\text{jour}} = \begin{pmatrix} 1-p & 0 & 0 \\ p & 1-p & 0 \\ 0 &
+p & 1 \end{pmatrix}, \qquad p_{c,\cdot,\cdot,1,t} := P_{\text{jour}}^{60}. $$
+Avec maintenance ($m=2$), $p_{c,x,x',2,t} = \mathbb{1}[x'=1]$ (retour certain à l'état neuf).
+
+\paragraph{Coût de défaillance $\delta_{c,x,t}$.} Conformément à la Section 3.1 du document de référence,
+$\delta_{c,x,t}$ est le coût attendu de $c$ dans l'état $x$ sur l'étape \emph{sans tenir compte des jours
+gratuits}. Avec la pénalité de 100 par jour d'indisponibilité et sans météo, un composant en panne
+($x=3$) laissé sans maintenance ($m=1$) immobilise le poste les 60 jours de l'étape :
+$$ \delta_{c,x,t} = \begin{cases} 0 & x \in \{1,2\}, \\ 100 \times 60 = 6000 & x = 3. \end{cases} $$
+
+\section{Colonnes et coût joint $\eta_{b,t}$}
+
+Une colonne est un plan $b = (\text{comps}, \text{start\_days}, \text{free\_days})$ : l'ensemble des
+composants maintenus, leur jour de démarrage dans l'étape, et le sous-ensemble de jours déclarés gratuits
+($\kappa_b = |\text{free\_days}|$). Conformément à la Section 3.2 du document de référence, le coût joint
+attribué à la colonne est \textbf{explicitement la somme des coûts sur les 60 jours de l'étape} :
+$$ \eta_{b,t} = \sum_{\tau=1}^{60} p_\tau\,\big(\mathrm{am}_\tau - w_\tau\big) = 100\sum_{\tau=1}^{60}
+\big(\mathrm{am}_\tau - w_\tau\big), $$
+où $\mathrm{am}_\tau=1$ si au moins un composant de la colonne est en cours de maintenance le jour $\tau$,
+et $w_\tau = \mathrm{am}_\tau \wedge f_\tau$ vaut 1 si ce jour est à la fois actif et déclaré gratuit (donc
+sans pénalité). C'est bien $\eta_{b,t}$, et non $\delta$, qui porte le coût lié au planning
+\emph{effectivement décidé} pour la période (jours de démarrage et jours gratuits choisis conjointement).
+
+\section{Méthode 1 : problème maître restreint et génération de colonnes}
+
+\subsection{Problème maître restreint (RMP)}
+
+En notant $q_{c,x,m,k,\kappa,t}\ge0$ la probabilité jointe que $c$ soit dans l'état $x$, avec décision
+$m\in\{1,2\}$, quota restant $k$ et jours gratuits utilisés $\kappa\le k$, et $B_{b,t}\ge0$ la probabilité
+que la colonne $b$ soit choisie à l'étape $t$ :
+
+\begin{align}
+\min_{q,B}\quad & \sum_{c,x,(k,\kappa),t} \delta_{c,x,t}\, q_{c,x,1,k,\kappa,t}
+ \ +\ \sum_{b,t} \eta_{b,t}\, B_{b,t}
+ \ +\ \sum_{c,x,(k,\kappa),t} 100\, q_{c,x,2,k,\kappa,t} \label{eq:rmp-obj}\\
+\text{s.c.}\quad
+ & \sum_{m,\kappa\le k} q_{c,x,m,k,\kappa,t} \ge \sum_{x',m} p_{c,x',x,m,t-1} \!\!\sum_{\kappa'=0}^{10-k}
+ q_{c,x',m,k+\kappa',\kappa',t-1}, && \forall c,x,k,\ t\ge2,\ t\not\equiv1\!\!\pmod6 \label{eq:rmp-flow1}\\
+ & \sum_{m,\kappa\le10} q_{c,x,m,10,\kappa,t} \ge \sum_{x',m,(k',\kappa')} p_{c,x',x,m,t-1}\,
+ q_{c,x',m,k',\kappa',t-1}, && \forall c,x,\ t\ge2,\ t\equiv1\!\!\pmod6 \label{eq:rmp-flow2}\\
+ & q_{c,x,m,k,\kappa,t}=0, && \forall k\ne10,\ t\equiv1\!\!\pmod6 \label{eq:rmp-reset}\\
+ & \sum_{m,\kappa\le10} q_{c,x,m,10,\kappa,1} = \alpha_{c,x}, && \forall c,x \label{eq:rmp-init}\\
+ & \sum_{x,k\ge\kappa} q_{c,x,2,k,\kappa,t} \ \le\ \sum_{b:\,c\in C(b),\,\kappa_b=\kappa} B_{b,t},
+ && \forall c,\kappa,t\quad [\lambda_{c,\kappa,t}] \label{eq:rmp-coupling}\\
+ & q,B\ge0, \nonumber
+\end{align}
+
+où $\alpha_{c,x}$ est la distribution initiale (composants neufs, $x=1$), et la nouvelle année (toutes les
+6 étapes) réinitialise le quota à $k=K_0=10$, conformément aux Sections 3.1--3.3 du document de référence.
+La dernière contrainte est la contrainte de couplage entre l'occupation $q$ et les colonnes $B$ ; son dual
+$\lambda_{c,\kappa,t}\le0$ sert au problème de pricing.
+
+\subsection{Problème de pricing (MILP)}
+
+Le coût réduit d'une colonne $b$ à l'étape $t$ est $\bar c(b,t) = \eta_{b,t} + \sum_{c\in C(b)}
+\lambda_{c,\kappa_b,t}$. En introduisant, pour chaque composant $c$ : $z_c\in\{0,1\}$ (maintenu),
+$m^{\text{start}}_{c,\tau}\in\{0,1\}$ ($\tau=1,\dots,60-d_c+1$, démarrage jour $\tau$) ; et globalement :
+$f_\tau\in\{0,1\}$, $\mathrm{pay}_\tau\in[0,1]$, $\kappa^{\text{sel}}_\kappa\in\{0,1\}$ ($\kappa=0,\dots,10$,
+exactement un actif), $y_{c,\kappa} = z_c \wedge \kappa^{\text{sel}}_\kappa$ (linéarisation de McCormick)
+--- le MILP de pricing s'écrit :
+
+\begin{align}
+\min\quad & 100\sum_{\tau=1}^{60}\mathrm{pay}_\tau + \sum_{c=1}^{25}\sum_{\kappa=0}^{10}
+\lambda_{c,\kappa,t}\, y_{c,\kappa} \label{eq:pricing-obj}\\
+\text{s.c.}\quad
+ & \textstyle\sum_{\tau=1}^{60-d_c+1} m^{\text{start}}_{c,\tau} = z_c, && \forall c=1,\dots,25
+ \label{eq:pricing-c1}\\
+ & \textstyle\sum_{c=1}^{25} \mathrm{ong}_{c,\tau} \ \le\ R=3, && \forall \tau=1,\dots,60
+ \label{eq:pricing-c4}\\
+ & \mathrm{pay}_\tau \ge \mathrm{ong}_{c,\tau} - f_\tau, && \forall c,\tau \label{eq:pricing-c5}\\
+ & \textstyle\sum_{\kappa=0}^{10} \kappa^{\text{sel}}_\kappa = 1, \qquad \textstyle\sum_\tau f_\tau =
+ \textstyle\sum_{\kappa=0}^{10} \kappa\,\kappa^{\text{sel}}_\kappa \label{eq:pricing-c6}\\
+ & y_{c,\kappa} \le z_c,\ \ y_{c,\kappa}\le\kappa^{\text{sel}}_\kappa,\ \ y_{c,\kappa}\ge z_c+
+ \kappa^{\text{sel}}_\kappa - 1, && \forall c,\kappa \label{eq:pricing-c7}
+\end{align}
+où $\displaystyle \mathrm{ong}_{c,\tau} := \!\!\sum_{\tau'=\max(1,\tau-d_c+1)}^{\min(\tau,60-d_c+1)}\!\!
+m^{\text{start}}_{c,\tau'}$ est une expression linéaire de $m^{\text{start}}$, et non une variable
+entière/compteur séparée. Ceci simplifie l'écriture du document de référence (qui introduit un compteur
+$q^v_{c,\tau}$ de jours de travail restants, nécessaire quand la météo peut interrompre une opération en
+cours) : sans aléa météo, une opération se déroule toujours exactement $d_c$ jours consécutifs sans
+interruption, et puisque $\sum_\tau m^{\text{start}}_{c,\tau}=z_c\le1$ (au plus un jour de démarrage actif),
+la formule ci-dessus donne automatiquement $\mathrm{ong}_{c,\tau}\in\{0,1\}$ sans qu'il soit nécessaire de
+l'imposer par une contrainte supplémentaire.
+
+\textbf{Simplification : fusion de $\mathrm{am}_\tau$ et $w_\tau$ en une seule variable $\mathrm{pay}_\tau$.}
+Dans une première version, deux variables binaires par jour étaient utilisées : $\mathrm{am}_\tau$
+(``au moins un composant en maintenance ce jour'', défini par $\mathrm{am}_\tau\ge\mathrm{ong}_{c,\tau}\
+\forall c$) et $w_\tau$ (linéarisation de McCormick de $\mathrm{am}_\tau\wedge f_\tau$, 3 contraintes),
+avec un objectif en $\mathrm{am}_\tau-w_\tau$. Ces deux variables peuvent être fusionnées en une seule,
+$\mathrm{pay}_\tau$, valant 1 ssi un composant est en maintenance ce jour \emph{et} que le jour n'est pas
+gratuit : c'est exactement \eqref{eq:pricing-c5}. Puisque $\mathrm{ong}_{c,\tau}$ et $f_\tau$ sont binaires,
+$\max_c(\mathrm{ong}_{c,\tau}-f_\tau)\in\{-1,0,1\}$ ; comme $\mathrm{pay}_\tau$ est minimisé dans
+l'objectif, il se fixe automatiquement à cette valeur (bornée à 0 par en dessous), sans qu'il soit
+nécessaire de le déclarer binaire --- $\mathrm{pay}_\tau\in[0,1]$ continu suffit. Cette fusion supprime
+$\mathrm{am}_\tau$, $w_\tau$ et les 3 contraintes de linéarisation de $w_\tau$ par jour, au profit d'une
+seule contrainte \eqref{eq:pricing-c5} (même nombre que l'ancienne contrainte définissant
+$\mathrm{am}_\tau$).
+
+\textbf{Remarque.} Toutes les variables de décision sont binaires --- $z_c$, $m^{\text{start}}_{c,\tau}$,
+$f_\tau$, $\kappa^{\text{sel}}_\kappa$, $y_{c,\kappa}$ --- \emph{à l'exception de $\mathrm{pay}_\tau$},
+déclarée continue mais automatiquement entière à l'optimum pour la raison ci-dessus. Il ne s'agit donc pas
+d'un MILP au sens général (variables mixtes entières/continues arbitraires), mais d'un programme presque
+entièrement 0-1, avec une seule variable continue par jour dont l'intégralité découle directement de la
+structure de l'objectif plutôt que d'être imposée : $\mathrm{ong}_{c,\tau}$ est une expression linéaire de
+$m^{\text{start}}$ (et non une variable), et le compteur entier $q^v_{c,\tau}$ du document de référence
+(nécessaire seulement en présence d'aléa météo) a été supprimé.
+
+\eqref{eq:pricing-c4} est la contrainte de capacité des 3 techniciens (extension par rapport au document
+de référence, qui n'en impose pas). \eqref{eq:pricing-c6} force à choisir exactement un nombre $\kappa$ de
+jours gratuits, dans la limite du quota restant à cette étape ($\kappa^{\text{sel}}_\kappa=0$
+automatiquement pour $\kappa>k_t$ puisque $\lambda_{c,\kappa,t}$ n'est défini/utile que pour $\kappa\le
+k_t$). Ce MILP comporte, par composant, $\sim\!1+60=61$ variables binaires ($z_c$ et $m^{\text{start}}_{c,
+\cdot}$), plus $11+25\times11+60\approx346$ variables globales (dont 60 continues, $\mathrm{pay}_\tau$),
+soit $\approx 25\times61+346\approx 1\,900$ variables --- une taille modeste pour un solveur MILP générique.
+
+\section{Méthode 2 : relaxation directe (contraintes en espérance)}
+
+Conformément à la Section 5 du document de référence, on relâche l'intégralité du MILP de pricing
+\eqref{eq:pricing-obj}--\eqref{eq:pricing-c7} en variables continues $z_{c,t},m^{\text{start}}_{c,\tau,t},
+f_{\tau,t},\mathrm{pay}_{\tau,t}\in[0,1]$, une seule copie par étape $t$ (pas de distribution $B_{b,t}$ sur
+des colonnes, pas de RMP ni de boucle de pricing) :
+
+\begin{align}
+\min_{q,z,\dots}\quad & \sum_{c,x,(k,\kappa),t} \delta_{c,x,t}\, q_{c,x,1,k,\kappa,t} + \sum_{c,t}
+100\, z_{c,t} + \sum_{\tau,t} 100\,\mathrm{pay}_{\tau,t} \label{eq:relax-obj}\\
+\text{s.c.}\quad & \text{contraintes de flot et d'initialisation de } \eqref{eq:rmp-flow1}\text{--}
+\eqref{eq:rmp-init}, \nonumber\\
+ & \sum_{x,k\ge\kappa} q_{c,x,2,k,\kappa,t} \ \le\ z_{c,t}, && \forall c,\kappa,t \label{eq:relax-c1}\\
+ & \sum_{x,m,(k,\kappa)} \kappa\, q_{1,x,m,k,\kappa,t} = \sum_\tau f_{\tau,t}, && \forall t
+ \label{eq:relax-c2}\\
+ & \text{contraintes linéaires de planification } \eqref{eq:pricing-c1}\text{--}\eqref{eq:pricing-c5}
+ \text{ (relâchées), indexées par } t. \nonumber
+\end{align}
+
+La contrainte de capacité des techniciens \eqref{eq:pricing-c4} devient $\sum_c r_c\,\mathrm{ong}_{c,\tau,t}
+\le 3$ en variables continues : ce n'est plus l'existence d'un planning \emph{entier réalisable} qui est
+exigée, mais seulement que le nombre \emph{attendu} de composants en maintenance un jour donné reste
+$\le3$ --- d'où le nom ``contraintes en espérance''. Ce LP se résout directement, sans génération de
+colonnes, au prix d'une borne potentiellement moins bonne (Remarque 3 du document de référence). Comme en
+Méthode 1, $\mathrm{pay}_{\tau,t}$ remplace la paire $(\mathrm{am}_{\tau,t},w_{\tau,t})$ ; ici toutes les
+variables étant déjà continues par construction, la fusion ne change rien à la nature du problème, mais
+simplifie l'écriture et réduit le nombre de contraintes.
+
+\section{Implémentation}
+
+Les deux méthodes sont codées dans \texttt{test\_25\_composants.jl}, en reprenant la structure de
+\texttt{script\_simple\_pole.jl} : à chaque étape, on résout un LP fluide sur un horizon roulant $H=6$
+(un an), on ne retient que la décision de la première étape locale, on simule réellement l'étape (coût
+joint exact, pas l'approximation $\delta/\eta$), on écrit le résultat dans les fichiers, et on recommence.
+Les politiques déjà calculées pour un état $(x_0,k_0,t_0)$ rencontré sont mises en cache (en mémoire et
+dans le fichier \texttt{policies\_25\_\{cg,relax\}.csv}) et relues sans être recalculées, comme le
+\texttt{cache}/\texttt{collect\_policies} de \texttt{script\_simple\_pole.jl}. Le temps de calcul de
+chaque nouvelle politique (en secondes) est mesuré et écrit en dernière colonne du fichier de politiques.
+
+\subsection{Arrondi et heuristique de réparation (Méthode 2)}
+
+La solution du LP relaxé à la première étape locale n'est en général pas entière. Elle est convertie en
+un plan admissible de la façon suivante :
+\begin{enumerate}
+  \item \textbf{Maintenance} : $z_c$ est arrondi au plus proche ($z_c\ge0.5 \Rightarrow$ composant $c$
+        maintenu).
+  \item \textbf{Date de démarrage} : pour chaque composant retenu, le jour de démarrage est
+        $\arg\max_\tau m^{\text{start}}_{c,\tau}$.
+  \item \textbf{Jours gratuits} : les jours candidats sont ceux avec $f_\tau\ge0.5$ ; si leur nombre
+        dépasse le quota $k_0$ réellement disponible à cette étape, on ne garde que les $k_0$ jours de
+        plus forte valeur fractionnaire $f_\tau$ (réparation de la contrainte de quota).
+  \item \textbf{Capacité technicien} : le planning des composants retenus (avec leurs dates de démarrage
+        souhaitées) est ensuite réparé par un algorithme glouton de type \emph{list scheduling} : les
+        composants sont traités par date de démarrage souhaitée croissante (les égalités étant départagées
+        par confiance $z_c$ décroissante), et chacun est placé au plus tôt jour faisable
+        $\tau\ge$ date souhaitée tel que les $R=3$ techniciens ne sont jamais simultanément dépassés sur
+        toute la durée $d_c$ de son opération ; si aucun jour ne convient après la date souhaitée, les
+        jours \emph{antérieurs} sont également essayés ; si aucun jour de la fenêtre $[1,60-d_c+1]$ ne
+        convient, le composant est \textbf{reporté} (retiré du plan de cette étape --- il sera reconsidéré
+        à l'étape suivante, sa dégradation ayant continué).
+\end{enumerate}
+
+\subsection{Pourquoi le polytope relâché n'est pas l'enveloppe convexe des actions jointes}
+
+La relaxation $\bar{\mathcal{B}}$ utilisée en Méthode 2 est obtenue en relâchant \emph{seulement}
+l'intégralité des variables qui définissent $\mathcal{B}_0$ (le système linéaire $Wb\le w$ lui-même est
+conservé, cf. Section 5.1 du document de référence). Pour tout polytope combinatoire défini de cette
+façon, on a toujours $\mathrm{conv}(\mathcal{B}_0)\subseteq\bar{\mathcal{B}}$ (toute action admissible, et
+donc toute combinaison convexe d'actions admissibles, satisfait trivialement le système relâché), mais
+l'inclusion réciproque n'a \emph{aucune raison} d'être vraie en général : $\bar{\mathcal{B}}$ peut contenir
+des points fractionnaires qui ne sont la combinaison convexe d'\emph{aucune} collection d'actions
+réellement admissibles de $\mathcal{B}_0$. L'égalité $\bar{\mathcal{B}}=\mathrm{conv}(\mathcal{B}_0)$
+n'est garantie que si le système $Wb\le w$ est déjà ``idéal'' pour cet ensemble entier --- c'est
+exactement la condition de la Proposition 4 du document \emph{Fluid Policies...} (``every vertex of
+$\bar{\mathcal{B}}_0$ lies in $\mathcal{B}_0$''), qui est une condition suffisante mais nullement
+automatique, et que rien ne garantit ici.
+
+La raison structurelle du décalage est la suivante : $\mathcal{B}_0$ combine, pour chaque composant $c$,
+une contrainte de type ``un seul choix à la fois'' (le simplexe $\Delta(\mathcal{A}_c)$, ici relâché en
+$z_{c,t}\in[0,1]$ avec, par composant, un unique jour de démarrage et une unique valeur de $\kappa$ pour
+toute l'étape), \emph{couplée} à une contrainte linéaire partagée entre composants (la capacité
+technicien, ou ici la contrainte \eqref{eq:relax-c1} indexée par $\kappa$). Le relâchement traite chacune
+de ces deux familles de contraintes indépendamment, alors que c'est précisément leur \emph{interaction
+conjointe} qui borne le véritable ensemble des mélanges probabilistes réalisables : une combinaison
+convexe d'actions entières doit correspondre à un \emph{même} tirage aléatoire partagé par tous les
+composants (puisque $b=((a_m)_m,y,y')$ est une action \emph{jointe}, choisie une seule fois par étape),
+alors qu'un point fractionnaire de $\bar{\mathcal{B}}$ peut satisfaire les contraintes en ``mélangeant''
+indépendamment, coordonnée par coordonnée, des configurations qui ne proviendraient jamais d'un seul et
+même tirage.
+
+C'est exactement ce qui se produit dans l'exemple ci-dessous : \eqref{eq:relax-c1} borne la masse $m=2$
+par la \emph{même} variable $z_{c,t}$ pour chaque $\kappa$ pris séparément. Un point réellement issu d'une
+combinaison convexe d'actions entières qui maintiendrait toujours $c$ (chacune avec un $\kappa$ différent,
+mais un unique $\kappa$ par action) donnerait $z_{c,t}=\sum_\kappa(\text{poids de l'action à ce }\kappa)=1$
+: le poids total de maintenance doit se lire sur \emph{une seule} des contraintes-$\kappa$, celle
+correspondant au $\kappa$ réellement tiré. Le LP relâché, lui, n'impose pas cette cohérence entre les
+$\mathcal{K}+1$ contraintes : il les satisfait chacune séparément, avec la même variable $z_{c,t}=0.25$,
+en répartissant fictivement de la masse ``maintenance'' sur les quatre valeurs de $\kappa$ à la fois ---
+un comportement qu'aucune combinaison convexe de colonnes entières ($b\in\mathcal{B}_0$, une seule valeur
+de $\kappa_b$ chacune) ne peut reproduire. C'est une illustration concrète, propre à cette instance, de
+pourquoi $\bar{\mathcal{B}}\supsetneq\mathrm{conv}(\mathcal{B}_0)$ ici.
+
+\subsection{Limite observée de la relaxation}
+
+Un test direct sur une petite instance (un composant en panne, $x=3$, les autres neufs) illustre une
+limite propre à la contrainte \eqref{eq:relax-c1} : celle-ci borne, \emph{pour chaque $\kappa$
+séparément}, la masse $m=2$ par la même variable $z_{c,t}$ (exactement comme dans le document de
+référence). Le LP peut donc répartir une probabilité de maintenance totale proche de 1 en petites parts
+$z_{c,t}/(\mathcal{K}+1)$ sur chacune des $\mathcal{K}+1$ valeurs de $\kappa$, ce qui satisfait
+\eqref{eq:relax-c1} avec un $z_{c,t}$ artificiellement petit (observé : $z_{c,t}=0.25$ alors que la
+maintenance est en réalité clairement optimale, l'alternative coûtant $\delta=6000$ contre $\sim\!500$ en
+la maintenant). L'arrondi au seuil 0.5 peut alors échouer à détecter un besoin de maintenance pourtant
+réel. C'est une manifestation concrète de $Z^{\text{relax}}\le Z$ (Proposition 3 du document de
+référence) : la relaxation peut sous-estimer significativement ce qui est réellement requis, et
+l'heuristique de réparation ci-dessus ne corrige que la faisabilité du planning (capacité, quota), pas la
+qualité de la décision d'arrondi elle-même.
+
+\section{MILP ou énumération pour le problème de pricing ?}
+
+\subsection{Ordre de grandeur de l'énumération}
+
+Énumérer les sous-ensembles de composants maintenus $S\subseteq\{1,\dots,25\}$ représente $2^{25} =
+33\,554\,432\approx3.35\times10^7$ possibilités. Pour chacune, il faudrait en plus résoudre le
+sous-problème d'ordonnancement (placement des $d_c$, $c\in S$, sur 3 techniciens en parallèle sur 60 jours,
+et choix du nombre de jours gratuits) pour évaluer $\eta_{b,t}$ et le coût réduit --- un sous-problème
+lui-même combinatoire. Sur l'instance existante à 7 composants, $2^7=128$ : une énumération complète y est
+instantanée.
+
+\subsection{Pourquoi le MILP est nécessaire ici}
+
+Avec $C=25$, en supposant (optimiste) $\sim\!10$--$30\,\mu s$ par sous-ensemble pour évaluer le
+sous-problème d'ordonnancement associé, une énumération complète coûte
+$$ 3.35\times10^7 \times (10\text{ à }30)\,\mu s\ \approx\ 5\text{ à }17\text{ minutes} $$
+\emph{pour un seul appel} au pricing. Ce dernier doit être résolu à chacune des $\bar T=120$ étapes et à
+chaque itération de génération de colonnes (quelques dizaines à centaines d'itérations) : le coût total de
+l'énumération se chiffrerait en dizaines voire centaines d'heures, contre une fraction de seconde par
+appel pour le MILP~\eqref{eq:pricing-obj}--\eqref{eq:pricing-c7} ($\approx1\,900$ variables, dont
+$\sim\!1\,600$ binaires) résolu par un solveur exploitant la relaxation LP et le branch-and-cut.
+
+\subsection{Conclusion}
+
+Il fait donc sens de résoudre le problème de pricing par MILP plutôt que par énumération pour cette
+instance à 25 composants : le nombre de sous-ensembles candidats ($\sim3.35\times10^7$), répété sur 120
+étapes et de nombreuses itérations de génération de colonnes, rend l'énumération prohibitive, alors qu'un
+MILP de taille modeste reste résolu quasi instantanément. Ce constat s'inverserait pour l'instance
+existante à 7 composants ($2^7=128$), où l'énumération directe reste préférable en pratique.
+
+\end{document}

@@ -1,0 +1,8 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+  cache loaded: 142 policies from paper_experiment/results/interactions9\S2_37_policy.csv
+S=2 scenarios 37..37  QUOTA_STEP=15  (0 already done)
+scenario 37  cost S 4.750  sum alone 4.750  diff +0.0000  maint 18/18  4594s
+done

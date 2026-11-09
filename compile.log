@@ -1,0 +1,339 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 24.1) (preloaded format=pdflatex.fmt)
+ restricted \write18 enabled.
+entering extended mode
+(paper.tex
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-01-04>
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\article.cls
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\size10.clo))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry.cfg))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.sty
+For additional information on amsmath, use the `?' option.
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amssymb.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amsfonts.sty))
+ (C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amscls\amsthm.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\color.cfg)
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdftex.def
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics\mathcolor.ltx)
+) (C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/float\float.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infwarerr.s
+ty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/kvsetkeys\kvsetkeys.sty
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kvdefine
+keys.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pdfescape\pdfescape.s
+ty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdftexcmds
+.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/hycolor\hycolor.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/letltxmacro\letltxmacro
+.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/auxhook\auxhook.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\nameref.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/refcount\refcount.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/gettitlestring\gettit
+lestring.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptions.sty
+)))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/etoolbox\etoolbox.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\pd1enc.def)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/intcalc\intcalc.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\puenc.def)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/bitset\bitset.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/bigintcalc\bigintcalc
+.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\atbegshi-ltx.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hpdftex.def
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\atveryend-ltx.sty)
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/rerunfilecheck\rerunfil
+echeck.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/uniquecounter\uniquec
+ounter.sty)))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\graphics.c
+fg)))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/booktabs\booktabs.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/doublestroke\dsfont.sty
+) (C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/comment\comment.sty
+Excluding comment 'comment')
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/enumitem\enumitem.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/multirow\multirow.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/frontendlayer\tikz.
+sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/basiclayer\pgf.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgfrcs.st
+y
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfutil
+-common.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfutil
+-latex.def)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfrcs.
+code.tex
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf\pgf.revision.tex)
+))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/basiclayer\pgfcore.
+sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/systemlayer\pgfsys.
+sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pgfsy
+s.code.tex
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfkeys
+.code.tex
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfkeys
+libraryfiltered.code.tex))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pgf.c
+fg)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pgfsy
+s-pdftex.def
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pgfsy
+s-common-pdf.def)))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pgfsy
+ssoftpath.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer\pgfsy
+sprotocol.code.tex))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+e.code.tex
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmath.code
+.tex
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathutil.
+code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathparse
+r.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.basic.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.trigonometric.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.random.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.comparison.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.base.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.round.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.misc.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfunct
+ions.integerarithmetics.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathcalc.
+code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmathfloat
+.code.tex))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfint.code.
+tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+epoints.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+epathconstruct.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+epathusage.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+escopes.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+egraphicstate.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+etransformations.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+equick.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+eobjects.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+epathprocessing.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+earrows.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+eshade.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+eimage.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+eexternal.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+elayers.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+etransparency.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+epatterns.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\pgfcor
+erdf.code.tex)))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgfmodule
+shapes.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgfmodule
+plot.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibility\pgfco
+mp-version-0-65.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibility\pgfco
+mp-version-1-18.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgffor.st
+y
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgfkeys.s
+ty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgfkeys
+.code.tex))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/pgf/math\pgfmath.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmath.code
+.tex))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\pgffor.
+code.tex))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/tik
+z\tikz.code.tex
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries\pgflibr
+aryplothandlers.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgfmodule
+matrix.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendlayer/tik
+z/libraries\tikzlibrarytopaths.code.tex)))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries\pgflibr
+aryarrows.meta.code.tex)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/algorithms\algorithm.st
+y (C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/base\ifthen.sty))
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/algorithmicx\algpseudoc
+ode.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/algorithmicx\algorithmi
+cx.sty
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/mathtools\mathtools.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/tools\calc.sty)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/mathtools\mhsetup.sty))
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdf
+tex.def) (paper.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mk
+ii
+[Loading MPS to PDF converter (version 2006.09.02).]
+)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-b
+ase.sty
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/00miktex\epstopdf-sys.c
+fg)) (paper.out) (paper.out)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd)
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd)
+Excluding 'comment' comment. (paper.toc [1{C:/Users/sodel/AppData/Local/MiKTeX/
+fonts/map/pdftex/pdftex.map}]) [2]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[3]
+(C:\Users\sodel\AppData\Local\Programs\MiKTeX\tex/latex/doublestroke\udsrom.fd)
+ [4] [5] [6] [7] Excluding 'comment' comment. [8] [9] [10]
+! Double superscript.
+<recently read> ^
+                 
+l.776 p_\otimes\big(x^\otimes'
+                               \mid x^\otimes, (a_m)_{m \in [M]}\big) = \pro...
+
+! Double superscript.
+<recently read> ^
+                 
+l.796 ...d x_m, A_m(b))$ and $p_\otimes(x^\otimes'
+                                                   \mid x^\otimes, b) := \pr...
+
+
+Overfull \hbox (3.79405pt too wide) in paragraph at lines 811--814
+\OT1/cmr/m/n/10 either is empty, or ad-mits a unique min-i-mizer $\OML/cmm/m/it
+/10 y[]\OT1/cmr/m/n/10 ((\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 )[]\OML/cmm/m/it/1
+0 ; y[]\OT1/cmr/m/n/10 ) = [] [][] \OML/cmm/m/it/10 f\OT1/cmr/m/n/10 ((\OML/cmm
+/m/it/10 a[]\OT1/cmr/m/n/10 )[]\OML/cmm/m/it/10 ; y; y[]\OT1/cmr/m/n/10 )$.
+[11] [12] [13] [14] [15] [16] Excluding 'comment' comment. [17]
+Underfull \hbox (badness 10000) in paragraph at lines 1347--1347
+[]\OT1/cmr/m/n/8 Marginals in the
+[18] [19] Excluding 'comment' comment. [20] [21] Excluding 'comment' comment.
+[22] [23]
+Overfull \hbox (17.95576pt too wide) in paragraph at lines 1761--1777
+ [][] 
+[24] [25 <./figures/cost_distributions_one_pole_simple.pdf>] [26] [27]
+Underfull \hbox (badness 1194) in paragraph at lines 2073--2078
+[]\OT1/cmr/m/n/10 D'Aeth, J. C., Ghosal, S., Grimm, F., Haw, D., Koca, E., Lau,
+ K., Liu, H., Rizmie, D.,
+[28] [29]
+Overfull \hbox (7.31065pt too wide) detected at line 2243
+[]
+[30] [31] [32]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 2334.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 2334.
+
+
+LaTeX Warning: Reference `sec:quota-trick' on page 33 undefined on input line 2
+352.
+
+
+LaTeX Warning: Reference `sec:quota-trick' on page 33 undefined on input line 2
+365.
+
+[33] [34] (paper.aux)
+
+LaTeX Warning: There were undefined references.
+
+ )
+(see the transcript file for additional information) <C:\Users\sodel\AppData\Lo
+cal\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Users/sodel/AppDa
+ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/so
+del/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:
+/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx7
+.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmbx8.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmbx9.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/
+public/amsfonts/cm/cmbxti10.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/f
+onts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/sodel/AppData/Local/Programs
+/MiKTeX/fonts/type1/public/amsfonts/cmextra/cmex7.pfb><C:/Users/sodel/AppData/L
+ocal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/sodel/
+AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/User
+s/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb>
+<C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cm
+mi7.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfon
+ts/cm/cmmi8.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/publi
+c/amsfonts/cm/cmmi9.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/typ
+e1/public/amsfonts/cm/cmr10.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/f
+onts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/sodel/AppData/Local/Programs/
+MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/sodel/AppData/Local/Pr
+ograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/sodel/AppData/L
+ocal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/sodel/Ap
+pData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/s
+odel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/
+Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10
+.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmsy5.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmsy6.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/
+public/amsfonts/cm/cmsy7.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/font
+s/type1/public/amsfonts/cm/cmsy9.pfb><C:/Users/sodel/AppData/Local/Programs/MiK
+TeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/sodel/AppData/Local/Pro
+grams/MiKTeX/fonts/type1/public/amsfonts/cm/cmti7.pfb><C:/Users/sodel/AppData/L
+ocal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Users/sodel/A
+ppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/User
+s/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/doublestroke/dsrom10.p
+fb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/sy
+mbols/msam10.pfb><C:/Users/sodel/AppData/Local/Programs/MiKTeX/fonts/type1/publ
+ic/amsfonts/symbols/msbm10.pfb>
+Output written on paper.pdf (34 pages, 777261 bytes).
+Transcript written on paper.log.

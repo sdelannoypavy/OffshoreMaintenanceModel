@@ -1,0 +1,57 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+policy cache: 0 decisions (0 copied from the other chunks)
+compact_kd one_pole scenarios 1..50  MOB=0.00  MTBF_SCALE=1.00  QUOTA_STEP=15
+scenario 1 (1..50)  cost 0.62  maintenances 3  19s
+scenario 2 (1..50)  cost 0.25  maintenances 1  1s
+scenario 3 (1..50)  cost 1.12  maintenances 5  2s
+scenario 4 (1..50)  cost 1.12  maintenances 5  2s
+scenario 5 (1..50)  cost 0.88  maintenances 4  1s
+scenario 6 (1..50)  cost 1.38  maintenances 5  2s
+scenario 7 (1..50)  cost 0.88  maintenances 4  1s
+scenario 8 (1..50)  cost 1.12  maintenances 5  1s
+scenario 9 (1..50)  cost 0.88  maintenances 4  0s
+scenario 10 (1..50)  cost 0.25  maintenances 1  0s
+scenario 11 (1..50)  cost 0.38  maintenances 2  5s
+scenario 12 (1..50)  cost 0.62  maintenances 3  1s
+scenario 13 (1..50)  cost 1.38  maintenances 6  0s
+scenario 14 (1..50)  cost 1.00  maintenances 5  1s
+scenario 15 (1..50)  cost 1.00  maintenances 4  3s
+scenario 16 (1..50)  cost 1.00  maintenances 5  1s
+scenario 17 (1..50)  cost 1.38  maintenances 5  1s
+scenario 18 (1..50)  cost 1.12  maintenances 5  0s
+scenario 19 (1..50)  cost 1.50  maintenances 7  1s
+scenario 20 (1..50)  cost 1.00  maintenances 4  0s
+scenario 21 (1..50)  cost 1.12  maintenances 5  0s
+scenario 22 (1..50)  cost 0.88  maintenances 4  0s
+scenario 23 (1..50)  cost 0.62  maintenances 3  0s
+scenario 24 (1..50)  cost 1.12  maintenances 4  4s
+scenario 25 (1..50)  cost 2.00  maintenances 7  1s
+scenario 26 (1..50)  cost 0.50  maintenances 2  0s
+scenario 27 (1..50)  cost 0.38  maintenances 2  0s
+scenario 28 (1..50)  cost 1.38  maintenances 6  0s
+scenario 29 (1..50)  cost 0.38  maintenances 2  0s
+scenario 30 (1..50)  cost 0.50  maintenances 3  0s
+scenario 31 (1..50)  cost 0.62  maintenances 3  1s
+scenario 32 (1..50)  cost 0.38  maintenances 2  0s
+scenario 33 (1..50)  cost 1.75  maintenances 6  1s
+scenario 34 (1..50)  cost 1.00  maintenances 5  0s
+scenario 35 (1..50)  cost 1.88  maintenances 8  1s
+scenario 36 (1..50)  cost 0.88  maintenances 4  0s
+scenario 37 (1..50)  cost 0.38  maintenances 2  1s
+scenario 38 (1..50)  cost 0.50  maintenances 2  0s
+scenario 39 (1..50)  cost 0.62  maintenances 3  0s
+scenario 40 (1..50)  cost 1.88  maintenances 8  0s
+scenario 41 (1..50)  cost 0.75  maintenances 4  0s
+scenario 42 (1..50)  cost 0.62  maintenances 3  0s
+scenario 43 (1..50)  cost 0.75  maintenances 4  0s
+scenario 44 (1..50)  cost 0.25  maintenances 2  0s
+scenario 45 (1..50)  cost 0.38  maintenances 2  0s
+scenario 46 (1..50)  cost 0.88  maintenances 4  0s
+scenario 47 (1..50)  cost 0.38  maintenances 2  0s
+scenario 48 (1..50)  cost 0.25  maintenances 1  0s
+scenario 49 (1..50)  cost 2.12  maintenances 8  0s
+scenario 50 (1..50)  cost 1.62  maintenances 7  0s
+done

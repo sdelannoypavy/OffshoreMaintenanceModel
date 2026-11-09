@@ -1,0 +1,6 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 1
+resume: 15 scenarios already complete
+lift_project one_pole scenarios 168..334  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15

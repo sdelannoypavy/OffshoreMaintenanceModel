@@ -1,0 +1,60 @@
+COMPTE RENDU DE LA RÉUNION DU ____________
+
+Participants : Solène Delannoy-Pavy et ses directeurs de thèse
+Objet : article sur les approximations fluides du problème de maintenance RTE (ordre du jour joint)
+
+
+1. RAPPEL DE L'ORDRE DU JOUR
+
+Modifications du plan présentées :
+  - suppression du formalisme des MDP décomposables à action combinatoire, pour mettre le problème RTE au centre ;
+  - lien avec les modèles graphiques probabilistes établi dès le début de la section 3 ;
+  - résultats numériques uniquement sur le problème RTE.
+
+Questions posées : rédaction, résultat sur les MDP décomposables, modèle simplifié, choix des reviewers,
+baseline, Light fluid LP.
+
+
+2. REMARQUES ET DÉCISIONS
+
+2.1 Fin de la section 2 : paragraphe sur les challenges
+  - Ajouter un paragraphe sur les challenges à la fin de la section 2.
+  - Y introduire les MDP faiblement couplés (weakly coupled MDP) et les MDP décomposables.
+  - Introduire les notations associées à ces formalismes, qui faciliteront l'exposé des approximations
+    dans la suite.
+  - Expliquer en quoi le problème RTE s'écarte de ces formalismes.
+
+2.2 Présentation des approximations
+  - Utiliser des schémas qui représentent les variables et les liens entre elles, pour faire comprendre
+    les approximations.
+  - Employer le vocabulaire des représentations à base de templates (template-based representations) et
+    des modèles temporels (temporal models) de la théorie des modèles graphiques probabilistes.
+
+2.3 Positionnement et rédaction
+  - Rédiger l'article en montrant que la théorie des modèles graphiques probabilistes aide à construire des
+    approximations fluides.
+  - L'objectif est de toucher la communauté des approximations fluides.
+
+2.4 Modèle simplifié
+  - Réintroduire les résultats sur le problème simplifié.
+
+2.5 Présentation des résultats numériques
+  - Présenter des boxplots de l'écart (gap) par rapport à la meilleure politique, ou par rapport à la
+    politique anticipative.
+  - Piste : faire varier le nombre de composants ou de maintenances dans le modèle RTE, et étudier
+    l'impact sur la qualité des approximations.
+
+
+3. ACTIONS À MENER
+
+  [ ] Rédiger le paragraphe « challenges » en fin de section 2 (MDP faiblement couplés et décomposables,
+      notations, écarts du problème RTE à ces formalismes).
+  [ ] Ajouter des schémas des variables et de leurs liens pour chaque approximation.
+  [ ] Reformuler les approximations avec le vocabulaire des template-based representations et des
+      temporal models.
+  [ ] Réorienter la rédaction pour montrer l'apport des modèles graphiques probabilistes à la
+      construction d'approximations fluides.
+  [ ] Réintroduire les résultats sur le problème simplifié.
+  [ ] Produire les boxplots du gap par rapport à la meilleure politique ou à la politique anticipative.
+  [ ] Étudier l'impact du nombre de composants ou de maintenances sur les approximations, pour le
+      modèle RTE.

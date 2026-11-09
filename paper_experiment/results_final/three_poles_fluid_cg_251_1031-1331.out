@@ -1,0 +1,80 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+policy cache: 0 decisions (0 copied from the other chunks)
+fluid_cg three_poles scenarios 251..500  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 251 (251..500)  cost 4.62  maintenances 19  4438s
+policy cache: 357 decisions copied from the other chunks
+scenario 252 (251..500)  cost 4.38  maintenances 22  1937s
+policy cache: 221 decisions copied from the other chunks
+scenario 253 (251..500)  cost 5.38  maintenances 22  1749s
+policy cache: 328 decisions copied from the other chunks
+scenario 254 (251..500)  cost 3.88  maintenances 17  672s
+policy cache: 105 decisions copied from the other chunks
+scenario 255 (251..500)  cost 7.75  maintenances 23  395s
+policy cache: 69 decisions copied from the other chunks
+scenario 256 (251..500)  cost 3.38  maintenances 17  276s
+policy cache: 89 decisions copied from the other chunks
+scenario 257 (251..500)  cost 7.50  maintenances 29  926s
+policy cache: 207 decisions copied from the other chunks
+scenario 258 (251..500)  cost 4.50  maintenances 24  610s
+policy cache: 122 decisions copied from the other chunks
+scenario 259 (251..500)  cost 4.75  maintenances 22  660s
+policy cache: 120 decisions copied from the other chunks
+scenario 260 (251..500)  cost 5.62  maintenances 26  1298s
+policy cache: 288 decisions copied from the other chunks
+scenario 261 (251..500)  cost 5.00  maintenances 24  930s
+policy cache: 203 decisions copied from the other chunks
+scenario 262 (251..500)  cost 4.25  maintenances 20  328s
+policy cache: 85 decisions copied from the other chunks
+scenario 263 (251..500)  cost 3.62  maintenances 17  169s
+policy cache: 64 decisions copied from the other chunks
+scenario 264 (251..500)  cost 5.75  maintenances 27  327s
+policy cache: 80 decisions copied from the other chunks
+scenario 265 (251..500)  cost 4.50  maintenances 22  -483s
+policy cache: 354 decisions copied from the other chunks
+scenario 266 (251..500)  cost 7.00  maintenances 29  172s
+policy cache: 71 decisions copied from the other chunks
+scenario 267 (251..500)  cost 5.25  maintenances 25  262s
+policy cache: 70 decisions copied from the other chunks
+scenario 268 (251..500)  cost 5.75  maintenances 25  286s
+policy cache: 104 decisions copied from the other chunks
+scenario 269 (251..500)  cost 4.62  maintenances 22  101s
+policy cache: 29 decisions copied from the other chunks
+scenario 270 (251..500)  cost 7.00  maintenances 29  772s
+policy cache: 341 decisions copied from the other chunks
+scenario 271 (251..500)  cost 4.75  maintenances 21  533s
+policy cache: 193 decisions copied from the other chunks
+scenario 272 (251..500)  cost 5.00  maintenances 22  167s
+policy cache: 81 decisions copied from the other chunks
+scenario 273 (251..500)  cost 4.75  maintenances 23  776s
+policy cache: 302 decisions copied from the other chunks
+scenario 274 (251..500)  cost 4.38  maintenances 19  55s
+policy cache: 31 decisions copied from the other chunks
+scenario 275 (251..500)  cost 5.50  maintenances 26  74s
+policy cache: 45 decisions copied from the other chunks
+scenario 276 (251..500)  cost 4.62  maintenances 21  270s
+policy cache: 144 decisions copied from the other chunks
+scenario 277 (251..500)  cost 5.75  maintenances 28  1152s
+policy cache: 529 decisions copied from the other chunks
+scenario 278 (251..500)  cost 4.00  maintenances 19  82s
+policy cache: 18 decisions copied from the other chunks
+scenario 279 (251..500)  cost 5.75  maintenances 25  898s
+policy cache: 355 decisions copied from the other chunks
+scenario 280 (251..500)  cost 4.62  maintenances 21  118s
+policy cache: 60 decisions copied from the other chunks
+scenario 281 (251..500)  cost 5.38  maintenances 26  212s
+policy cache: 71 decisions copied from the other chunks
+scenario 282 (251..500)  cost 3.50  maintenances 18  62s
+policy cache: 16 decisions copied from the other chunks
+scenario 283 (251..500)  cost 5.12  maintenances 21  206s
+policy cache: 79 decisions copied from the other chunks
+scenario 284 (251..500)  cost 4.38  maintenances 19  350s
+policy cache: 145 decisions copied from the other chunks
+scenario 285 (251..500)  cost 6.12  maintenances 27  211s
+policy cache: 63 decisions copied from the other chunks
+scenario 286 (251..500)  cost 5.38  maintenances 28  238s
+policy cache: 84 decisions copied from the other chunks
+scenario 287 (251..500)  cost 3.75  maintenances 17  622s
+policy cache: 236 decisions copied from the other chunks

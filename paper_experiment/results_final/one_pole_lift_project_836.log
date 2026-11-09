@@ -1,0 +1,40 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+lift_project one_pole scenarios 836..1000  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+  master LP solved after a numerical failure, with ["Method" => 1, "Presolve" => 0]
+scenario 836 (836..1000)  cost 0.62  maintenances 4  618s
+scenario 837 (836..1000)  cost 32.00  maintenances 9  165s
+scenario 838 (836..1000)  cost 0.62  maintenances 4  146s
+scenario 839 (836..1000)  cost 2.00  maintenances 9  60s
+scenario 840 (836..1000)  cost 1.50  maintenances 8  29s
+scenario 841 (836..1000)  cost 1.00  maintenances 5  18s
+scenario 842 (836..1000)  cost 1.88  maintenances 8  42s
+scenario 843 (836..1000)  cost 2.38  maintenances 10  183s
+exit 4
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 1
+resume: 8 scenarios already complete
+lift_project one_pole scenarios 836..1000  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 844 (836..1000)  cost 3.12  maintenances 12  727s
+scenario 845 (836..1000)  cost 1.25  maintenances 5  333s
+  master LP solved after a numerical failure, with ["Method" => 1, "Presolve" => 0]
+scenario 846 (836..1000)  cost 1.00  maintenances 5  83s
+scenario 847 (836..1000)  cost 1.62  maintenances 8  121s
+scenario 848 (836..1000)  cost 1.25  maintenances 6  165s
+scenario 849 (836..1000)  cost 1.12  maintenances 6  48s
+scenario 850 (836..1000)  cost 1.12  maintenances 6  76s
+scenario 851 (836..1000)  cost 3.62  maintenances 15  109s
+scenario 852 (836..1000)  cost 0.88  maintenances 4  5s
+scenario 853 (836..1000)  cost 1.00  maintenances 5  42s
+scenario 854 (836..1000)  cost 1.00  maintenances 5  14s
+scenario 855 (836..1000)  cost 2.12  maintenances 10  83s
+scenario 856 (836..1000)  cost 1.00  maintenances 5  14s
+scenario 857 (836..1000)  cost 1.50  maintenances 7  2s
+scenario 858 (836..1000)  cost 1.75  maintenances 9  56s
+scenario 859 (836..1000)  cost 1.75  maintenances 8  626s
+scenario 860 (836..1000)  cost 1.50  maintenances 7  55s
+scenario 861 (836..1000)  cost 1.12  maintenances 6  0s

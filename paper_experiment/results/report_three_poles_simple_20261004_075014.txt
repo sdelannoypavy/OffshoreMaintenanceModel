@@ -1,0 +1,3 @@
+Report -- instance=three_poles_simple  scenarios=1000  fluid horizon=6  (generated 2026-10-04T07:50:14.962)
+
+method                mean_cost          std    CVaR_0.95 mean_lp_cost total_solve_time_s

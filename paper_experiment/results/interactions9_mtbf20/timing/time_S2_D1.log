@@ -1,0 +1,37 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+MTBF of the 9 components: [16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0]
+replacement costs of the 9 components: [5.0, 0.2525, 0.1275, 0.2575, 10.4, 0.525, 0.265, 0.2675, 0.27]
+S = 2, M = 18, DISTINCT = true, threads = 2
+    iter   1  master 0.44s  pricing 0.62s  new   3  cuts   0  LP 3.042638
+    iter   2  master 1.07s  pricing 4.21s  new   6  cuts   0  LP 2.569275
+    iter   3  master 1.52s  pricing 1.50s  new  13  cuts   0  LP 1.556452
+    iter   4  master 1.05s  pricing 4.03s  new  21  cuts   0  LP 1.386042
+    iter   5  master 0.68s  pricing 9.38s  new  29  cuts   0  LP 1.234768
+    iter   6  master 1.58s  pricing 6.45s  new  31  cuts   0  LP 1.084614
+    iter   7  master 1.20s  pricing 6.03s  new  29  cuts   0  LP 0.936212
+    iter   8  master 0.94s  pricing 7.14s  new  30  cuts   0  LP 0.728627
+    iter   9  master 1.09s  pricing 12.59s  new  27  cuts   0  LP 0.685410
+    iter  10  master 2.01s  pricing 54.17s  new  21  cuts   0  LP 0.661774
+    iter  11  master 0.37s  pricing 14.03s  new  23  cuts   0  LP 0.661464
+    iter  12  master 0.93s  pricing 10.89s  new  20  cuts   0  LP 0.652392
+    iter  13  master 0.63s  pricing 74.02s  new  20  cuts   0  LP 0.649286
+    iter  14  master 0.48s  pricing 40.01s  new  22  cuts   0  LP 0.646661
+    iter  15  master 0.28s  pricing 12.11s  new  17  cuts   0  LP 0.643152
+    iter  16  master 0.12s  pricing 12.17s  new   9  cuts   0  LP 0.642824
+    iter  17  master 0.23s  pricing 22.96s  new   8  cuts   0  LP 0.642791
+    iter  18  master 1.53s  pricing 33.18s  new   6  cuts   0  LP 0.642767
+    iter  19  master 0.09s  pricing 14.67s  new   6  cuts   0  LP 0.642743
+    iter  20  master 0.13s  pricing 13.87s  new   3  cuts   0  LP 0.642739
+    iter  21  master 0.61s  pricing 21.62s  new   8  cuts   0  LP 0.642703
+    iter  22  master 0.21s  pricing 26.43s  new   4  cuts   0  LP 0.642689
+    iter  23  master 0.06s  pricing 18.38s  new   4  cuts   0  LP 0.642669
+    iter  24  master 0.12s  pricing 15.26s  new   2  cuts   0  LP 0.642668
+    iter  25  master 0.12s  pricing 19.89s  new   4  cuts   0  LP 0.642655
+    iter  26  master 0.09s  pricing 13.14s  new   3  cuts   0  LP 0.642650
+    iter  27  master 0.12s  pricing 20.19s  new   2  cuts   0  LP 0.642647
+    iter  28  master 0.16s  pricing 23.60s  new   3  cuts   0  LP 0.642646
+    iter  29  master 0.03s  pricing 17.86s  new   0  cuts   0  LP 0.642646
+TOTAL 553.9 s  pricing 530.3 s  master 17.9 s  iterations 29  converged true  columns 394  LP 0.642646

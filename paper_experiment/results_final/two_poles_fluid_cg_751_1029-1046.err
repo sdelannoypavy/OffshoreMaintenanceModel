@@ -1,0 +1,48 @@
+ERROR: LoadError: The model was not solved correctly. Here is the output of `solution_summary` to help debug why this happened:
+
+solution_summary(; result = 1, verbose = false)
+├ solver_name          : Gurobi
+├ Termination
+│ ├ termination_status : INFEASIBLE
+│ ├ result_count       : 1
+│ └ raw_status         : Model was proven to be infeasible.
+├ Solution (result = 1)
+│ ├ primal_status        : NO_SOLUTION
+│ ├ dual_status          : INFEASIBILITY_CERTIFICATE
+│ └ dual_objective_value : -0.00000e+00
+└ Work counters
+  ├ solve_time (sec)   : 0.00000e+00
+  ├ simplex_iterations : 0
+  ├ barrier_iterations : 0
+  └ node_count         : 0
+
+Stacktrace:
+  [1] error(s::String)
+    @ Base .\error.jl:44
+  [2] assert_is_solved_and_feasible(model::Model; result::Int64, kwargs::@Kwargs{dual::Bool})
+    @ JuMP C:\Users\sodel\.julia\packages\JuMP\Y8Mtc\src\optimizer_interface.jl:1056
+  [3] assert_is_solved_and_feasible
+    @ C:\Users\sodel\.julia\packages\JuMP\Y8Mtc\src\optimizer_interface.jl:1050 [inlined]
+  [4] solve_master!(master::PaperMaster)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:411
+  [5] (::var"#column_generation!#270"{Int64, Float64, Float64, Int64, Bool, FluidData, Int64, var"#push_col!#269"{FluidData, PaperMaster}, var"#push_first!#268"{FluidData, var"#feasible_first#265"{FluidData, Vector{Int64}}, PaperMaster}, PaperMaster})()
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:905
+  [6] _solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int64}, k0::Vector{Int64}, t0_cyc::Int64, H::Int64; pairs::Vector{Tuple{Int64, Int64}}, cuts::Bool, reduced::Bool, pool1::Vector{Column}, pool::Vector{Column}, max_iter::Int64, tol::Float64, time_limit_pricing::Float64, n_pool::Int64, max_cut_rounds::Int64, max_cuts_per_round::Int64, cut_tol::Float64, lp_method::Int64, lp_params::Nothing, verbose::Bool)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:940
+  [7] _solve_fluid_cg_paper
+    @ C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:870 [inlined]
+  [8] solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int64}, k0::Vector{Int64}, t0_cyc::Int64, H::Int64; pairs::Vector{Tuple{Int64, Int64}}, p_tol::Float64, kwargs::@Kwargs{cuts::Bool, reduced::Bool, pool1::Vector{Column}, pool::Vector{Column}, max_iter::Int64, time_limit_pricing::Float64})
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:864
+  [9] (::var"#policy#278"{Int64, Vector{Tuple{Int64, Int64}}, Bool, Bool, Nothing, typeof(log_solve), Int64, Float64, FluidData, Dict{Tuple{Int64, Int64}, Vector{Column}}, Dict{Tuple{Int64, Int64}, Vector{Column}}, Base.RefValue{Int64}, Dict{Any, Any}, Int64})(x::Vector{Int64}, k::Vector{Int64}, t_global::Int64)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:988
+ [10] simulate_scenario(fd::FluidData, policy::var"#policy#278"{Int64, Vector{Tuple{Int64, Int64}}, Bool, Bool, Nothing, typeof(log_solve), Int64, Float64, FluidData, Dict{Tuple{Int64, Int64}, Vector{Column}}, Dict{Tuple{Int64, Int64}, Vector{Column}}, Base.RefValue{Int64}, Dict{Any, Any}, Int64}, scen::Int64; method::String, instance::String, periods_file::String, lp_cost::Nothing, seed_base::Int64)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\simulation.jl:125
+ [11] top-level scope
+    @ C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\sim_range.jl:40
+ [12] include(mod::Module, _path::String)
+    @ Base .\Base.jl:306
+ [13] exec_options(opts::Base.JLOptions)
+    @ Base .\client.jl:317
+ [14] _start()
+    @ Base .\client.jl:550
+in expression starting at C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\sim_range.jl:37

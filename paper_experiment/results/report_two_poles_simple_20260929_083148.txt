@@ -1,0 +1,5 @@
+Report -- instance=two_poles_simple  scenarios=1000  fluid horizon=6  (generated 2026-09-29T08:31:49.048)
+
+method                mean_cost          std    CVaR_0.95 mean_lp_cost total_solve_time_s
+compact                 1562.45       191.19      1976.98      1562.45             5604.5
+baseline1               1599.93       165.27      1961.64      1599.93              535.8

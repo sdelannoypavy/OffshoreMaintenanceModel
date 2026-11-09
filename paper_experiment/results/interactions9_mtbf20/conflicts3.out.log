@@ -1,0 +1,10 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+MTBF of the 9 components: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+  cache loaded: 3454 policies from paper_experiment/results/interactions9_mtbf20\conflicts_S1_policy.csv
+S=2  scenarios 100  periods with >=2 substations maintained 218  periods with a workforce conflict 42  scenarios with a conflict 35
+S=3  scenarios 100  periods with >=2 substations maintained 603  periods with a workforce conflict 139  scenarios with a conflict 77
+S=4  scenarios 100  periods with >=2 substations maintained 1064  periods with a workforce conflict 264  scenarios with a conflict 96
+S=5  scenarios 100  periods with >=2 substations maintained 1600  periods with a workforce conflict 419  scenarios with a conflict 100

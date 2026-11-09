@@ -1,0 +1,26 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+lift_project one_pole scenarios 168..334  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 168 (168..334)  cost 1.50  maintenances 5  425s
+scenario 169 (168..334)  cost 1.75  maintenances 7  195s
+scenario 170 (168..334)  cost 1.00  maintenances 5  111s
+scenario 171 (168..334)  cost 1.00  maintenances 4  101s
+scenario 172 (168..334)  cost 1.62  maintenances 7  107s
+scenario 173 (168..334)  cost 1.38  maintenances 6  16s
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 1
+resume: 6 scenarios already complete
+lift_project one_pole scenarios 168..334  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 174 (168..334)  cost 1.75  maintenances 9  1255s
+scenario 175 (168..334)  cost 2.50  maintenances 9  458s
+scenario 176 (168..334)  cost 1.25  maintenances 6  230s
+scenario 177 (168..334)  cost 3.00  maintenances 14  332s
+scenario 178 (168..334)  cost 2.38  maintenances 11  160s
+scenario 179 (168..334)  cost 0.25  maintenances 2  15s
+scenario 180 (168..334)  cost 1.38  maintenances 6  145s
+scenario 181 (168..334)  cost 5.25  maintenances 11  223s
+scenario 182 (168..334)  cost 0.88  maintenances 4  56s

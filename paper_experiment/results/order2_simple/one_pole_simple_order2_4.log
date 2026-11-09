@@ -1,0 +1,177 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+policy cache: 387 decisions (387 copied from the other chunks)
+  cache loaded: 387 policies from paper_experiment/results/order2_simple/one_pole_simple_order2_4_policy.csv
+order2 one_pole_simple scenarios 751..1000  MOB=0.00  MTBF_SCALE=1.00  QUOTA_STEP=15
+scenario 751 (751..1000)  cost 696.00  maintenances 81  632s
+policy cache: 141 decisions copied from the other chunks
+scenario 752 (751..1000)  cost 612.25  maintenances 73  650s
+policy cache: 141 decisions copied from the other chunks
+scenario 753 (751..1000)  cost 968.75  maintenances 80  409s
+policy cache: 70 decisions copied from the other chunks
+scenario 754 (751..1000)  cost 854.62  maintenances 92  506s
+policy cache: 92 decisions copied from the other chunks
+scenario 755 (751..1000)  cost 514.88  maintenances 78  534s
+policy cache: 92 decisions copied from the other chunks
+scenario 756 (751..1000)  cost 654.62  maintenances 66  493s
+policy cache: 99 decisions copied from the other chunks
+scenario 757 (751..1000)  cost 609.00  maintenances 89  402s
+policy cache: 93 decisions copied from the other chunks
+scenario 758 (751..1000)  cost 677.50  maintenances 74  304s
+policy cache: 49 decisions copied from the other chunks
+scenario 759 (751..1000)  cost 784.00  maintenances 94  361s
+policy cache: 71 decisions copied from the other chunks
+scenario 760 (751..1000)  cost 542.25  maintenances 80  1922s
+policy cache: 83 decisions copied from the other chunks
+scenario 761 (751..1000)  cost 421.12  maintenances 61  208s
+policy cache: 63 decisions copied from the other chunks
+scenario 762 (751..1000)  cost 576.62  maintenances 71  598s
+policy cache: 90 decisions copied from the other chunks
+scenario 763 (751..1000)  cost 449.38  maintenances 65  290s
+policy cache: 51 decisions copied from the other chunks
+scenario 764 (751..1000)  cost 598.12  maintenances 68  351s
+policy cache: 43 decisions copied from the other chunks
+scenario 765 (751..1000)  cost 722.75  maintenances 84  438s
+policy cache: 77 decisions copied from the other chunks
+scenario 766 (751..1000)  cost 847.00  maintenances 87  333s
+policy cache: 79 decisions copied from the other chunks
+scenario 767 (751..1000)  cost 806.62  maintenances 84  272s
+policy cache: 42 decisions copied from the other chunks
+scenario 768 (751..1000)  cost 627.62  maintenances 83  341s
+policy cache: 39 decisions copied from the other chunks
+scenario 769 (751..1000)  cost 552.25  maintenances 80  161s
+policy cache: 20 decisions copied from the other chunks
+scenario 770 (751..1000)  cost 764.75  maintenances 79  378s
+policy cache: 48 decisions copied from the other chunks
+scenario 771 (751..1000)  cost 699.88  maintenances 74  191s
+policy cache: 23 decisions copied from the other chunks
+scenario 772 (751..1000)  cost 534.75  maintenances 77  129s
+policy cache: 28 decisions copied from the other chunks
+scenario 773 (751..1000)  cost 628.88  maintenances 65  92s
+policy cache: 18 decisions copied from the other chunks
+scenario 774 (751..1000)  cost 808.38  maintenances 76  174s
+policy cache: 17 decisions copied from the other chunks
+scenario 775 (751..1000)  cost 574.75  maintenances 79  204s
+policy cache: 32 decisions copied from the other chunks
+scenario 776 (751..1000)  cost 706.00  maintenances 81  81s
+policy cache: 22 decisions copied from the other chunks
+scenario 777 (751..1000)  cost 477.75  maintenances 68  109s
+policy cache: 21 decisions copied from the other chunks
+scenario 778 (751..1000)  cost 443.62  maintenances 62  67s
+policy cache: 11 decisions copied from the other chunks
+scenario 779 (751..1000)  cost 404.62  maintenances 67  85s
+policy cache: 23 decisions copied from the other chunks
+scenario 780 (751..1000)  cost 879.75  maintenances 93  346s
+policy cache: 46 decisions copied from the other chunks
+scenario 781 (751..1000)  cost 666.50  maintenances 86  157s
+policy cache: 17 decisions copied from the other chunks
+scenario 782 (751..1000)  cost 928.25  maintenances 84  218s
+policy cache: 44 decisions copied from the other chunks
+scenario 783 (751..1000)  cost 718.88  maintenances 80  274s
+policy cache: 39 decisions copied from the other chunks
+scenario 784 (751..1000)  cost 553.62  maintenances 83  102s
+policy cache: 20 decisions copied from the other chunks
+scenario 785 (751..1000)  cost 632.12  maintenances 68  143s
+policy cache: 37 decisions copied from the other chunks
+scenario 786 (751..1000)  cost 606.88  maintenances 78  75s
+policy cache: 10 decisions copied from the other chunks
+scenario 787 (751..1000)  cost 597.62  maintenances 80  52s
+policy cache: 11 decisions copied from the other chunks
+scenario 788 (751..1000)  cost 632.88  maintenances 60  137s
+policy cache: 17 decisions copied from the other chunks
+scenario 789 (751..1000)  cost 655.25  maintenances 85  224s
+policy cache: 19 decisions copied from the other chunks
+scenario 790 (751..1000)  cost 550.62  maintenances 88  186s
+policy cache: 34 decisions copied from the other chunks
+scenario 791 (751..1000)  cost 642.25  maintenances 75  128s
+policy cache: 25 decisions copied from the other chunks
+scenario 792 (751..1000)  cost 772.12  maintenances 84  65s
+policy cache: 13 decisions copied from the other chunks
+scenario 793 (751..1000)  cost 656.62  maintenances 79  74s
+policy cache: 24 decisions copied from the other chunks
+scenario 794 (751..1000)  cost 619.00  maintenances 77  66s
+policy cache: 10 decisions copied from the other chunks
+  master LP solved after a numerical failure, attempt 3 ["Method" => 2]
+scenario 795 (751..1000)  cost 866.12  maintenances 90  296s
+policy cache: 53 decisions copied from the other chunks
+scenario 796 (751..1000)  cost 691.12  maintenances 78  178s
+policy cache: 19 decisions copied from the other chunks
+scenario 797 (751..1000)  cost 753.88  maintenances 88  60s
+policy cache: 12 decisions copied from the other chunks
+scenario 798 (751..1000)  cost 544.88  maintenances 66  94s
+policy cache: 18 decisions copied from the other chunks
+scenario 799 (751..1000)  cost 692.50  maintenances 81  40s
+policy cache: 7 decisions copied from the other chunks
+scenario 800 (751..1000)  cost 611.38  maintenances 71  272s
+policy cache: 19 decisions copied from the other chunks
+ERROR: LoadError: The model was not solved correctly. Here is the output of `solution_summary` to help debug why this happened:
+
+solution_summary(; result = 1, verbose = false)
+├ solver_name          : Gurobi
+├ Termination
+│ ├ termination_status : INFEASIBLE
+│ ├ result_count       : 1
+│ └ raw_status         : Model was proven to be infeasible.
+├ Solution (result = 1)
+│ ├ primal_status        : NO_SOLUTION
+│ ├ dual_status          : INFEASIBILITY_CERTIFICATE
+│ └ dual_objective_value : -0.00000e+00
+└ Work counters
+  ├ solve_time (sec)   : 0.00000e+00
+  ├ simplex_iterations : 0
+  ├ barrier_iterations : 0
+  └ node_count         : 0
+
+Stacktrace:
+  [1] error(s::String)
+    @ Base .\error.jl:44
+  [2] assert_is_solved_and_feasible(model::Model; result::Int64, kwargs::@Kwargs{dual::Bool})
+    @ JuMP C:\Users\sodel\.julia\packages\JuMP\Y8Mtc\src\optimizer_interface.jl:1056
+  [3] assert_is_solved_and_feasible
+    @ C:\Users\sodel\.julia\packages\JuMP\Y8Mtc\src\optimizer_interface.jl:1050 [inlined]
+  [4] solve_master!(master::PaperMaster)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:417
+  [5] (::var"#column_generation!#274"{Int64, Float64, Float64, Int64, Bool, FluidData, Int64, var"#push_col!#273"{FluidData, PaperMaster}, var"#push_first!#272"{FluidData, var"#feasible_first#269"{FluidData, Vector{Int64}}, PaperMaster}, PaperMaster})()
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:911
+  [6] _solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int64}, k0::Vector{Int64}, t0_cyc::Int64, H::Int64; pairs::Vector{Tuple{Int64, Int64}}, cuts::Bool, reduced::Bool, pool1::Vector{Column}, pool::Vector{Column}, max_iter::Int64, tol::Float64, time_limit_pricing::Float64, n_pool::Int64, max_cut_rounds::Int64, max_cuts_per_round::Int64, cut_tol::Float64, lp_method::Int64, lp_params::Nothing, verbose::Bool)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:946
+  [7] _solve_fluid_cg_paper
+    @ C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:876 [inlined]
+  [8] solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int64}, k0::Vector{Int64}, t0_cyc::Int64, H::Int64; pairs::Vector{Tuple{Int64, Int64}}, p_tol::Float64, kwargs::@Kwargs{cuts::Bool, reduced::Bool, pool1::Vector{Column}, pool::Vector{Column}, max_iter::Int64, time_limit_pricing::Float64})
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:870
+  [9] (::var"#policy#282"{Int64, Vector{Tuple{Int64, Int64}}, Bool, Bool, String, typeof(log_solve), Int64, Float64, FluidData, Dict{Tuple{Int64, Int64}, Vector{Column}}, Dict{Tuple{Int64, Int64}, Vector{Column}}, Base.RefValue{Int64}, Dict{Any, Any}, Int64})(x::Vector{Int64}, k::Vector{Int64}, t_global::Int64)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\fluid_cg_paper.jl:994
+ [10] pol(x::Vector{Int64}, k::Vector{Int64}, t_global::Int64)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\sim_range.jl:74
+ [11] simulate_scenario(fd::FluidData, policy::typeof(pol), scen::Int64; method::String, instance::String, periods_file::String, lp_cost::Nothing, seed_base::Int64)
+    @ Main C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\simulation.jl:125
+ [12] top-level scope
+    @ C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\sim_range.jl:87
+ [13] include(mod::Module, _path::String)
+    @ Base .\Base.jl:306
+ [14] exec_options(opts::Base.JLOptions)
+    @ Base .\client.jl:317
+ [15] _start()
+    @ Base .\client.jl:550
+in expression starting at C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\sim_range.jl:80
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 50 scenarios already complete
+  cache loaded: 3403 policies from paper_experiment/results/order2_simple/one_pole_simple_order2_4_policy.csv
+policy cache: 3467 decisions (64 copied from the other chunks)
+  cache loaded: 3467 policies from paper_experiment/results/order2_simple/one_pole_simple_order2_4_policy.csv
+order2 one_pole_simple scenarios 751..1000  MOB=0.00  MTBF_SCALE=1.00  QUOTA_STEP=15
+scenario 801 (751..1000)  cost 662.88  maintenances 71  44s
+policy cache: 11 decisions copied from the other chunks
+scenario 802 (751..1000)  cost 687.62  maintenances 83  49s
+policy cache: 13 decisions copied from the other chunks
+scenario 803 (751..1000)  cost 797.62  maintenances 85  84s
+policy cache: 21 decisions copied from the other chunks
+scenario 804 (751..1000)  cost 944.12  maintenances 88  78s
+policy cache: 28 decisions copied from the other chunks
+scenario 805 (751..1000)  cost 632.12  maintenances 69  121s
+policy cache: 37 decisions copied from the other chunks

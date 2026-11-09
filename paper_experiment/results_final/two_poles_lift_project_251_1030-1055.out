@@ -1,0 +1,13 @@
+Set parameter Username
+Set parameter LicenseID to value 2821732
+Academic license - for non-commercial use only - expires 2027-05-13
+Set parameter Threads to value 2
+resume: 0 scenarios already complete
+  cache loaded: 80 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final\two_poles_lift_project_251_policy.csv
+  cache loaded: 79 policies from C:\Users\sodel\AppData\Local\Temp\jl_AreHiRY34d.csv
+  cache loaded: 86 policies from C:\Users\sodel\AppData\Local\Temp\jl_w7kfodwTkV.csv
+  cache loaded: 86 policies from C:\Users\sodel\AppData\Local\Temp\jl_ezspSHMBOP.csv
+policy cache: 86 decisions (6 copied from the other chunks)
+  cache loaded: 86 policies from C:\Users\sodel\MultiHorizonMaintenanceModel\paper_experiment\results_final\two_poles_lift_project_251_policy.csv
+lift_project two_poles scenarios 251..500  MOB=0.00  MTBF_SCALE=0.50  QUOTA_STEP=15
+scenario 251 (251..500)  cost 3.00  maintenances 14  2343s

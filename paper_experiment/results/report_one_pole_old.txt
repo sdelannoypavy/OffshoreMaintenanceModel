@@ -1,0 +1,11 @@
+Report -- instance=one_pole  scenarios=1000  fluid horizon=6  (generated 2026-09-24T22:01:40.643)
+
+method                mean_cost          std    CVaR_0.95 mean_lp_cost total_solve_time_s  Δlp_vs_order2(%)  Δcost_vs_lp(%)
+fluid_cg                   2.50         8.87        33.58         2.16              823.6              0.00           15.74
+compact                    2.05         7.13        26.41         2.22              432.8              2.78           -7.66
+lift_project               2.92         9.93        41.52         2.16             8388.8              0.00           35.19
+fluid_cg_order2            3.62        13.42        55.33         2.16            10738.6              0.00           67.59
+fluid_cg_light             2.37         8.46        32.27         2.50               71.0             15.74           -5.20
+
+l'ordre est cohérent sur mean_lp_cost.
+Pour ces données l'ordre 2 et les coupes ne servent à rien. 
