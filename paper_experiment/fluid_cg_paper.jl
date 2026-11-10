@@ -36,7 +36,11 @@
 #     the cuts enter the pricing problems, so that the column generation stays exact.
 #   - Column generation (Algorithm 1): first-step pricing problem (eq:pricing-first) with the true
 #     cost linearised by auxiliary variables, and pricing problem (eq:pricing) at every t ≥ 2,
-#     both extended with the duals of the order-2 constraints and of the cuts.
+#     both extended with the duals of the order-2 constraints and of the cuts. The pricing MILP
+#     indexes the declared days by blocks of QUOTA_STEP days when this is exact (pricing_block_len).
+#     For the Joint fluid LP (no pairs, no cuts), the pricing problems are solved by default by
+#     dynamic programming over the poles (pricing_dp.jl) and the master LP by the primal simplex.
+#     Options: Lagrangian stopping rule (gap_tol) and Wentges smoothing (smoothing), off by default.
 
 using JuMP, Gurobi, Printf
 
@@ -933,13 +937,23 @@ end
 function _solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int}, k0::Vector{Int}, t0_cyc::Int, H::Int;
                               pairs::Vector{Tuple{Int,Int}} = Tuple{Int,Int}[], cuts::Bool = false, reduced::Bool = false,
                               pool1::Vector{Column} = Column[], pool::Vector{Column} = Column[],
-                              max_iter::Int = 50, tol::Float64 = 1e-6,
+                              max_iter::Int = 200, tol::Float64 = 1e-6,
                               time_limit_pricing::Float64 = 60.0, n_pool::Int = 10,
                               max_cut_rounds::Int = 10, max_cuts_per_round::Int = 20, cut_tol::Float64 = 1e-6,
-                              lp_method::Int = 1, lp_params::Union{Nothing,Vector{Pair{String,Int}}} = nothing,
-                              pricing::Symbol = :milp, gap_tol::Float64 = 0.0, smoothing::Float64 = 0.0,
+                              lp_method::Union{Nothing,Int} = nothing,
+                              lp_params::Union{Nothing,Vector{Pair{String,Int}}} = nothing,
+                              pricing::Symbol = :auto, gap_tol::Float64 = 0.0, smoothing::Float64 = 0.0,
                               verbose::Bool = false)
     t_begin = time()
+    # Defaults (measured on three_poles, QUOTA_STEP = 15, implemented_formulations.tex, Section
+    # "Pricing problems of fluid_cg by blocks and by dynamic programming"). For the Joint fluid LP
+    # (no pairs, no cuts): pricing by dynamic programming, and master LP by the primal simplex, which
+    # restarts from the previous basis when columns are added (it stays primal feasible). With order-2
+    # pairs or cuts: pricing MILP (the dynamic programming does not handle their duals), and dual
+    # simplex (the cutting-plane loop adds rows, after which the basis stays dual feasible).
+    plain = isempty(pairs) && !cuts
+    lp_method = something(lp_method, plain ? 0 : 1)
+    pricing = pricing == :auto ? (plain ? :dp : :milp) : pricing
     # gap_tol > 0: stop as soon as the Lagrangian bound LB is within gap_tol (relative) of the master LP
     # value. smoothing = α > 0: Wentges smoothing, see smoothed_duals. Both use the duals of the Joint
     # fluid LP only (no order-2 pairs, no cuts) for smoothing.
@@ -1077,7 +1091,8 @@ function make_policy_fluid_cg_paper(fd::FluidData; H::Int = 6,
                                     pairs::Vector{Tuple{Int,Int}} = Tuple{Int,Int}[], cuts::Bool = false, reduced::Bool = false,
                                     cache_file::Union{String,Nothing} = nothing,
                                     log_solve::Function = info -> nothing,
-                                    max_iter::Int = 50, time_limit_pricing::Float64 = 60.0)
+                                    max_iter::Int = 200, time_limit_pricing::Float64 = 60.0,
+                                    pricing::Symbol = :auto, lp_method::Union{Nothing,Int} = nothing)
     T_total = fd.inst.n_years * N_PERIODS_PER_YEAR
     cache, next_cache_id = load_cache(cache_file)
     pools1 = Dict{Tuple{Int,Int},Vector{Column}}()
@@ -1091,7 +1106,8 @@ function make_policy_fluid_cg_paper(fd::FluidData; H::Int = 6,
             pk = (t0_cyc, H_eff)
             col, info = solve_fluid_cg_paper(fd, x, k, t0_cyc, H_eff; pairs = pairs, cuts = cuts, reduced = reduced,
                                              pool1 = get(pools1, pk, Column[]), pool = get(pools, pk, Column[]),
-                                             max_iter = max_iter, time_limit_pricing = time_limit_pricing)
+                                             max_iter = max_iter, time_limit_pricing = time_limit_pricing,
+                                             pricing = pricing, lp_method = lp_method)
             pools1[pk] = unique(vcat(get(pools1, pk, Column[]), info.cols1))
             pools[pk] = unique(vcat(get(pools, pk, Column[]), info.cols))
             cache[key] = (col.start, col.free_days, info.time, info.lp_value,

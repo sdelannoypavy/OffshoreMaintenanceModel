@@ -544,9 +544,11 @@ On \texttt{three\_poles} with $\mathrm{QS} = 15$, the pricing problems of
 Section~\ref{sec:paper-fluid} took about $90\%$ of the computing time of the column generation.
 Each MILP took about $1.4$ s and explored about $665$ nodes on average, because the declared days
 were chosen day by day, although the days of a block of $15$ days are interchangeable. This
-section describes two faster formulations of the same pricing problems. Both are exact. The first
-one (blocks) is the default. The second one (dynamic programming) is used with
-\texttt{solve\_fluid\_cg\_paper(...; pricing = :dp)}.
+section describes two faster formulations of the same pricing problems. Both are exact. For the
+Joint fluid LP (\texttt{fluid\_cg}), the dynamic programming is the default, and the master LP is
+solved by the primal simplex. For the order-2 LP and the lift-and-project, whose duals the dynamic
+programming does not handle, the MILP by blocks is used, with the dual simplex. Both can be forced
+with \texttt{solve\_fluid\_cg\_paper(...; pricing = :milp)} or \texttt{pricing = :dp}.
 
 \subsection*{Notation}
 
@@ -561,7 +563,7 @@ at $t \ge 2$ minimises $f(b) + \sum_m \lambda_t^{m, A_m(b)}$ over $\mathcal B$, 
 pricing problem minimises $c_\otimes(x_0, b) + \sum_m \sum_n \nu^m_{(n, \phi_1(k_{0,p(m)},
 \kappa_{p(m)}(b)))}\, p_m(n \mid n_{0,m}, \delta_m(b)) - \eta$ over $\mathcal B(x_0)$.
 
-\subsection*{MILP by blocks (default)}
+\subsection*{MILP by blocks}
 
 \texttt{build\_pricing\_core} splits the period into blocks of $\mathrm{blk}$ days, and indexes
 the declared days, the maintenance indicators and the losses by block instead of by day. The
@@ -584,97 +586,164 @@ formulation by day disappear. The column is rebuilt with every day of the declar
 
 \subsection*{Dynamic programming over the poles (\texttt{pricing\_dp.jl})}
 
-\paragraph{Decomposition.} The only constraint that couples the poles is the technician capacity.
-Every other term of the reduced cost only depends on the repairs and on the declared days of a
-single pole. Indeed $f(b)$ and $c_\otimes(x_0, b)$ are sums over the poles, the capacity loss of a
-pole being a maximum over its own components, and the dual terms only depend on the local actions
-$A_m(b) = (\delta_m(b), \kappa_{p(m)}(b))$, that is, on the repairs and on the number of declared
-days of the pole of $m$.
+The pricing problem amounts to choosing one repair schedule per pole. The dynamic programming
+processes the poles one after the other, and only remembers of the choices already made the load of
+technicians they use.
 
-A \emph{local schedule} of pole $p$ is a vector $\sigma = (s_m)_{m \in \mathcal M^p}$ of start days,
-$s_m \in \{0\} \cup \mathcal G_m$, $s_m = 0$ meaning that $m$ is not maintained. Its \emph{load} on
-the check day $c \in \mathcal C$ is
+\paragraph{1. The problem to solve.} A \emph{local schedule} $\sigma$ of pole $p$ gives the start
+day of each component of $p$ ($0$ if the component is not maintained, otherwise a day of the grid
+$\mathcal G_m$). It has
+\begin{itemize}
+  \item a \textbf{cost} $W_p(\sigma)$, which gathers everything that only depends on this pole: the
+        penalty of the pole, the replacement costs at $t = 1$, the dual terms of its components, and
+        the best choice of the number of declared days $\kappa$ and of the declared days themselves
+        (detailed in paragraph 7 below),
+  \item a \textbf{load} $u_\sigma = \big(u_\sigma(16), u_\sigma(31), u_\sigma(46)\big)$, the share of
+        the technicians it uses on each check day,
+        \[
+          u_\sigma(c) = \sum_{m \in \mathcal M^p \,\mid\, s_m > 0,\ s_m \le c \le s_m + d_m - 1} \rho_m .
+        \]
+\end{itemize}
+We write $\mathcal S_p$ for the local schedules of $p$ whose load is at most $R = 1$ on every check
+day (\texttt{pole\_schedules}). On \texttt{three\_poles}, $|\mathcal S_p| = 1163$. The pricing problem
+is
 \[
-  u_\sigma(c) = \sum_{m \in \mathcal M^p \mid s_m > 0,\ s_m \le c \le s_m + d_m - 1} \rho_m .
+  \min_{\sigma_1 \in \mathcal S_1, \ldots, \sigma_K \in \mathcal S_K} \ \sum_{p = 1}^{K} W_p(\sigma_p)
+  \qquad \text{subject to} \qquad \sum_{p = 1}^{K} u_{\sigma_p} \le (1, 1, 1),
 \]
-We write $\mathcal S_p$ for the local schedules of $p$ such that $u_\sigma(c) \le R$ for every $c
-\in \mathcal C$ (\texttt{pole\_schedules}). On \texttt{three\_poles}, $|\mathcal S_p| = 1163$.
-A joint action is a local schedule $\sigma_p \in \mathcal S_p$ and a set of declared days
-$\mathrm{Free}^p$ for every pole $p$, such that $\sum_p u_{\sigma_p}(c) \le R$ for every $c \in
-\mathcal C$, and $|\mathrm{Free}^p| \in \mathcal K_p$, with $\mathcal K_p = \{0, \mathrm{QS},
-\ldots, K_0(p)\}$ at $t \ge 2$ and $\mathcal K_p = \{0, \mathrm{QS}, \ldots, k_{0,p}\}$ at $t =
-1$ (\texttt{qrange}).
+minus $\eta$ at $t = 1$. Without the capacity constraint, the best schedule of every pole would be
+chosen independently. The capacity is the only thing that links the poles.
 
-\paragraph{Cost of a pole for a given number of declared days.} For a local schedule $\sigma$,
-let $g_\sigma(\tau)$ be the penalty of the pole on day $\tau$ if this day is not declared
-(\texttt{pole\_day\_costs}). At $t \ge 2$, $g_\sigma(\tau) = \pi_\tau$ if some component of $p$ is
-under repair on day $\tau$, and $0$ otherwise. At $t = 1$, $g_\sigma(\tau) = \pi_\tau$ if some
-component is under repair, and $\pi_\tau \max_{m \in \mathcal M^p} \ell_m(\tilde n_{m,\tau})$
-otherwise, with $\tilde n_{m,\tau} = 1$ if the repair of $m$ is complete on day $\tau$ and
-$n_{0,m}$ otherwise. For a given number $\kappa$ of declared days, the best declared days are the
-$\kappa$ days of largest $g_\sigma(\tau)$, so that the minimum penalty is
+\paragraph{2. The value function.}
 \[
-  \sum_{\tau = 1}^{T} g_\sigma(\tau) - G_\sigma(\kappa),
-  \qquad G_\sigma(\kappa) = \text{sum of the } \kappa \text{ largest values of } g_\sigma .
+  F_p(u) = \text{minimum cost of the poles } 1, \ldots, p \text{ when their total load is exactly } u .
 \]
-The value of pole $p$ with the local schedule $\sigma$ and $\kappa$ declared days is then
+To decide the schedule of pole $p+1$, there is no need to know which schedules were chosen for the
+previous poles. It is enough to know the load they already use, to know what remains available.
+This is why the load $u$ is enough as a state.
+
+\paragraph{3. The recursion.}
+\begin{itemize}
+  \item \textbf{Initialization.} Before any pole, the load and the cost are zero:
+        $F_0(0, 0, 0) = 0$, and $F_0(u) = +\infty$ for every other $u$.
+  \item \textbf{From $p - 1$ to $p$.} To reach a total load $u$ after pole $p$, we choose a schedule
+        $\sigma$ for $p$, and the previous poles must then total $u - u_\sigma$:
+        \[
+          F_p(u) = \min_{\sigma \in \mathcal S_p} \Big( F_{p-1}(u - u_\sigma) + W_p(\sigma) \Big).
+        \]
+  \item \textbf{Result.} The optimal value of the pricing problem is $\min_{u \le (1,1,1)} F_K(u)$.
+\end{itemize}
+The code (\texttt{solve\_pricing\_dp}) writes the recursion forwards, which is the same thing. For
+every state $u'$ already reached and every schedule $\sigma$ of pole $p$, it computes $u = u' +
+u_\sigma$, and if $u \le (1,1,1)$, it keeps $F_{p-1}(u') + W_p(\sigma)$ whenever this is better than
+the value already stored for $u$. It also stores the schedule chosen, to rebuild the column at the
+end.
+
+\paragraph{4. A small example.} Take two poles with three candidate schedules each.
+\begin{center}
+\begin{tabular}{llcc}
+  \toprule
+  Pole & Schedule & Load $(16, 31, 46)$ & $W$ \\
+  \midrule
+  1 & nothing & $(0, 0, 0)$ & $5$ \\
+  1 & transformer on day $16$ & $(1, 0, 0)$ & $2$ \\
+  1 & two pumps on day $31$ & $(0, 1, 0)$ & $3$ \\
+  2 & nothing & $(0, 0, 0)$ & $4$ \\
+  2 & converter on day $16$ ($30$ days) & $(1, 1, 0)$ & $1$ \\
+  2 & fans on day $46$ & $(0, 0, 0.5)$ & $3$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\emph{Step 1.} From the state $(0,0,0)$ of cost $0$, we get $F_1(0,0,0) = 5$, $F_1(1,0,0) = 2$ and
+$F_1(0,1,0) = 3$.
+
+\emph{Step 2.} Every state of $F_1$ is combined with every schedule of pole 2.
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  From & $+$ nothing & $+$ converter & $+$ fans \\
+  \midrule
+  $(0,0,0)$, cost $5$ & $(0,0,0) \to 9$ & $(1,1,0) \to 6$ & $(0,0,0.5) \to 8$ \\
+  $(1,0,0)$, cost $2$ & $(1,0,0) \to 6$ & $(2,1,0)$, over capacity & $(1,0,0.5) \to \mathbf{5}$ \\
+  $(0,1,0)$, cost $3$ & $(0,1,0) \to 7$ & $(1,2,0)$, over capacity & $(0,1,0.5) \to 6$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+The optimum is $5$, with the transformer on day $16$ in pole 1 and the fans on day $46$ in pole 2.
+Chosen separately, the best schedules would be the transformer (cost $2$) and the converter (cost
+$1$), for a total of $3$. But both need the whole team on day $16$, which is infeasible. The dynamic
+programming detects it, since the load exceeds $1$ on the first check day.
+
+\paragraph{5. Why it is exact.} The total cost is a \emph{sum} of terms that each depend on a single
+pole, and the only interaction between the poles is their \emph{total load}. Once $u$ is fixed, the
+best way to complete the schedule with the remaining poles does not depend on how $u$ was reached
+(Bellman's principle). Keeping only the best cost for each $u$ therefore loses nothing.
+
+The same argument justifies the \textbf{dominance} used in the code. Two schedules of a same pole
+with the same load are interchangeable for the rest of the recursion, so that only the cheaper one is
+kept. At most $27$ useful schedules then remain per pole, one per possible load vector.
+
+\paragraph{6. Size.}
+\begin{itemize}
+  \item \textbf{States.} The shares $\rho_m$ are $0.5$ or $1$ and $R = 1$, so that the load on a check
+        day is $0$, $0.5$ or $1$, which gives at most $3^3 = 27$ load vectors. The code also adds to
+        the state a boolean ``some component is maintained'', for the mobilization cost. It adds no
+        state, since a repair always starts on a check day and thus counts in the load of this day,
+        so that the boolean is true exactly when the load is not zero.
+  \item \textbf{Actions.} For each pole, $1163$ local schedules, combined with $\kappa \in \{0, 15,
+        30\}$ at $t \ge 2$ (at most as many at $t = 1$, where $\kappa \le k_{0,p}$), that is $3489$
+        pairs. The placement of the declared days is not enumerated, since the greedy rule of
+        paragraph 7 is optimal. After the minimisation over $\kappa$ and the dominance, the recursion
+        sees at most $27$ actions per pole.
+  \item \textbf{Cost of a call.} About $3 \times 3489$ evaluations of $V_p$ (paragraph 7), which take
+        most of the time (about $0.02$ s per call in total), then at most $3 \times 27 \times 27$
+        transitions of the recursion, which is negligible.
+\end{itemize}
+
+\paragraph{7. Cost $W_p(\sigma)$ of a local schedule.} Let $g_\sigma(\tau)$ be the penalty of pole $p$
+on day $\tau$ if this day is not declared (\texttt{pole\_day\_costs}).
+\begin{itemize}
+  \item At $t \ge 2$ (cost $f$), $g_\sigma(\tau) = \pi_\tau$ if some component of $p$ is under repair
+        on day $\tau$, and $0$ otherwise.
+  \item At $t = 1$ (true cost), $g_\sigma(\tau) = \pi_\tau$ if some component is under repair, and
+        $\pi_\tau \max_{m \in \mathcal M^p} \ell_m(\tilde n_{m,\tau})$ otherwise, with $\tilde n_{m,\tau} =
+        1$ if the repair of $m$ is complete on day $\tau$ and $n_{0,m}$ otherwise.
+\end{itemize}
+For a given number $\kappa$ of declared days, the best declared days are the $\kappa$ days of largest
+$g_\sigma(\tau)$. Writing $G_\sigma(\kappa)$ for the sum of the $\kappa$ largest values of
+$g_\sigma$, the value of the pole with the schedule $\sigma$ and $\kappa$ declared days is
 \[
-  V_p(\sigma, \kappa) = r_\sigma + \sum_{\tau} g_\sigma(\tau) - G_\sigma(\kappa)
+  V_p(\sigma, \kappa) = r_\sigma + \sum_{\tau = 1}^{T} g_\sigma(\tau) - G_\sigma(\kappa)
   + \sum_{m \in \mathcal M^p} D_m\big(\mathbb 1_{\{s_m > 0\}}, \kappa\big),
 \]
-with $r_\sigma = \sum_{m \mid s_m > 0} \mathrm{cc}_m$ at $t = 1$ and $r_\sigma = 0$ at $t \ge 2$,
-and the dual terms $D_m(\delta, \kappa) = \lambda_t^{m, (\delta, \kappa)}$ at $t \ge 2$ and
-$D_m(\delta, \kappa) = \sum_n \nu^m_{(n, \phi_1(k_{0,p}, \kappa))}\, p_m(n \mid n_{0,m}, \delta)$ at
-$t = 1$. The best value of the schedule is $W_p(\sigma) = \min_{\kappa \in \mathcal K_p} V_p(\sigma,
-\kappa)$ (\texttt{best\_kappa}). The quantities $r_\sigma + \sum_\tau g_\sigma(\tau)$ and
-$G_\sigma(\cdot)$ do not depend on the duals. They are computed once per pole and per degradation
-states of its components (\texttt{schedule\_costs}, cached), so that only the dual terms are
-recomputed at every call.
+with
+\begin{itemize}
+  \item $r_\sigma = \sum_{m \mid s_m > 0} \mathrm{cc}_m$ at $t = 1$ and $r_\sigma = 0$ at $t \ge 2$,
+  \item the dual terms $D_m(\delta, \kappa) = \lambda_t^{m, (\delta, \kappa)}$ at $t \ge 2$, and
+        $D_m(\delta, \kappa) = \sum_n \nu^m_{(n, \phi_1(k_{0,p}, \kappa))}\, p_m(n \mid n_{0,m},
+        \delta)$ at $t = 1$.
+\end{itemize}
+Then $W_p(\sigma) = \min_{\kappa \in \mathcal K_p} V_p(\sigma, \kappa)$ (\texttt{best\_kappa}), with
+$\mathcal K_p = \{0, \mathrm{QS}, \ldots, K_0(p)\}$ at $t \ge 2$ and $\{0, \mathrm{QS}, \ldots,
+k_{0,p}\}$ at $t = 1$. The quantities $r_\sigma + \sum_\tau g_\sigma(\tau)$ and $G_\sigma(\cdot)$ do
+not depend on the duals. They are computed once per pole and per degradation states of its
+components (\texttt{schedule\_costs}, cached), so that only the dual terms are recomputed at every
+call.
 
-\paragraph{Dynamic programming.} The pricing problem is
-\[
-  \min \Big\{ \sum_{p = 1}^{K} W_p(\sigma_p) \ \Big|\ \sigma_p \in \mathcal S_p,\ \sum_{p} u_{\sigma_p}(c)
-  \le R \ \ \forall c \in \mathcal C \Big\}
-\]
-(minus $\eta$ at $t = 1$). It is solved by dynamic programming over the poles
-(\texttt{solve\_pricing\_dp}), the state being the cumulated load $u \in \mathbb R^{\mathcal C}$ of
-the poles already processed,
-\[
-  F_0(0) = 0, \qquad
-  F_p(u) = \min_{\sigma \in \mathcal S_p,\ u' + u_\sigma = u} \big( F_{p-1}(u') + W_p(\sigma) \big),
-  \qquad u \le R,
-\]
-and the optimal value is $\min_u F_K(u)$. The loads $\rho_m \in \{0.5, 1\}$ and the capacity $R = 1$
-give $u(c) \in \{0, 0.5, 1\}$, hence at most $3^{|\mathcal C|} = 27$ states. Two reductions keep the
-recursion small. First, among the schedules of $\mathcal S_p$ with the same load vector, only the
-one of smallest $W_p$ can be part of an optimal solution, so that only this one is kept
-(dominance). Second, the mobilization cost, which is paid once as soon as some component is
-maintained, is handled by adding to the state a boolean ``some component is maintained''. The
-optimal column is rebuilt from the choices stored along the recursion. The best columns of the
-other final states with a negative reduced cost are returned as well (at most $\texttt{n\_pool}
-- 1$ of them), like the solution pool of the MILP.
+\paragraph{8. Why the start days must be discretised, and not the quota.} The number of states is at
+most (number of load levels)$^{|\mathcal C|}$, exponential in the number $|\mathcal C|$ of check days.
+With the grid of $15$ days, $|\mathcal C| = 3$ and there are $27$ states. With start days on every
+day, the capacity would have to be checked on $45$ days, hence up to $3^{45}$ states. The quota, on
+the contrary, only enters through $\mathcal K_p$, which is enumerated pole by pole in paragraph 7.
+Counting the quota by steps of one day multiplies the cost of \texttt{best\_kappa} by about $10$, but
+leaves the recursion unchanged. The declared days are not restricted to blocks either.
 
-\paragraph{Exactness.} The dynamic programming solves the same problem as the MILP. The technician
-capacity is imposed on the same check days, the start days are on the same grid, the declared days
-are chosen optimally by the greedy rule for every $\kappa$, every $\kappa$ of $\mathcal K_p$ is
-enumerated, and the reduced cost is a sum over the poles of terms that only depend on their local
-schedule and on their number of declared days. The declared days are not restricted to blocks, so
-that the dynamic programming also applies when $\kappa$ is not a multiple of $\mathrm{QS}$.
-
-\paragraph{Why the start days must be discretised, and not the quota.} The size of the state space
-is exponential in the number $|\mathcal C|$ of check days. With the grid of $15$ days,
-$|\mathcal C| = 3$ and there are $27$ states. With start days on every day, the capacity would have
-to be checked on $45$ days and the dynamic programming would be intractable. The quota, on the
-contrary, only enters through $\mathcal K_p$, which is enumerated pole by pole. Counting the quota
-by steps of one day multiplies the cost of \texttt{best\_kappa} by about $10$, but leaves the
-recursion unchanged.
-
-\paragraph{Limits.} The dynamic programming handles the duals of the Joint fluid LP ($\eta$, $\nu$,
-$\lambda$), but not those of the order-2 constraints and of the lift-and-project cuts
+\paragraph{9. Limits.} The dynamic programming handles the duals of the Joint fluid LP ($\eta$,
+$\nu$, $\lambda$), but not those of the order-2 constraints and of the lift-and-project cuts
 (\texttt{solve\_pricing\_first\_dp} and \texttt{solve\_pricing\_t\_dp} raise an error if
-\texttt{pairs} or \texttt{cuts} are present). Their dual terms only involve pairs of components of
-a same pole, so that they could be added to $V_p$ without changing the recursion. Like the MILP,
-it allows declared days among the first $L$ days of the period.
+\texttt{pairs} or \texttt{cuts} are present). Their dual terms only involve pairs of components of a
+same pole, so that they could be added to $V_p$ without changing the recursion. Like the MILP, it
+allows declared days among the first $L$ days of the period.
 
 \subsection*{Numerical comparison}
 

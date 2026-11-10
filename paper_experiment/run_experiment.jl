@@ -203,7 +203,12 @@ for method in METHODS
     # MODEL_VERSION is also part of the prefix: the simulator now evaluates the true cost of
     # paper.tex (no degradation during the period, true_period_cost), so the results and the
     # policies cached under the former cost model must not be resumed or reused.
-    prefix        = joinpath(results_dir, "$(method)_$(INSTANCE)_H$(H_FLUID)_$(MODEL_VERSION)")
+    # The methods solved by fluid_cg_paper.jl carry the tag "_cg2" since its pricing problems were changed
+    # (MILP by blocks, dynamic programming, primal simplex for the master LP, max_iter = 200): the LP values are
+    # the same, but the column of largest weight can differ when the LP has several optimal solutions, so that
+    # the policies cached by the former solver must not be resumed.
+    solver_tag    = method in ("fluid_cg", "fluid_cg_order2", "lift_project") ? "_cg2" : ""
+    prefix        = joinpath(results_dir, "$(method)_$(INSTANCE)_H$(H_FLUID)_$(MODEL_VERSION)$(solver_tag)")
     costs_file    = prefix * "_costs.csv"
     periods_file  = prefix * "_periods.csv"
     solves_file   = prefix * "_solves.csv"
