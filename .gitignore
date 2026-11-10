@@ -1,3 +1,6 @@
 *.csv
 *.jld2
 simu*
+# code of the experiments of paper.tex (not covered by simu* above)
+!paper_experiment/src/simulation.jl
+!paper_experiment/scripts/simulate.jl
