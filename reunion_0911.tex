@@ -1,0 +1,42 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{default}
+\usecolortheme{beaver}
+\setbeamertemplate{navigation symbols}{}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+
+\begin{frame}{Points à aborder}
+\vspace{-0.5em}
+\small
+\begin{enumerate}
+  \setlength{\itemsep}{0.2em}
+  \item \textbf{Terminologie polytope local / polytope marginal}
+  \begin{itemize}
+    \item Peut-on l'employer pour des polytopes qui intègrent les contraintes sur la dynamique~?
+    \item Faut-il distinguer les variables du polytope local (groupes de variables dont on connaît la dynamique)
+          et celles du programme linéaire (degrés de liberté)~?
+  \end{itemize}
+  \item \textbf{Formulation compacte}
+  \begin{itemize}
+    \item Comment l'interpréter~?
+    \item Faut-il introduire des notations abstraites/explicites pour la forme MILP du problème
+          qui consiste à trouver un planning de coût minimum~?
+  \end{itemize}
+  \item \textbf{Quelles propositions énoncer~?}
+  \begin{itemize}
+    \item On a l'inclusion des polyèdres.
+    \item Mais on ne peut pas comparer les PL, car l'objectif n'est pas le même.
+  \end{itemize}
+  \item \textbf{Notations} \\
+        Les idées à exprimer sont simples. Comment simplifier les notations~?
+  \item \textbf{Structure du modèle} \\
+        Comment clarifier le passage d'un modèle à trois niveaux (système, substation, composant)
+        à une réécriture inspirée des MDP décomposables à deux niveaux (système, sous-systèmes)~?
+\end{enumerate}
+\end{frame}
+
+\end{document}

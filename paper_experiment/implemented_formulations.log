@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999995 (MiKTeX 24.1) (preloaded format=xelatex 2026.9.20)  17 OCT 2026 20:26
+This is XeTeX, Version 3.141592653-2.6-0.999995 (MiKTeX 24.1) (preloaded format=xelatex 2026.9.20)  10 NOV 2026 07:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -647,8 +647,8 @@ Overfull \hbox (29.57431pt too wide) in paragraph at lines 480--499
 0)/m/n/10.95 pairs = same_pole_pairs(fd)\TU/lmr/m/n/10.95 ,
  []
 
-[8] [9]
-Overfull \hbox (18.12378pt too wide) detected at line 595
+[8] [9] [10] [11]
+Overfull \hbox (18.12378pt too wide) detected at line 768
 \OML/cmm/m/it/10.95 f\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 b\OT1/cmr/m/n/10.9
 5 )  =  []  [] [][](\OML/cmm/m/it/10.95 ^^\\OT1/cmr/m/n/10.95 ) \OMS/cmsy/m/n/1
 0.95 ^^A \U/msb/m/n/10.95 1[] \OML/cmm/m/it/10.95 ^^\ [] [][] [] \OMS/cmsy/m/n/
@@ -658,8 +658,8 @@ cmm/m/it/10.95 p\OT1/cmr/m/n/10.95 ) :  [][] \OMS/cmsy/m/n/10.95 ^^T \OML/cmm/m
 0.95 d[] \OMS/cmsy/m/n/10.95 ^^@ \OT1/cmr/m/n/10.95 1 []\OML/cmm/m/it/10.95 :
  []
 
-
-Overfull \hbox (63.71365pt too wide) detected at line 627
+[12]
+Overfull \hbox (63.71365pt too wide) detected at line 800
 []  [] \OML/cmm/m/it/10.95 q[]  \OT1/cmr/m/n/10.95 =  []  []  []  [] \OML/cmm/m
 /it/10.95 p[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x \OMS/cmsy/m/n/10.95 j \O
 ML/cmm/m/it/10.95 x[]\OT1/cmr/m/n/10.95 ) \OML/cmm/m/it/10.95 q[] []k[] \OT1/cm
@@ -667,38 +667,38 @@ r/m/n/10.95 = \OML/cmm/m/it/10.95 K[]\OT1/cmr/m/n/10.95 ([](\OML/cmm/m/it/10.95
  m\OT1/cmr/m/n/10.95 ))\OML/cmm/m/it/10.95 :
  []
 
-[10]
-Overfull \hbox (14.76247pt too wide) detected at line 675
+
+Overfull \hbox (14.76247pt too wide) detected at line 848
 []  \OT1/cmr/m/n/10.95 =  []  [] \OML/cmm/m/it/10.95 ^^V[]:
  []
 
-
-Overfull \hbox (22.76033pt too wide) in paragraph at lines 686--691
-[][]\TU/lmr/bx/n/10.95 Remark 3. []\TU/lmr/m/it/10.95 Dualising $\OT1/cmr/m/n/1
+[13]
+Overfull \hbox (22.76033pt too wide) in paragraph at lines 859--864
+[][]\TU/lmr/bx/n/10.95 Remark 4. []\TU/lmr/m/it/10.95 Dualising $\OT1/cmr/m/n/1
 0.95 ([])$ \TU/lmr/m/it/10.95 gives, for a fixed stage $\OML/cmm/m/it/10.95 t$\
 TU/lmr/m/it/10.95 , the dual vector $\OML/cmm/m/it/10.95 ^^U[] \OT1/cmr/m/n/10.
 95 := [][]([])[][]$
  []
 
 
-Overfull \hbox (164.97537pt too wide) detected at line 719
+Overfull \hbox (164.97537pt too wide) detected at line 892
 []
  []
 
-[11]
-Overfull \hbox (207.56454pt too wide) detected at line 787
+[14]
+Overfull \hbox (207.56454pt too wide) detected at line 960
 []
  []
 
 
-Overfull \hbox (94.26936pt too wide) detected at line 797
+Overfull \hbox (94.26936pt too wide) detected at line 970
 []   []  \OT1/cmr/m/n/10.95 +  []  [][] \OML/cmm/m/it/10.95 ^^U[] [][]  \OT1/cm
 r/m/n/10.95 +  []\OML/cmm/m/it/10.95 ^^U[] \OMS/cmsy/m/n/10.95 ^^@ \OML/cmm/m/i
 t/10.95 ^^U[][] y[] []:
  []
 
-[12] [13]
-Overfull \hbox (18.85034pt too wide) in paragraph at lines 920--925
+[15] [16]
+Overfull \hbox (18.85034pt too wide) in paragraph at lines 1093--1098
 \TU/lmr/m/n/10.95 Coded in \TU/Consolas(0)/m/n/10.95 fluid_cg_light.jl\TU/lmr/m
 /n/10.95 , function \TU/Consolas(0)/m/n/10.95 solve_pricing_light\TU/lmr/m/n/10
 .95 . Dualising $\OT1/cmr/m/n/10.95 ([][]\OML/cmm/m/it/10.95 q\OT1/cmr/m/n/10.9
@@ -706,15 +706,15 @@ Overfull \hbox (18.85034pt too wide) in paragraph at lines 920--925
 /cmr/m/n/10.95 )$
  []
 
-[14]
-Overfull \hbox (12.03035pt too wide) in paragraph at lines 960--964
+
+Overfull \hbox (12.03035pt too wide) in paragraph at lines 1133--1137
 \TU/lmr/m/n/10.95 Coded in \TU/Consolas(0)/m/n/10.95 fluid_cg_order2.jl\TU/lmr/
 m/n/10.95 , function \TU/Consolas(0)/m/n/10.95 build_master_order2\TU/lmr/m/n/1
 0.95 : adds pairwise pseudomarginals
  []
 
-[15]
-Overfull \hbox (5.82114pt too wide) detected at line 1033
+[17]
+Overfull \hbox (5.82114pt too wide) detected at line 1206
 \OML/cmm/m/it/10.95 p[] \OMS/cmsy/m/n/10.95 ^^U \OT1/cmr/m/n/10.95 0 \OMS/cmsy/
 m/n/10.95 8\OML/cmm/m/it/10.95 x[] \OMS/cmsy/m/n/10.95 2 \OT1/cmr/m/n/10.95 [\O
 ML/cmm/m/it/10.95 n[]\OT1/cmr/m/n/10.95 ]\OML/cmm/m/it/10.95 ;  x[] \OMS/cmsy/m
@@ -728,8 +728,8 @@ n/10.95 ^^T \OML/cmm/m/it/10.95 k \OMS/cmsy/m/n/10.95 ^^T \OML/cmm/m/it/10.95 K
 r/m/n/10.95 ]
  []
 
-
-Overfull \hbox (0.6126pt too wide) in paragraph at lines 1046--1051
+[18]
+Overfull \hbox (0.6126pt too wide) in paragraph at lines 1219--1224
 []\TU/lmr/bx/n/10.95 Flow \TU/lmr/m/n/10.95 (mirroring (Flow)/(Flow-reset), wit
 h the \TU/lmr/m/it/10.95 product \TU/lmr/m/n/10.95 transition kernel $\OML/cmm/
 m/it/10.95 p[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x[] \OMS/cmsy/m/n/10.95 j
@@ -738,7 +738,7 @@ n/10.95 (\OML/cmm/m/it/10.95 x[] \OMS/cmsy/m/n/10.95 j
  []
 
 
-Overfull \hbox (44.42595pt too wide) in paragraph at lines 1046--1051
+Overfull \hbox (44.42595pt too wide) in paragraph at lines 1219--1224
 \TU/lmr/m/n/10.95 of the paper): for every $\OML/cmm/m/it/10.95 t \OMS/cmsy/m/n
 /10.95 ^^U \OT1/cmr/m/n/10.95 2$\TU/lmr/m/n/10.95 , $\OML/cmm/m/it/10.95 x[]; x
 []$\TU/lmr/m/n/10.95 , $\OML/cmm/m/it/10.95 k[] \OMS/cmsy/m/n/10.95 2 f\OT1/cmr
@@ -749,28 +749,28 @@ r/m/n/10.95 ,
  []
 
 
-Overfull \hbox (44.81459pt too wide) detected at line 1067
+Overfull \hbox (44.81459pt too wide) detected at line 1240
 [] \OML/cmm/m/it/10.95 p[] \OT1/cmr/m/n/10.95 = \OML/cmm/m/it/10.95 q[] \OMS/cm
 sy/m/n/10.95 8\OML/cmm/m/it/10.95 x[]; a[];  [] p[] \OT1/cmr/m/n/10.95 = \OML/c
 mm/m/it/10.95 q[] \OMS/cmsy/m/n/10.95 8\OML/cmm/m/it/10.95 x[]; a[]:
  []
 
-[16] [17]
-Overfull \hbox (67.32797pt too wide) detected at line 1209
+[19] [20]
+Overfull \hbox (67.32797pt too wide) detected at line 1382
 []
  []
 
-[18] [19]
-Overfull \hbox (69.88521pt too wide) in paragraph at lines 1292--1307
-\TU/lmr/m/n/10.95 pole $\OML/cmm/m/it/10.95 p$\TU/lmr/m/n/10.95 , Remark []2[])
+[21]
+Overfull \hbox (69.88521pt too wide) in paragraph at lines 1465--1480
+\TU/lmr/m/n/10.95 pole $\OML/cmm/m/it/10.95 p$\TU/lmr/m/n/10.95 , Remark []3[])
  and $\U/msb/m/n/10.95 P\OT1/cmr/m/n/10.95 [\OML/cmm/m/it/10.95 E \OMS/cmsy/m/n
 /10.95 \ \OML/cmm/m/it/10.95 F\OT1/cmr/m/n/10.95 ]$ \TU/lmr/m/n/10.95 by the \T
 U/lmr/m/it/10.95 exact \TU/lmr/m/n/10.95 probability $\OML/cmm/m/it/10.95 ^^Z[]
  \OT1/cmr/m/n/10.95 := [][] \OML/cmm/m/it/10.95 ^^V[]$
  []
 
-
-Overfull \hbox (72.57423pt too wide) detected at line 1331
+[22]
+Overfull \hbox (72.57423pt too wide) detected at line 1504
 \OML/cmm/m/it/10.95 ^^\[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x[]; x[]\OT1/c
 mr/m/n/10.95 ; \OML/cmm/m/it/10.95 k\OT1/cmr/m/n/10.95 )  :=  []  []  [] \OML/c
 mm/m/it/10.95 p[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x[] \OMS/cmsy/m/n/10.9
@@ -779,8 +779,8 @@ mm/m/it/10.95 p[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x[] \OMS/cmsy/m/n/10.9
 []\OT1/cmr/m/n/10.95 )  [][]\OML/cmm/m/it/10.95 q[];  q[][];
  []
 
-[20]
-Overfull \hbox (43.31734pt too wide) detected at line 1359
+
+Overfull \hbox (43.31734pt too wide) detected at line 1532
 \OML/cmm/m/it/10.95 q[] \OT1/cmr/m/n/10.95 + \OML/cmm/m/it/10.95 q[]  \OT1/cmr/
 m/n/10.95 =  \U/msb/m/n/10.95 P\OT1/cmr/m/n/10.95 [\OML/cmm/m/it/10.95 E\OT1/cm
 r/m/n/10.95 ] + \U/msb/m/n/10.95 P\OT1/cmr/m/n/10.95 [\OML/cmm/m/it/10.95 F\OT1
@@ -793,8 +793,8 @@ mm/m/it/10.95 x[]; x[]\OT1/cmr/m/n/10.95 ; \OML/cmm/m/it/10.95 k\OT1/cmr/m/n/10
 .95 )\OML/cmm/m/it/10.95 ;
  []
 
-
-Overfull \hbox (60.259pt too wide) in paragraph at lines 1380--1389
+[23]
+Overfull \hbox (60.259pt too wide) in paragraph at lines 1553--1562
 \TU/lmr/m/n/10.95 Coded in \TU/Consolas(0)/m/n/10.95 heuristic_extraction.jl \T
 U/lmr/m/n/10.95 (function \TU/Consolas(0)/m/n/10.95 extract_policy_heuristic\TU
 /lmr/m/n/10.95 , \TU/Consolas(0)/m/n/10.95 schedule_true_optimal\TU/lmr/m/n/10.
@@ -802,14 +802,14 @@ U/lmr/m/n/10.95 (function \TU/Consolas(0)/m/n/10.95 extract_policy_heuristic\TU
  []
 
 
-Overfull \hbox (16.9369pt too wide) in paragraph at lines 1380--1389
+Overfull \hbox (22.4119pt too wide) in paragraph at lines 1553--1562
 \TU/lmr/m/n/10.95 Every \TU/Consolas(0)/m/n/10.95 make_policy_* \TU/lmr/m/n/10.
-95 function of Sections []4[]–[]9[] takes a keyword argument \TU/Consolas(0)/m/
-n/10.95 heuristic_extraction\TU/lmr/m/n/10.95 ,
+95 function of Sections []5[]–[]10[] takes a keyword argument \TU/Consolas(0)/m
+/n/10.95 heuristic_extraction\TU/lmr/m/n/10.95 ,
  []
 
-[21]
-Overfull \hbox (30.31082pt too wide) in paragraph at lines 1456--1460
+[24]
+Overfull \hbox (30.31082pt too wide) in paragraph at lines 1629--1633
 \TU/lmr/m/n/10.95 Coded in \TU/Consolas(0)/m/n/10.95 baseline1.jl \TU/lmr/m/n/1
 0.95 (\TU/Consolas(0)/m/n/10.95 optimize_thresholds\TU/lmr/m/n/10.95 , \TU/Cons
 olas(0)/m/n/10.95 schedule_min_cost\TU/lmr/m/n/10.95 , \TU/Consolas(0)/m/n/10.9
@@ -817,7 +817,7 @@ olas(0)/m/n/10.95 schedule_min_cost\TU/lmr/m/n/10.95 , \TU/Consolas(0)/m/n/10.9
  []
 
 
-Overfull \hbox (15.9098pt too wide) detected at line 1469
+Overfull \hbox (15.9098pt too wide) detected at line 1642
 []\OML/cmm/m/it/10.95 x < ^^R[] \OT1/cmr/m/n/10.95 :  []\OML/cmm/m/it/10.95 ^^N
 []\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10
 .95 ;  x \OMS/cmsy/m/n/10.95 ! \OML/cmm/m/it/10.95 x[] \OMS/cmsy/m/n/10.95 ^^X 
@@ -829,22 +829,22 @@ m/it/10.95 ^^M d[] [][];  x \OMS/cmsy/m/n/10.95 ! \OT1/cmr/m/n/10.95 1\OML/cmm/
 m/it/10.95 ;
  []
 
-[22] [23] (implemented_formulations.aux)
+[25] [26] (implemented_formulations.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-04>
  ***********
 Package rerunfilecheck Info: File `implemented_formulations.out' has not change
 d.
-(rerunfilecheck)             Checksum: A2E82084A5BEA8F1238EE2E5900EC926;2933.
+(rerunfilecheck)             Checksum: C91F0B925208AEB14269A198B89D8D4F;3333.
  ) 
 Here is how much of TeX's memory you used:
- 12659 strings out of 409617
- 240527 string characters out of 5774013
- 1944191 words of memory out of 5000000
- 34593 multiletter control sequences out of 15000+600000
- 565539 words of font info for 98 fonts, out of 8000000 for 9000
+ 12662 strings out of 409617
+ 240607 string characters out of 5774013
+ 1945191 words of memory out of 5000000
+ 34595 multiletter control sequences out of 15000+600000
+ 565547 words of font info for 99 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 79i,13n,93p,563b,479s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,13n,93p,563b,471s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on implemented_formulations.pdf (23 pages).
+Output written on implemented_formulations.pdf (26 pages).

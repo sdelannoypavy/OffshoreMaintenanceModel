@@ -81,181 +81,163 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces One time step of the offshore substations maintenance MDP.}}{9}{figure.caption.14}\protected@file@percent }
 \newlabel{fig:bayesian-network}{{3}{9}{One time step of the offshore substations maintenance MDP}{figure.caption.14}{}}
 \newlabel{fig:mdp-structure}{{3}{9}{One time step of the offshore substations maintenance MDP}{figure.caption.14}{}}
-\citation{AdelmanMersereau2008}
-\citation{bertsimas2016}
-\citation{manne_linear_1960}
+\citation{parmentier2019integer}
+\citation{puterman1994}
+\citation{wainwright2008graphical}
+\citation{parmentier2019integer}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Fluid approximations}{10}{section.3}\protected@file@percent }
 \newlabel{sec:combinatorial}{{3}{10}{Fluid approximations}{section.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces The four approximations, according to the decomposition of the MDP into subsystems (rows) and to the representation of the joint action (columns).}}{10}{table.caption.15}\protected@file@percent }
-\newlabel{tab:approximations}{{2}{10}{The four approximations, according to the decomposition of the MDP into subsystems (rows) and to the representation of the joint action (columns)}{table.caption.15}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Exact LP}{10}{subsection.3.1}\protected@file@percent }
 \newlabel{sec:fluid-lp}{{3.1}{10}{Exact LP}{subsection.3.1}{}}
+\newlabel{eq:LP1}{{12}{10}{Exact LP}{equation.3.12}{}}
+\newlabel{eq:LP1-obj}{{12a}{10}{Exact LP}{equation.3.12a}{}}
+\newlabel{eq:LP1-first}{{12b}{10}{Exact LP}{equation.3.12b}{}}
+\newlabel{eq:LP1-initial}{{12c}{10}{Exact LP}{equation.3.12c}{}}
+\newlabel{eq:LP1-flow}{{12d}{10}{Exact LP}{equation.3.12d}{}}
+\newlabel{eq:LP1-nonneg}{{12e}{10}{Exact LP}{equation.3.12e}{}}
 \citation{wainwright2008graphical}
-\newlabel{eq:LP1}{{12}{11}{Exact LP}{equation.3.12}{}}
-\newlabel{eq:LP1-objective}{{12a}{11}{Exact LP}{equation.3.12a}{}}
-\newlabel{eq:LP1-first}{{12b}{11}{Exact LP}{equation.3.12b}{}}
-\newlabel{eq:LP1-initial}{{12c}{11}{Exact LP}{equation.3.12c}{}}
-\newlabel{eq:LP1-flow}{{12d}{11}{Exact LP}{equation.3.12d}{}}
-\newlabel{eq:LP1-nonnegative}{{12e}{11}{Exact LP}{equation.3.12e}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Marginal and local polytopes}{11}{subsection.3.2}\protected@file@percent }
-\newlabel{sec:marginal-polytopes}{{3.2}{11}{Marginal and local polytopes}{subsection.3.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Subsets of variables.}{11}{section*.16}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Sufficient statistics.}{11}{section*.17}\protected@file@percent }
+\citation{parmentier2019integer}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Bayesian network framework}{11}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:dag}{{3.2}{11}{Bayesian network framework}{subsection.3.2}{}}
+\newlabel{sec:marginal-polytopes}{{3.2}{11}{Bayesian network framework}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{DAG of the trajectory.}{11}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Cliques and marginals.}{11}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Marginal polytope.}{11}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Local polytope.}{11}{section*.18}\protected@file@percent }
+\citation{parmentier2019integer}
 \citation{wainwright2008graphical}
-\@writefile{toc}{\contentsline {paragraph}{Marginal polytope.}{12}{section*.18}\protected@file@percent }
-\newlabel{eq:marg-poly}{{13}{12}{Marginal polytope}{equation.3.13}{}}
-\@writefile{toc}{\contentsline {paragraph}{Local polytope.}{12}{section*.19}\protected@file@percent }
-\newlabel{eq:local-exact-norm}{{14}{12}{Local polytope}{equation.3.14}{}}
-\newlabel{eq:local-exact-first}{{15}{12}{Local polytope}{equation.3.15}{}}
-\newlabel{eq:local-exact-dyn}{{16}{12}{Local polytope}{equation.3.16}{}}
-\newlabel{eq:local-exact-cons}{{17}{12}{Local polytope}{equation.3.17}{}}
-\newlabel{eq:local-poly-exact}{{18}{12}{Local polytope}{equation.3.18}{}}
-\citation{desrosiers2005primer}
+\@writefile{toc}{\contentsline {paragraph}{Rooted junction tree and exactness.}{12}{section*.19}\protected@file@percent }
+\newlabel{def:rjt}{{3}{12}{Rooted junction tree~\cite {parmentier2019integer}}{proposition.3}{}}
+\newlabel{thm:rjt}{{4}{12}{\cite [Theorem~2]{parmentier2019integer}}{proposition.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}The exact LP as a local polytope}{12}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:exact-local}{{3.3}{12}{The exact LP as a local polytope}{subsection.3.3}{}}
+\newlabel{lem:chain-rjt}{{1}{12}{}{lemma.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces The cliques of the exact LP. An edge links two consecutive cliques and is labeled by the state they share.}}{12}{figure.caption.20}\protected@file@percent }
+\newlabel{fig:clique-chain}{{4}{12}{The cliques of the exact LP. An edge links two consecutive cliques and is labeled by the state they share}{figure.caption.20}{}}
+\newlabel{prop:exact-marginal}{{5}{12}{}{proposition.5}{}}
+\newlabel{cor:exact-lp}{{6}{12}{}{proposition.6}{}}
 \citation{bertsimas2016}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Graph associated with the local polytope $\mathbb  {L}_\otimes $.}}{13}{figure.caption.20}\protected@file@percent }
-\newlabel{fig:clique-chain}{{4}{13}{Graph associated with the local polytope $\mathbb {L}_\otimes $}{figure.caption.20}{}}
-\newlabel{prop:exact-marginal}{{3}{13}{}{proposition.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Joint fluid LP}{13}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:full-fluid}{{3.3}{13}{Joint fluid LP}{subsection.3.3}{}}
-\@writefile{toc}{\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{13}{section*.21}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Subsets of variables, sufficient statistics and marginals of the Joint fluid LP, for every component $m \in [M]$.}}{14}{table.caption.22}\protected@file@percent }
-\newlabel{tab:subsets-joint}{{3}{14}{Subsets of variables, sufficient statistics and marginals of the Joint fluid LP, for every component $m \in [M]$}{table.caption.22}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Graph associated with the local polytope $\mathbb  {L}^{\mathrm  {J}}$, for two components of the same substation $s$. }}{14}{figure.caption.23}\protected@file@percent }
-\newlabel{fig:non-tree-graph}{{5}{14}{Graph associated with the local polytope $\mathbb {L}^{\mathrm {J}}$, for two components of the same substation $s$}{figure.caption.23}{}}
-\newlabel{sec:marginal-local}{{3.3}{14}{Marginal polytope}{section*.24}{}}
-\@writefile{toc}{\contentsline {paragraph}{Marginal polytope.}{14}{section*.24}\protected@file@percent }
-\newlabel{eq:local-marg-poly}{{19}{14}{Marginal polytope}{equation.3.19}{}}
-\newlabel{sec:intro-approx}{{3.3}{14}{Cost approximation}{section*.25}{}}
-\@writefile{toc}{\contentsline {paragraph}{Cost approximation.}{14}{section*.25}\protected@file@percent }
-\newlabel{eq:intro-maintenance-cost}{{20}{14}{Cost approximation}{equation.3.20}{}}
-\newlabel{eq:intro-failure-cost}{{21}{14}{Cost approximation}{equation.3.21}{}}
-\newlabel{eq:cost_approx}{{22}{15}{Cost approximation}{equation.3.22}{}}
-\newlabel{eq:intro-cost-approx}{{23}{15}{Cost approximation}{equation.3.23}{}}
-\newlabel{eq:cost_approx_expectation}{{24}{15}{Cost approximation}{equation.3.24}{}}
-\@writefile{toc}{\contentsline {paragraph}{Local polytope.}{15}{section*.26}\protected@file@percent }
-\newlabel{eq:fluid-local-norm}{{25}{15}{Local polytope}{equation.3.25}{}}
-\newlabel{eq:fluid-local-first}{{26}{15}{Local polytope}{equation.3.26}{}}
-\newlabel{eq:fluid-local-dyn}{{27}{15}{Local polytope}{equation.3.27}{}}
-\newlabel{eq:fluid-local-cons-x}{{28}{15}{Local polytope}{equation.3.28}{}}
-\newlabel{eq:fluid-local-cons-a}{{29}{16}{Local polytope}{equation.3.29}{}}
-\newlabel{eq:fluid-local-cons-q}{{30}{16}{Local polytope}{equation.3.30}{}}
-\newlabel{eq:fluid-local-poly}{{31}{16}{Local polytope}{equation.3.31}{}}
-\@writefile{toc}{\contentsline {paragraph}{Joint fluid LP.}{16}{section*.27}\protected@file@percent }
-\newlabel{eq:fluid}{{32}{16}{Joint fluid LP}{equation.3.32}{}}
-\newlabel{eq:fluid-obj}{{32a}{16}{Joint fluid LP}{equation.3.32a}{}}
-\newlabel{eq:fluid-first}{{32b}{16}{Joint fluid LP}{equation.3.32b}{}}
-\newlabel{eq:fluid-initial}{{32c}{16}{Joint fluid LP}{equation.3.32c}{}}
-\newlabel{eq:fluid-flow}{{32d}{16}{Joint fluid LP}{equation.3.32d}{}}
-\newlabel{eq:fluid-consistency}{{32e}{16}{Joint fluid LP}{equation.3.32e}{}}
-\newlabel{eq:fluid-copies}{{32f}{16}{Joint fluid LP}{equation.3.32f}{}}
-\newlabel{eq:fluid-nonneg}{{32g}{16}{Joint fluid LP}{equation.3.32g}{}}
-\newlabel{prop:fluid-relaxation}{{4}{16}{}{proposition.4}{}}
-\newlabel{eq:fluid-change}{{33}{16}{}{equation.3.33}{}}
-\citation{desrosiers2005primer}
-\newlabel{sec:column-generation}{{3.3}{17}{Column generation}{section*.28}{}}
-\@writefile{toc}{\contentsline {paragraph}{Column generation.}{17}{section*.28}\protected@file@percent }
-\newlabel{eq:pricing-first}{{34}{17}{Column generation}{equation.3.34}{}}
-\newlabel{eq:pricing}{{35}{17}{Column generation}{equation.3.35}{}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Column generation for the Joint fluid LP~\eqref  {eq:fluid}}}{17}{algorithm.1}\protected@file@percent }
-\newlabel{alg:column-generation}{{1}{17}{Column generation for the Joint fluid LP~\eqref {eq:fluid}}{algorithm.1}{}}
 \citation{AdelmanMersereau2008}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Compact fluid LP}{18}{subsection.3.4}\protected@file@percent }
-\newlabel{sec:compact}{{3.4}{18}{Compact fluid LP}{subsection.3.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{18}{section*.29}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Subsets of variables, sufficient statistics and marginals of the Compact fluid LP, for every component $m \in [M]$. Only the last row differs from Table~\ref {tab:subsets-joint}.}}{18}{table.caption.30}\protected@file@percent }
-\newlabel{tab:subsets-compact}{{4}{18}{Subsets of variables, sufficient statistics and marginals of the Compact fluid LP, for every component $m \in [M]$. Only the last row differs from Table~\ref {tab:subsets-joint}}{table.caption.30}{}}
-\@writefile{toc}{\contentsline {paragraph}{Marginal polytope.}{18}{section*.31}\protected@file@percent }
-\newlabel{eq:compact-marg-poly}{{36}{18}{Marginal polytope}{equation.3.36}{}}
-\@writefile{toc}{\contentsline {paragraph}{Local polytope.}{18}{section*.32}\protected@file@percent }
-\newlabel{eq:compact-local-adm}{{37}{18}{Local polytope}{equation.3.37}{}}
-\newlabel{eq:compact-local-cons-a}{{38}{19}{Local polytope}{equation.3.38}{}}
-\@writefile{toc}{\contentsline {paragraph}{Cost approximation.}{19}{section*.33}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{LP.}{19}{section*.34}\protected@file@percent }
-\newlabel{eq:compact-fluid}{{39}{19}{LP}{equation.3.39}{}}
-\newlabel{eq:compact-fluid-obj}{{39a}{19}{LP}{equation.3.39a}{}}
-\newlabel{eq:compact-fluid-initial}{{39b}{19}{LP}{equation.3.39b}{}}
-\newlabel{eq:compact-fluid-consistency}{{39c}{19}{LP}{equation.3.39c}{}}
-\newlabel{eq:compact-fluid-consistency-kappa}{{39d}{19}{LP}{equation.3.39d}{}}
-\newlabel{eq:compact-fluid-first}{{39e}{19}{LP}{equation.3.39e}{}}
-\newlabel{eq:compact-fluid-bt}{{39f}{19}{LP}{equation.3.39f}{}}
-\newlabel{eq:compact-fluid-nonneg}{{39g}{19}{LP}{equation.3.39g}{}}
-\newlabel{cor:compact-relaxation}{{5}{19}{}{proposition.5}{}}
-\newlabel{eq:compact-change}{{40}{19}{}{equation.3.40}{}}
-\newlabel{prop:compactLP}{{6}{20}{}{proposition.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Fluid LPs with a quota subsystem}{20}{subsection.3.5}\protected@file@percent }
-\newlabel{sec:quota-subsystem}{{3.5}{20}{Fluid LPs with a quota subsystem}{subsection.3.5}{}}
-\@writefile{toc}{\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{20}{section*.35}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Subsets of variables, sufficient statistics and marginals of the fluid LPs with a quota subsystem, for every component $m \in [M]$ and every substation $s \in [S]$.}}{20}{table.caption.36}\protected@file@percent }
-\newlabel{tab:subsets-quota}{{5}{20}{Subsets of variables, sufficient statistics and marginals of the fluid LPs with a quota subsystem, for every component $m \in [M]$ and every substation $s \in [S]$}{table.caption.36}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Intractability and approximation strategy}{13}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:approx-strategy}{{3.4}{13}{Intractability and approximation strategy}{subsection.3.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why the exact LP is intractable.}{13}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Approximation strategy.}{13}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Clique graph.}{13}{section*.24}\protected@file@percent }
+\newlabel{prop:no-rjt}{{7}{13}{}{proposition.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces The four fluid approximations, according to the decomposition of the MDP into subsystems (rows) and to the sufficient statistic of the joint action (columns).}}{14}{table.caption.23}\protected@file@percent }
+\newlabel{tab:approximations}{{2}{14}{The four fluid approximations, according to the decomposition of the MDP into subsystems (rows) and to the sufficient statistic of the joint action (columns)}{table.caption.23}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Clique graph of the Joint fluid LP, for two components of the same substation $s$. The node $B_t$ stands for the joint action clique $\{B_t, A_{1,t}, \ldots  , A_{M,t}\}$. An edge links two cliques that share variables, and is labeled by these variables.}}{14}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:non-tree-graph}{{5}{14}{Clique graph of the Joint fluid LP, for two components of the same substation $s$. The node $B_t$ stands for the joint action clique $\{B_t, A_{1,t}, \ldots , A_{M,t}\}$. An edge links two cliques that share variables, and is labeled by these variables}{figure.caption.25}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Joint fluid LP}{14}{subsection.3.5}\protected@file@percent }
+\newlabel{sec:full-fluid}{{3.5}{14}{Joint fluid LP}{subsection.3.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Cliques and marginals.}{14}{section*.26}\protected@file@percent }
+\newlabel{sec:intro-approx}{{3.5}{14}{Cost approximation}{section*.28}{}}
+\@writefile{toc}{\contentsline {paragraph}{Cost approximation.}{14}{section*.28}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Cliques, sufficient statistics and marginals of the Joint fluid LP, for every component $m \in [M]$. The Compact fluid LP uses the statistic $B_t$ and the marginal $\bar  b_t$ for the joint action cliques, at every $t \in [T]$, and its local cliques start at $t = 1$ (Section~\ref {sec:compact}).}}{15}{table.caption.27}\protected@file@percent }
+\newlabel{tab:subsets-joint}{{3}{15}{Cliques, sufficient statistics and marginals of the Joint fluid LP, for every component $m \in [M]$. The Compact fluid LP uses the statistic $B_t$ and the marginal $\bar b_t$ for the joint action cliques, at every $t \in [T]$, and its local cliques start at $t = 1$ (Section~\ref {sec:compact})}{table.caption.27}{}}
+\newlabel{tab:subsets-compact}{{3}{15}{Cliques, sufficient statistics and marginals of the Joint fluid LP, for every component $m \in [M]$. The Compact fluid LP uses the statistic $B_t$ and the marginal $\bar b_t$ for the joint action cliques, at every $t \in [T]$, and its local cliques start at $t = 1$ (Section~\ref {sec:compact})}{table.caption.27}{}}
+\newlabel{eq:intro-maintenance-cost}{{13}{15}{Cost approximation}{equation.3.13}{}}
+\newlabel{eq:intro-failure-cost}{{14}{15}{Cost approximation}{equation.3.14}{}}
+\newlabel{eq:cost_approx}{{15}{15}{Cost approximation}{equation.3.15}{}}
+\newlabel{eq:intro-cost-approx}{{16}{15}{Cost approximation}{equation.3.16}{}}
+\newlabel{eq:cost_approx_expectation}{{17}{15}{Cost approximation}{equation.3.17}{}}
+\citation{desrosiers2005primer}
+\@writefile{toc}{\contentsline {paragraph}{Joint fluid LP.}{16}{section*.29}\protected@file@percent }
+\newlabel{eq:fluid}{{18}{16}{Joint fluid LP}{equation.3.18}{}}
+\newlabel{eq:fluid-obj}{{18a}{16}{Joint fluid LP}{equation.3.18a}{}}
+\newlabel{eq:fluid-first}{{18b}{16}{Joint fluid LP}{equation.3.18b}{}}
+\newlabel{eq:fluid-initial}{{18c}{16}{Joint fluid LP}{equation.3.18c}{}}
+\newlabel{eq:fluid-flow}{{18d}{16}{Joint fluid LP}{equation.3.18d}{}}
+\newlabel{eq:fluid-consistency}{{18e}{16}{Joint fluid LP}{equation.3.18e}{}}
+\newlabel{eq:fluid-copies}{{18f}{16}{Joint fluid LP}{equation.3.18f}{}}
+\newlabel{eq:fluid-nonneg}{{18g}{16}{Joint fluid LP}{equation.3.18g}{}}
+\newlabel{prop:fluid-relaxation}{{8}{16}{}{proposition.8}{}}
+\newlabel{eq:fluid-change}{{19}{16}{}{equation.3.19}{}}
+\newlabel{sec:column-generation}{{3.5}{16}{Column generation}{section*.30}{}}
+\@writefile{toc}{\contentsline {paragraph}{Column generation.}{16}{section*.30}\protected@file@percent }
+\newlabel{eq:pricing-first}{{20}{17}{Column generation}{equation.3.20}{}}
+\newlabel{eq:pricing}{{21}{17}{Column generation}{equation.3.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Compact fluid LP}{17}{subsection.3.6}\protected@file@percent }
+\newlabel{sec:compact}{{3.6}{17}{Compact fluid LP}{subsection.3.6}{}}
+\newlabel{eq:compact-local-cons}{{22}{17}{Compact fluid LP}{equation.3.22}{}}
+\newlabel{eq:compact-delta}{{22a}{17}{Compact fluid LP}{equation.3.22a}{}}
+\newlabel{eq:compact-chi}{{22b}{17}{Compact fluid LP}{equation.3.22b}{}}
+\newlabel{eq:compact-fluid}{{23}{17}{Compact fluid LP}{equation.3.23}{}}
+\newlabel{eq:compact-fluid-obj}{{23a}{17}{Compact fluid LP}{equation.3.23a}{}}
+\newlabel{eq:compact-fluid-initial}{{23b}{17}{Compact fluid LP}{equation.3.23b}{}}
 \citation{cooper2002}
 \citation{bertsimas2016}
 \citation{gast2022lpupdate}
 \citation{mayne2000}
 \citation{rawlings2017}
+\newlabel{prop:compactLP}{{9}{18}{}{proposition.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Fluid LPs with a quota subsystem}{18}{subsection.3.7}\protected@file@percent }
+\newlabel{sec:quota-subsystem}{{3.7}{18}{Fluid LPs with a quota subsystem}{subsection.3.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Cliques and marginals.}{18}{section*.31}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Local cliques, sufficient statistics and marginals of the fluid LPs with a quota subsystem, for every component $m \in [M]$ and every substation $s \in [S]$. As in Table~\ref {tab:subsets-joint}, the local cliques start at $t = 2$ for the JFLP-Q and at $t = 1$ for the CFLP-Q.}}{18}{table.caption.32}\protected@file@percent }
+\newlabel{tab:subsets-quota}{{4}{18}{Local cliques, sufficient statistics and marginals of the fluid LPs with a quota subsystem, for every component $m \in [M]$ and every substation $s \in [S]$. As in Table~\ref {tab:subsets-joint}, the local cliques start at $t = 2$ for the JFLP-Q and at $t = 1$ for the CFLP-Q}{table.caption.32}{}}
+\@writefile{toc}{\contentsline {paragraph}{Cost approximation.}{18}{section*.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{LPs.}{18}{section*.34}\protected@file@percent }
 \citation{bertsimas2016}
 \citation{wainwright2008graphical}
-\citation{wainwright2008graphical}
-\@writefile{toc}{\contentsline {paragraph}{Cost approximation.}{21}{section*.37}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Fluid LPs with a quota subsystem.}{21}{section*.38}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Fluid policies}{21}{subsection.3.6}\protected@file@percent }
-\newlabel{sec:fluid-policies}{{3.6}{21}{Fluid policies}{subsection.3.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Hierarchy of approximations}{21}{section.4}\protected@file@percent }
-\newlabel{sec:hierarchy}{{4}{21}{Hierarchy of approximations}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Limits of the fluid approximation}{21}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:why-gap}{{4.1}{21}{Limits of the fluid approximation}{subsection.4.1}{}}
-\citation{wainwright2008graphical}
 \citation{bertsimasninomora2000}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Hierarchy of higher-order formulations}{22}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:higher-order}{{4.2}{22}{Hierarchy of higher-order formulations}{subsection.4.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{22}{section*.39}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Subsets of variables, sufficient statistics and marginals of the order-$2$ fluid LP, for every pair $G \in \mathcal  {P}$.}}{22}{table.caption.40}\protected@file@percent }
-\newlabel{tab:subsets-order-2}{{6}{22}{Subsets of variables, sufficient statistics and marginals of the order-$2$ fluid LP, for every pair $G \in \mathcal {P}$}{table.caption.40}{}}
-\@writefile{toc}{\contentsline {paragraph}{Cost approximation.}{22}{section*.41}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Local polytope.}{22}{section*.42}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.8}Fluid policies}{19}{subsection.3.8}\protected@file@percent }
+\newlabel{sec:fluid-policies}{{3.8}{19}{Fluid policies}{subsection.3.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Hierarchy of approximations}{19}{section.4}\protected@file@percent }
+\newlabel{sec:hierarchy}{{4}{19}{Hierarchy of approximations}{section.4}{}}
+\newlabel{sec:why-gap}{{4}{19}{Hierarchy of approximations}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Hierarchy of higher-order formulations}{19}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:higher-order}{{4.1}{19}{Hierarchy of higher-order formulations}{subsection.4.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Subsets of variables and sufficient statistics.}{19}{section*.35}\protected@file@percent }
 \citation{wainwright2008graphical}
-\@writefile{toc}{\contentsline {paragraph}{Order $k$.}{23}{section*.43}\protected@file@percent }
-\newlabel{eq:order-k-nested}{{41}{23}{Order $k$}{equation.4.41}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Lift-and-project inequalities}{23}{subsection.4.3}\protected@file@percent }
-\newlabel{sec:lift-and-project}{{4.3}{23}{Lift-and-project inequalities}{subsection.4.3}{}}
-\newlabel{prop:lift-cut}{{7}{23}{A lift-and-project cut}{proposition.7}{}}
-\newlabel{eq:lift-cut}{{{C}}{23}{A lift-and-project cut}{AMS.44}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Numerical experiments}{23}{section.5}\protected@file@percent }
-\newlabel{sec:numerics}{{5}{23}{Numerical experiments}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Setup}{24}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:numerical-setup}{{5.1}{24}{Setup}{subsection.5.1}{}}
-\@writefile{toc}{\contentsline {paragraph}{Instances.}{24}{section*.45}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Parameters of the components in the full model. $N_m$ is the number of degradation states, $\rho _m$ is the technician share, $d_m$ is the repair duration (days), $c^{\mathrm  {rep}}_m$ is the replacement cost (M), and MTBF is the mean time to failure (years). The total workforce is $R=1.0$, that is $100\%$. The two pump systems deliver $90\%$ of the power in their intermediate state~2.}}{24}{table.caption.46}\protected@file@percent }
-\newlabel{tab:component-parameters}{{7}{24}{Parameters of the components in the full model. $N_m$ is the number of degradation states, $\rho _m$ is the technician share, $d_m$ is the repair duration (days), $c^{\mathrm {rep}}_m$ is the replacement cost (M), and MTBF is the mean time to failure (years). The total workforce is $R=1.0$, that is $100\%$. The two pump systems deliver $90\%$ of the power in their intermediate state~2}{table.caption.46}{}}
-\@writefile{toc}{\contentsline {paragraph}{Methods.}{24}{section*.47}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Subsets of variables, sufficient statistics and marginals of the order-$2$ fluid LP, for every pair $G \in \mathcal  {P}$.}}{20}{table.caption.36}\protected@file@percent }
+\newlabel{tab:subsets-order-2}{{5}{20}{Subsets of variables, sufficient statistics and marginals of the order-$2$ fluid LP, for every pair $G \in \mathcal {P}$}{table.caption.36}{}}
+\@writefile{toc}{\contentsline {paragraph}{Cost approximation.}{20}{section*.37}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Local polytope.}{20}{section*.38}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Order $k$.}{20}{section*.39}\protected@file@percent }
+\newlabel{eq:order-k-nested}{{24}{20}{Order $k$}{equation.4.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Lift-and-project inequalities}{20}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:lift-and-project}{{4.2}{20}{Lift-and-project inequalities}{subsection.4.2}{}}
+\newlabel{prop:lift-cut}{{10}{20}{A lift-and-project cut}{proposition.10}{}}
+\newlabel{eq:lift-cut}{{{C}}{20}{A lift-and-project cut}{AMS.40}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Numerical experiments}{21}{section.5}\protected@file@percent }
+\newlabel{sec:numerics}{{5}{21}{Numerical experiments}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Setup}{21}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:numerical-setup}{{5.1}{21}{Setup}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Instances.}{21}{section*.41}\protected@file@percent }
 \citation{Kingsman2020}
 \citation{Mankowska2014}
-\@writefile{toc}{\contentsline {paragraph}{Two-step baseline.}{25}{section*.48}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Policy evaluation.}{25}{section*.49}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Simplified model}{26}{subsection.5.2}\protected@file@percent }
-\newlabel{sec:simplified-model-results}{{5.2}{26}{Simplified model}{subsection.5.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Model.}{26}{section*.50}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces MTBF of the components in the simplified model (years).}}{26}{table.caption.51}\protected@file@percent }
-\newlabel{tab:mtbf-simplified}{{8}{26}{MTBF of the components in the simplified model (years)}{table.caption.51}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Results on the simplified model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP.}}{26}{table.caption.52}\protected@file@percent }
-\newlabel{tab:simplified-model-results}{{9}{26}{Results on the simplified model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP}{table.caption.52}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the simplified model. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles.}}{27}{figure.caption.53}\protected@file@percent }
-\newlabel{fig:cost-distributions-simplified}{{6}{27}{Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the simplified model. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles}{figure.caption.53}{}}
-\@writefile{toc}{\contentsline {paragraph}{Main observations.}{27}{section*.54}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Full model}{27}{subsection.5.3}\protected@file@percent }
-\newlabel{sec:full-model-results}{{5.3}{27}{Full model}{subsection.5.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Parameters of the components in the full model. $N_m$ is the number of degradation states, $\rho _m$ is the technician share, $d_m$ is the repair duration (days), $c^{\mathrm  {rep}}_m$ is the replacement cost (M), and MTBF is the mean time to failure (years). The total workforce is $R=1.0$, that is $100\%$. The two pump systems deliver $90\%$ of the power in their intermediate state~2.}}{22}{table.caption.42}\protected@file@percent }
+\newlabel{tab:component-parameters}{{6}{22}{Parameters of the components in the full model. $N_m$ is the number of degradation states, $\rho _m$ is the technician share, $d_m$ is the repair duration (days), $c^{\mathrm {rep}}_m$ is the replacement cost (M), and MTBF is the mean time to failure (years). The total workforce is $R=1.0$, that is $100\%$. The two pump systems deliver $90\%$ of the power in their intermediate state~2}{table.caption.42}{}}
+\@writefile{toc}{\contentsline {paragraph}{Methods.}{22}{section*.43}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Two-step baseline.}{22}{section*.44}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Policy evaluation.}{22}{section*.45}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Simplified model}{23}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:simplified-model-results}{{5.2}{23}{Simplified model}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Model.}{23}{section*.46}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces MTBF of the components in the simplified model (years).}}{23}{table.caption.47}\protected@file@percent }
+\newlabel{tab:mtbf-simplified}{{7}{23}{MTBF of the components in the simplified model (years)}{table.caption.47}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Results on the simplified model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP.}}{24}{table.caption.48}\protected@file@percent }
+\newlabel{tab:simplified-model-results}{{8}{24}{Results on the simplified model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP}{table.caption.48}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the simplified model. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles.}}{24}{figure.caption.49}\protected@file@percent }
+\newlabel{fig:cost-distributions-simplified}{{6}{24}{Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the simplified model. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles}{figure.caption.49}{}}
+\@writefile{toc}{\contentsline {paragraph}{Main observations.}{24}{section*.50}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Full model}{25}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:full-model-results}{{5.3}{25}{Full model}{subsection.5.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Results on the full model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP.}}{25}{table.caption.51}\protected@file@percent }
+\newlabel{tab:results-one-substation}{{9}{25}{Results on the full model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP}{table.caption.51}{}}
 \citation{LopezSantana2016}
 \citation{lopezsantana2023}
 \citation{Mankowska2014}
 \citation{rekabi2024home}
-\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Results on the full model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP.}}{28}{table.caption.55}\protected@file@percent }
-\newlabel{tab:results-one-substation}{{10}{28}{Results on the full model. $\ast $ The LP is not solved within the time limit of $10$ minutes per LP}{table.caption.55}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the full model, over the scenarios simulated with every method whose anticipative cost is positive. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles.}}{28}{figure.caption.56}\protected@file@percent }
-\newlabel{fig:boxplot-one-substation}{{7}{28}{Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the full model, over the scenarios simulated with every method whose anticipative cost is positive. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles}{figure.caption.56}{}}
-\@writefile{toc}{\contentsline {paragraph}{Main observations.}{28}{section*.57}\protected@file@percent }
 \bibstyle{plain}
 \bibcite{bertsimas2016}{1}
 \bibcite{lopezsantana2023}{2}
 \bibcite{allal2021}{3}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the full model, over the scenarios simulated with every method whose anticipative cost is positive. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles.}}{26}{figure.caption.52}\protected@file@percent }
+\newlabel{fig:boxplot-one-substation}{{7}{26}{Distribution of the ratio of the total cost of a scenario of $20$ years to the cost of the best anticipative policy of this scenario, on the full model, over the scenarios simulated with every method whose anticipative cost is positive. Each box spans the $25$th to $75$th percentile, the horizontal line inside it is the median, and the whiskers extend to the $5$th and $95$th percentiles}{figure.caption.52}{}}
+\@writefile{toc}{\contentsline {paragraph}{Main observations.}{26}{section*.53}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{26}{section.6}\protected@file@percent }
 \bibcite{Irawan2017}{4}
 \bibcite{Kingsman2020}{5}
 \bibcite{Hoppe2025SRL}{6}
@@ -264,7 +246,6 @@
 \bibcite{DAeth2023HospitalScheduling}{9}
 \bibcite{BrownZhang2022}{10}
 \bibcite{xu2025combinatorial}{11}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{29}{section.6}\protected@file@percent }
 \bibcite{delarue2020reinforcement}{12}
 \bibcite{kergosien2009home}{13}
 \bibcite{AdelmanMersereau2008}{14}
@@ -280,89 +261,90 @@
 \bibcite{Camci2015}{24}
 \bibcite{manne_linear_1960}{25}
 \bibcite{puterman1994}{26}
-\bibcite{koller2009}{27}
-\bibcite{wainwright2008graphical}{28}
-\bibcite{gast2022lpupdate}{29}
-\bibcite{cooper2002}{30}
-\bibcite{mayne2000}{31}
-\bibcite{rawlings2017}{32}
-\bibcite{wolsey1998integer}{33}
-\bibcite{barnhart1998branch}{34}
-\bibcite{liuwiesemannyue2024}{35}
-\bibcite{desrosiers2005primer}{36}
-\bibcite{gast2023lpbased}{37}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Proof of the upper bound~\eqref  {eq:intro-cost-approx}}{31}{appendix.A}\protected@file@percent }
-\newlabel{app:cost-bound}{{A}{31}{Proof of the upper bound~\eqref {eq:intro-cost-approx}}{appendix.A}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}MILP formulation of the joint action cost minimization}{31}{appendix.B}\protected@file@percent }
-\newlabel{app:maintenance-problem}{{B}{31}{MILP formulation of the joint action cost minimization}{appendix.B}{}}
-\newlabel{eq:app-milp}{{43}{32}{MILP formulation of the joint action cost minimization}{equation.B.43}{}}
-\newlabel{eq:app-milp-obj}{{43a}{32}{MILP formulation of the joint action cost minimization}{equation.B.43a}{}}
-\newlabel{eq:app-milp-start}{{43b}{32}{MILP formulation of the joint action cost minimization}{equation.B.43b}{}}
-\newlabel{eq:app-milp-ong}{{43c}{32}{MILP formulation of the joint action cost minimization}{equation.B.43c}{}}
-\newlabel{eq:app-milp-technicians}{{43d}{32}{MILP formulation of the joint action cost minimization}{equation.B.43d}{}}
-\newlabel{eq:app-milp-indicator}{{43e}{32}{MILP formulation of the joint action cost minimization}{equation.B.43e}{}}
-\newlabel{eq:app-milp-free}{{43f}{32}{MILP formulation of the joint action cost minimization}{equation.B.43f}{}}
-\newlabel{eq:app-milp-kappa}{{43g}{32}{MILP formulation of the joint action cost minimization}{equation.B.43g}{}}
-\newlabel{eq:app-milp-consistency}{{43h}{32}{MILP formulation of the joint action cost minimization}{equation.B.43h}{}}
-\@writefile{toc}{\contentsline {paragraph}{Pricing problems.}{32}{section*.59}\protected@file@percent }
-\newlabel{eq:intro-milp}{{44}{32}{Pricing problems}{equation.B.44}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {C}The fluid LPs with a quota subsystem}{32}{appendix.C}\protected@file@percent }
-\newlabel{app:light}{{C}{32}{The fluid LPs with a quota subsystem}{appendix.C}{}}
-\@writefile{toc}{\contentsline {paragraph}{Joint fluid LP with quota subsystem.}{33}{section*.60}\protected@file@percent }
-\newlabel{eq:fluid-quota-subsystem}{{45}{33}{Joint fluid LP with quota subsystem}{equation.C.45}{}}
-\newlabel{eq:fluid-quota-subsystem-obj}{{45a}{33}{Joint fluid LP with quota subsystem}{equation.C.45a}{}}
-\newlabel{eq:fluid-quota-subsystem-first}{{45b}{33}{Joint fluid LP with quota subsystem}{equation.C.45b}{}}
-\newlabel{eq:fluid-quota-subsystem-initial}{{45c}{33}{Joint fluid LP with quota subsystem}{equation.C.45c}{}}
-\newlabel{eq:fluid-quota-subsystem-flow}{{45d}{33}{Joint fluid LP with quota subsystem}{equation.C.45d}{}}
-\newlabel{eq:fluid-quota-subsystem-consistency}{{45e}{33}{Joint fluid LP with quota subsystem}{equation.C.45e}{}}
-\newlabel{eq:fluid-quota-subsystem-qinitial}{{45f}{33}{Joint fluid LP with quota subsystem}{equation.C.45f}{}}
-\newlabel{eq:fluid-quota-subsystem-qflow}{{45g}{33}{Joint fluid LP with quota subsystem}{equation.C.45g}{}}
-\newlabel{eq:fluid-quota-subsystem-qconsistency}{{45h}{33}{Joint fluid LP with quota subsystem}{equation.C.45h}{}}
-\newlabel{eq:fluid-quota-subsystem-admissible}{{45i}{33}{Joint fluid LP with quota subsystem}{equation.C.45i}{}}
-\newlabel{eq:fluid-quota-subsystem-nonneg}{{45j}{33}{Joint fluid LP with quota subsystem}{equation.C.45j}{}}
-\@writefile{toc}{\contentsline {paragraph}{Compact fluid LP with quota subsystem.}{34}{section*.61}\protected@file@percent }
-\newlabel{eq:compact-light}{{46}{34}{Compact fluid LP with quota subsystem}{equation.C.46}{}}
-\newlabel{eq:compact-light-obj}{{46a}{34}{Compact fluid LP with quota subsystem}{equation.C.46a}{}}
-\newlabel{eq:compact-light-initial}{{46b}{34}{Compact fluid LP with quota subsystem}{equation.C.46b}{}}
-\newlabel{eq:compact-light-flow}{{46c}{34}{Compact fluid LP with quota subsystem}{equation.C.46c}{}}
-\newlabel{eq:compact-light-consistency}{{46d}{34}{Compact fluid LP with quota subsystem}{equation.C.46d}{}}
-\newlabel{eq:compact-light-qinitial}{{46e}{34}{Compact fluid LP with quota subsystem}{equation.C.46e}{}}
-\newlabel{eq:compact-light-qflow}{{46f}{34}{Compact fluid LP with quota subsystem}{equation.C.46f}{}}
-\newlabel{eq:compact-light-qconsistency}{{46g}{34}{Compact fluid LP with quota subsystem}{equation.C.46g}{}}
-\newlabel{eq:compact-light-admissible}{{46h}{34}{Compact fluid LP with quota subsystem}{equation.C.46h}{}}
-\newlabel{eq:compact-light-b}{{46i}{34}{Compact fluid LP with quota subsystem}{equation.C.46i}{}}
-\newlabel{eq:compact-light-nonneg}{{46j}{34}{Compact fluid LP with quota subsystem}{equation.C.46j}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {D}The order-$2$ fluid LP}{34}{appendix.D}\protected@file@percent }
-\newlabel{app:order-2}{{D}{34}{The order-$2$ fluid LP}{appendix.D}{}}
-\newlabel{eq:order-2}{{47}{34}{The order-$2$ fluid LP}{equation.D.47}{}}
-\newlabel{eq:order-2-obj}{{47a}{34}{The order-$2$ fluid LP}{equation.D.47a}{}}
-\newlabel{eq:order-2-fluid}{{47b}{34}{The order-$2$ fluid LP}{equation.D.47b}{}}
-\newlabel{eq:order-2-pair}{{47c}{34}{The order-$2$ fluid LP}{equation.D.47c}{}}
-\newlabel{eq:order-2-marg}{{47d}{34}{The order-$2$ fluid LP}{equation.D.47d}{}}
-\newlabel{eq:order-2-nonneg}{{47e}{34}{The order-$2$ fluid LP}{equation.D.47e}{}}
+\bibcite{parmentier2019integer}{27}
+\bibcite{koller2009}{28}
+\bibcite{wainwright2008graphical}{29}
+\bibcite{gast2022lpupdate}{30}
+\bibcite{cooper2002}{31}
+\bibcite{mayne2000}{32}
+\bibcite{rawlings2017}{33}
+\bibcite{wolsey1998integer}{34}
+\bibcite{barnhart1998branch}{35}
+\bibcite{liuwiesemannyue2024}{36}
+\bibcite{desrosiers2005primer}{37}
+\bibcite{gast2023lpbased}{38}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Proof of the upper bound~\eqref  {eq:intro-cost-approx}}{29}{appendix.A}\protected@file@percent }
+\newlabel{app:cost-bound}{{A}{29}{Proof of the upper bound~\eqref {eq:intro-cost-approx}}{appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}MILP formulation of the joint action cost minimization}{29}{appendix.B}\protected@file@percent }
+\newlabel{app:maintenance-problem}{{B}{29}{MILP formulation of the joint action cost minimization}{appendix.B}{}}
+\newlabel{eq:app-milp}{{26}{29}{MILP formulation of the joint action cost minimization}{equation.B.26}{}}
+\newlabel{eq:app-milp-obj}{{26a}{29}{MILP formulation of the joint action cost minimization}{equation.B.26a}{}}
+\newlabel{eq:app-milp-start}{{26b}{29}{MILP formulation of the joint action cost minimization}{equation.B.26b}{}}
+\newlabel{eq:app-milp-ong}{{26c}{29}{MILP formulation of the joint action cost minimization}{equation.B.26c}{}}
+\newlabel{eq:app-milp-technicians}{{26d}{29}{MILP formulation of the joint action cost minimization}{equation.B.26d}{}}
+\newlabel{eq:app-milp-indicator}{{26e}{29}{MILP formulation of the joint action cost minimization}{equation.B.26e}{}}
+\newlabel{eq:app-milp-free}{{26f}{29}{MILP formulation of the joint action cost minimization}{equation.B.26f}{}}
+\newlabel{eq:app-milp-kappa}{{26g}{29}{MILP formulation of the joint action cost minimization}{equation.B.26g}{}}
+\newlabel{eq:app-milp-consistency}{{26h}{29}{MILP formulation of the joint action cost minimization}{equation.B.26h}{}}
+\@writefile{toc}{\contentsline {paragraph}{Pricing problems.}{30}{section*.55}\protected@file@percent }
+\newlabel{eq:intro-milp}{{27}{30}{Pricing problems}{equation.B.27}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}The fluid LPs with a quota subsystem}{30}{appendix.C}\protected@file@percent }
+\newlabel{app:light}{{C}{30}{The fluid LPs with a quota subsystem}{appendix.C}{}}
+\@writefile{toc}{\contentsline {paragraph}{Joint fluid LP with quota subsystem.}{30}{section*.56}\protected@file@percent }
+\newlabel{eq:fluid-quota-subsystem}{{28}{30}{Joint fluid LP with quota subsystem}{equation.C.28}{}}
+\newlabel{eq:fluid-quota-subsystem-obj}{{28a}{30}{Joint fluid LP with quota subsystem}{equation.C.28a}{}}
+\newlabel{eq:fluid-quota-subsystem-first}{{28b}{30}{Joint fluid LP with quota subsystem}{equation.C.28b}{}}
+\newlabel{eq:fluid-quota-subsystem-initial}{{28c}{30}{Joint fluid LP with quota subsystem}{equation.C.28c}{}}
+\newlabel{eq:fluid-quota-subsystem-flow}{{28d}{30}{Joint fluid LP with quota subsystem}{equation.C.28d}{}}
+\newlabel{eq:fluid-quota-subsystem-consistency}{{28e}{30}{Joint fluid LP with quota subsystem}{equation.C.28e}{}}
+\newlabel{eq:fluid-quota-subsystem-qinitial}{{28f}{30}{Joint fluid LP with quota subsystem}{equation.C.28f}{}}
+\newlabel{eq:fluid-quota-subsystem-qflow}{{28g}{30}{Joint fluid LP with quota subsystem}{equation.C.28g}{}}
+\newlabel{eq:fluid-quota-subsystem-qconsistency}{{28h}{30}{Joint fluid LP with quota subsystem}{equation.C.28h}{}}
+\newlabel{eq:fluid-quota-subsystem-admissible}{{28i}{30}{Joint fluid LP with quota subsystem}{equation.C.28i}{}}
+\newlabel{eq:fluid-quota-subsystem-nonneg}{{28j}{30}{Joint fluid LP with quota subsystem}{equation.C.28j}{}}
+\@writefile{toc}{\contentsline {paragraph}{Compact fluid LP with quota subsystem.}{31}{section*.57}\protected@file@percent }
+\newlabel{eq:compact-light}{{29}{31}{Compact fluid LP with quota subsystem}{equation.C.29}{}}
+\newlabel{eq:compact-light-obj}{{29a}{31}{Compact fluid LP with quota subsystem}{equation.C.29a}{}}
+\newlabel{eq:compact-light-initial}{{29b}{31}{Compact fluid LP with quota subsystem}{equation.C.29b}{}}
+\newlabel{eq:compact-light-flow}{{29c}{31}{Compact fluid LP with quota subsystem}{equation.C.29c}{}}
+\newlabel{eq:compact-light-consistency}{{29d}{31}{Compact fluid LP with quota subsystem}{equation.C.29d}{}}
+\newlabel{eq:compact-light-qinitial}{{29e}{31}{Compact fluid LP with quota subsystem}{equation.C.29e}{}}
+\newlabel{eq:compact-light-qflow}{{29f}{31}{Compact fluid LP with quota subsystem}{equation.C.29f}{}}
+\newlabel{eq:compact-light-qconsistency}{{29g}{31}{Compact fluid LP with quota subsystem}{equation.C.29g}{}}
+\newlabel{eq:compact-light-admissible}{{29h}{31}{Compact fluid LP with quota subsystem}{equation.C.29h}{}}
+\newlabel{eq:compact-light-b}{{29i}{31}{Compact fluid LP with quota subsystem}{equation.C.29i}{}}
+\newlabel{eq:compact-light-nonneg}{{29j}{31}{Compact fluid LP with quota subsystem}{equation.C.29j}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}The order-$2$ fluid LP}{31}{appendix.D}\protected@file@percent }
+\newlabel{app:order-2}{{D}{31}{The order-$2$ fluid LP}{appendix.D}{}}
+\newlabel{eq:order-2}{{30}{31}{The order-$2$ fluid LP}{equation.D.30}{}}
+\newlabel{eq:order-2-obj}{{30a}{31}{The order-$2$ fluid LP}{equation.D.30a}{}}
+\newlabel{eq:order-2-fluid}{{30b}{31}{The order-$2$ fluid LP}{equation.D.30b}{}}
+\newlabel{eq:order-2-pair}{{30c}{31}{The order-$2$ fluid LP}{equation.D.30c}{}}
+\newlabel{eq:order-2-marg}{{30d}{31}{The order-$2$ fluid LP}{equation.D.30d}{}}
+\newlabel{eq:order-2-nonneg}{{30e}{31}{The order-$2$ fluid LP}{equation.D.30e}{}}
 \citation{bertsimas2016}
 \citation{BrownZhang2022}
 \citation{DAeth2023HospitalScheduling}
-\@writefile{toc}{\contentsline {section}{\numberline {E}Application to decomposable MDPs}{35}{appendix.E}\protected@file@percent }
-\newlabel{sec:dmdp}{{E}{35}{Application to decomposable MDPs}{appendix.E}{}}
-\newlabel{eq:dmdp-fluid}{{48}{35}{Application to decomposable MDPs}{equation.E.48}{}}
-\newlabel{eq:dmdp-fluid-obj}{{48a}{35}{Application to decomposable MDPs}{equation.E.48a}{}}
-\newlabel{eq:dmdp-fluid-initial}{{48b}{35}{Application to decomposable MDPs}{equation.E.48b}{}}
-\newlabel{eq:dmdp-fluid-flow}{{48c}{35}{Application to decomposable MDPs}{equation.E.48c}{}}
-\newlabel{eq:dmdp-fluid-consistency}{{48d}{35}{Application to decomposable MDPs}{equation.E.48d}{}}
-\newlabel{eq:dmdp-fluid-nonneg}{{48e}{35}{Application to decomposable MDPs}{equation.E.48e}{}}
-\@writefile{toc}{\contentsline {paragraph}{The fluid approximation can be arbitrarily bad.}{35}{section*.62}\protected@file@percent }
-\newlabel{ex:heterogeneous-mismatch}{{8}{35}{A family of D-MDPs with homogeneous subsystems}{proposition.8}{}}
-\newlabel{prop:arbitrary-large}{{9}{36}{}{proposition.9}{}}
-\@writefile{toc}{\contentsline {paragraph}{Improving the approximation.}{36}{section*.63}\protected@file@percent }
-\newlabel{prop:pairwise-gap}{{10}{36}{}{proposition.10}{}}
-\newlabel{eq:pairwise-fluid}{{49}{36}{Improving the approximation}{equation.E.49}{}}
-\newlabel{eq:pairwise-fluid-obj}{{49a}{36}{Improving the approximation}{equation.E.49a}{}}
-\newlabel{eq:pairwise-fluid-initial}{{49b}{36}{Improving the approximation}{equation.E.49b}{}}
-\newlabel{eq:pairwise-fluid-initial2}{{49c}{36}{Improving the approximation}{equation.E.49c}{}}
-\newlabel{eq:pairwise-fluid-consistency}{{49d}{36}{Improving the approximation}{equation.E.49d}{}}
-\newlabel{eq:pairwise-fluid-marg1}{{49e}{36}{Improving the approximation}{equation.E.49e}{}}
-\newlabel{eq:pairwise-fluid-joint}{{49f}{36}{Improving the approximation}{equation.E.49f}{}}
-\newlabel{eq:pairwise-fluid-nonneg}{{49g}{36}{Improving the approximation}{equation.E.49g}{}}
-\newlabel{prop:lift-cut-closes-gap}{{11}{37}{}{proposition.11}{}}
-\gdef \@abspage@last{38}
+\@writefile{toc}{\contentsline {section}{\numberline {E}Application to decomposable MDPs}{32}{appendix.E}\protected@file@percent }
+\newlabel{sec:dmdp}{{E}{32}{Application to decomposable MDPs}{appendix.E}{}}
+\newlabel{eq:dmdp-fluid}{{31}{32}{Application to decomposable MDPs}{equation.E.31}{}}
+\newlabel{eq:dmdp-fluid-obj}{{31a}{32}{Application to decomposable MDPs}{equation.E.31a}{}}
+\newlabel{eq:dmdp-fluid-initial}{{31b}{32}{Application to decomposable MDPs}{equation.E.31b}{}}
+\newlabel{eq:dmdp-fluid-flow}{{31c}{32}{Application to decomposable MDPs}{equation.E.31c}{}}
+\newlabel{eq:dmdp-fluid-consistency}{{31d}{32}{Application to decomposable MDPs}{equation.E.31d}{}}
+\newlabel{eq:dmdp-fluid-nonneg}{{31e}{32}{Application to decomposable MDPs}{equation.E.31e}{}}
+\@writefile{toc}{\contentsline {paragraph}{The fluid approximation can be arbitrarily bad.}{32}{section*.58}\protected@file@percent }
+\newlabel{ex:heterogeneous-mismatch}{{11}{33}{A family of D-MDPs with homogeneous subsystems}{proposition.11}{}}
+\newlabel{prop:arbitrary-large}{{12}{33}{}{proposition.12}{}}
+\@writefile{toc}{\contentsline {paragraph}{Improving the approximation.}{33}{section*.59}\protected@file@percent }
+\newlabel{prop:pairwise-gap}{{13}{33}{}{proposition.13}{}}
+\newlabel{eq:pairwise-fluid}{{32}{33}{Improving the approximation}{equation.E.32}{}}
+\newlabel{eq:pairwise-fluid-obj}{{32a}{33}{Improving the approximation}{equation.E.32a}{}}
+\newlabel{eq:pairwise-fluid-initial}{{32b}{33}{Improving the approximation}{equation.E.32b}{}}
+\newlabel{eq:pairwise-fluid-initial2}{{32c}{33}{Improving the approximation}{equation.E.32c}{}}
+\newlabel{eq:pairwise-fluid-consistency}{{32d}{33}{Improving the approximation}{equation.E.32d}{}}
+\newlabel{eq:pairwise-fluid-marg1}{{32e}{33}{Improving the approximation}{equation.E.32e}{}}
+\newlabel{eq:pairwise-fluid-joint}{{32f}{33}{Improving the approximation}{equation.E.32f}{}}
+\newlabel{eq:pairwise-fluid-nonneg}{{32g}{33}{Improving the approximation}{equation.E.32g}{}}
+\newlabel{prop:lift-cut-closes-gap}{{14}{34}{}{proposition.14}{}}
+\gdef \@abspage@last{35}

@@ -31,32 +31,40 @@
 \@writefile{toc}{\contentsline {paragraph}{Order 2 (\texttt  {fluid\_cg\_order2}, Section 4.2 of the paper).}{8}{section*.21}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Lift-and-project (\texttt  {lift\_project}, Section 4.3 of the paper).}{8}{section*.22}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Compact fluid LP (\texttt  {compact}, Section 3.3 of the paper).}{9}{section*.23}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Master LP of the Full Fluid LP (column generation)}{9}{section.4}\protected@file@percent }
-\newlabel{sec:master}{{4}{9}{Master LP of the Full Fluid LP (column generation)}{section.4}{}}
-\newlabel{rem:strengthen}{{1}{9}{Strengthening the intra-pole link}{remark.1}{}}
-\newlabel{rem:sum-to-one}{{2}{11}{Why $(\mathrm {Cons})$ is needed at $a=1$ too}{remark.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Pricing MILP of the Full Fluid LP}{11}{section.5}\protected@file@percent }
-\newlabel{sec:pricing}{{5}{11}{Pricing MILP of the Full Fluid LP}{section.5}{}}
-\newlabel{rem:pricing-k}{{4}{11}{Pricing must also choose $k$}{remark.4}{}}
-\newlabel{rem:w-linearisation}{{6}{12}{Only two of the three usual AND-linearisation constraints}{remark.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Light Fluid LP: quota as a subsystem}{13}{section.6}\protected@file@percent }
-\newlabel{sec:light}{{6}{13}{Light Fluid LP: quota as a subsystem}{section.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Order-2 higher-order formulation (Section 4.2)}{15}{section.7}\protected@file@percent }
-\newlabel{sec:order2}{{7}{15}{Order-2 higher-order formulation (Section 4.2)}{section.7}{}}
-\newlabel{rem:order2-both-modes}{{10}{17}{Why $p^{\mathrm {pair}}$ needs both modes, and both Flow and marginal consistency}{remark.10}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {8}Compact Fluid LP}{17}{section.8}\protected@file@percent }
-\newlabel{sec:compact}{{8}{17}{Compact Fluid LP}{section.8}{}}
-\newlabel{rem:compact-warmstart}{{13}{17}{Warm start across states: one template per $(t_0^{\mathrm {cyc}}, H)$, not one model per state}{remark.13}{}}
-\newlabel{rem:slack}{{14}{19}{A slack exploited by the relaxation}{remark.14}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {9}Lift-and-project cuts (Section 4.3)}{19}{section.9}\protected@file@percent }
-\newlabel{sec:lift-project}{{9}{19}{Lift-and-project cuts (Section 4.3)}{section.9}{}}
-\newlabel{sec:lift-project-first-attempt}{{9}{20}{A first attempt, and why it is very loose on this problem}{section*.72}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {10}Policy extraction: a method-agnostic heuristic}{21}{section.10}\protected@file@percent }
-\newlabel{sec:heuristic-extraction}{{10}{21}{Policy extraction: a method-agnostic heuristic}{section.10}{}}
-\@writefile{toc}{\contentsline {paragraph}{Step 1 -- read the aggregate decision off $q$.}{21}{section*.75}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step 2 -- re-derive the schedule for the true cost.}{22}{section*.76}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {11}Baseline 1: two-step optimisation (simplified problem)}{22}{section.11}\protected@file@percent }
-\newlabel{sec:baseline1}{{11}{22}{Baseline 1: two-step optimisation (simplified problem)}{section.11}{}}
-\@writefile{toc}{\contentsline {paragraph}{Step 1: one threshold policy per component (offline, once per instance).}{22}{section*.77}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Step 2: schedule for the joint state (online).}{23}{section*.78}\protected@file@percent }
-\gdef \@abspage@last{23}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Pricing problems of \texttt  {fluid\_cg} by blocks and by dynamic programming}{9}{section.4}\protected@file@percent }
+\newlabel{sec:pricing-dp}{{4}{9}{Pricing problems of \texttt {fluid\_cg} by blocks and by dynamic programming}{section.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Decomposition.}{10}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Cost of a pole for a given number of declared days.}{10}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Dynamic programming.}{10}{section*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Exactness.}{11}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Why the start days must be discretised, and not the quota.}{11}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Limits.}{11}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Master LP of the Full Fluid LP (column generation)}{12}{section.5}\protected@file@percent }
+\newlabel{sec:master}{{5}{12}{Master LP of the Full Fluid LP (column generation)}{section.5}{}}
+\newlabel{rem:strengthen}{{2}{12}{Strengthening the intra-pole link}{remark.2}{}}
+\newlabel{rem:sum-to-one}{{3}{13}{Why $(\mathrm {Cons})$ is needed at $a=1$ too}{remark.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Pricing MILP of the Full Fluid LP}{14}{section.6}\protected@file@percent }
+\newlabel{sec:pricing}{{6}{14}{Pricing MILP of the Full Fluid LP}{section.6}{}}
+\newlabel{rem:pricing-k}{{5}{14}{Pricing must also choose $k$}{remark.5}{}}
+\newlabel{rem:w-linearisation}{{7}{14}{Only two of the three usual AND-linearisation constraints}{remark.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Light Fluid LP: quota as a subsystem}{16}{section.7}\protected@file@percent }
+\newlabel{sec:light}{{7}{16}{Light Fluid LP: quota as a subsystem}{section.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Order-2 higher-order formulation (Section 4.2)}{18}{section.8}\protected@file@percent }
+\newlabel{sec:order2}{{8}{18}{Order-2 higher-order formulation (Section 4.2)}{section.8}{}}
+\newlabel{rem:order2-both-modes}{{11}{19}{Why $p^{\mathrm {pair}}$ needs both modes, and both Flow and marginal consistency}{remark.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Compact Fluid LP}{20}{section.9}\protected@file@percent }
+\newlabel{sec:compact}{{9}{20}{Compact Fluid LP}{section.9}{}}
+\newlabel{rem:compact-warmstart}{{14}{20}{Warm start across states: one template per $(t_0^{\mathrm {cyc}}, H)$, not one model per state}{remark.14}{}}
+\newlabel{rem:slack}{{15}{21}{A slack exploited by the relaxation}{remark.15}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {10}Lift-and-project cuts (Section 4.3)}{22}{section.10}\protected@file@percent }
+\newlabel{sec:lift-project}{{10}{22}{Lift-and-project cuts (Section 4.3)}{section.10}{}}
+\newlabel{sec:lift-project-first-attempt}{{10}{22}{A first attempt, and why it is very loose on this problem}{section*.82}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {11}Policy extraction: a method-agnostic heuristic}{24}{section.11}\protected@file@percent }
+\newlabel{sec:heuristic-extraction}{{11}{24}{Policy extraction: a method-agnostic heuristic}{section.11}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 1 -- read the aggregate decision off $q$.}{24}{section*.85}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Step 2 -- re-derive the schedule for the true cost.}{24}{section*.86}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12}Baseline 1: two-step optimisation (simplified problem)}{25}{section.12}\protected@file@percent }
+\newlabel{sec:baseline1}{{12}{25}{Baseline 1: two-step optimisation (simplified problem)}{section.12}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 1: one threshold policy per component (offline, once per instance).}{25}{section*.87}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Step 2: schedule for the joint state (online).}{26}{section*.88}\protected@file@percent }
+\gdef \@abspage@last{26}

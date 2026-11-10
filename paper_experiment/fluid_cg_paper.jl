@@ -500,23 +500,50 @@ MILP formulation of B (or of B(x0) with the true cost c⊗(x0, ·) if `x0` is gi
 both pricing problems. `obj` holds the cost of the joint action, f(b) for B, c⊗(x0, b) for
 B(x0); the pricing problems add to it the dual terms, written with the indicators of the local
 actions (`local_ind`) and of the pairs of local actions (`pair_ind`).
+
+The period is split into blocks of `blk` days (`pricing_block_len`), and the declared days, the
+maintenance indicators and the capacity losses are indexed by block: `free[p, j] = 1` iff the
+`blk` days of block j are declared penalty-free on pole p. With `blk = 1`, this is the formulation
+by day.
 """
 mutable struct PricingCore
     model::Model
     z::Vector{VariableRef}
     ms::Dict{Tuple{Int,Int},VariableRef}
-    free::Matrix{VariableRef}
+    free::Matrix{VariableRef}                   # (p, j): block j declared penalty-free on pole p
     ksel::Dict{Tuple{Int,Int},VariableRef}      # (p, κ): κ free days are declared on pole p
     y::Dict{Tuple{Int,Int},VariableRef}         # (m, κ): z_m ∧ ksel[pole(m), κ]
     w::Dict{NTuple{3,Int},VariableRef}          # (m1, m2, κ): z_{m1} ∧ z_{m2} ∧ ksel[pole, κ], created on demand
     starts::Vector{Vector{Int}}
     obj::AffExpr
+    blk::Int                                    # number of days of a block
+end
+
+"""
+Length of the blocks of the pricing MILP. Blocks of QUOTA_STEP days are used when they are exact:
+the period, the first start day and the repair durations are aligned on them (so that the
+maintenance indicators and the capacity losses of a pole are constant on every block), the daily
+penalty of every pole is constant on every block, and every admissible number of declared days is
+a multiple of QUOTA_STEP. Declaring whole blocks is then optimal, since the days of a block are
+interchangeable. Otherwise, blocks of one day (the formulation by day).
+"""
+function pricing_block_len(fd::FluidData)
+    Δ = QUOTA_STEP; inst = fd.inst; T = inst.T_period
+    Δ > 1 || return 1
+    aligned = T % Δ == 0 && (FIRST_START_DAY - 1) % Δ == 0 && all(d % Δ == 0 for d in fd.d) &&
+              all(K0 % Δ == 0 for K0 in fd.K0)
+    constant = all(length(unique(pole.daily_penalty[(j - 1) * Δ + 1:j * Δ])) == 1
+                   for pole in inst.poles for j in 1:(T ÷ Δ))
+    return aligned && constant ? Δ : 1
 end
 
 function build_pricing_core(fd::FluidData; kcap::Vector{Int} = fd.K0,
                             x0::Union{Nothing,Vector{Int}} = nothing, time_limit::Float64 = 60.0,
-                            n_pool::Int = 1)
+                            n_pool::Int = 1, blk::Int = pricing_block_len(fd))
     inst = fd.inst; M = fd.M; T = inst.T_period; K = inst.n_poles
+    T % blk == 0 || error("the blocks of the pricing MILP must divide the period")
+    nb = T ÷ blk
+    day1(j) = (j - 1) * blk + 1                         # first day of block j
     model = Model(() -> Gurobi.Optimizer(GRB_ENV))
     set_silent(model)
     set_time_limit_sec(model, time_limit)
@@ -538,11 +565,13 @@ function build_pricing_core(fd::FluidData; kcap::Vector{Int} = fd.K0,
         end
         @constraint(model, sum(ms[(m, τ)] for τ in starts[m]) == z[m])
     end
+    # repair of m ongoing / completed on day τ (constant on every block when blk > 1)
     ong(m, τ) = sum((ms[(m, s)] for s in starts[m] if s <= τ <= s + fd.d[m] - 1); init = AffExpr(0.0))
     done(m, τ) = sum((ms[(m, s)] for s in starts[m] if τ >= s + fd.d[m]); init = AffExpr(0.0))
+    pen_blk(p, j) = sum(inst.poles[p].daily_penalty[τ] for τ in day1(j):(j * blk))
 
-    any_m = @variable(model, [1:K, 1:T], lower_bound = 0, upper_bound = 1)
-    free = @variable(model, [1:K, 1:T], Bin)
+    any_m = @variable(model, [1:K, 1:nb], lower_bound = 0, upper_bound = 1)
+    free = @variable(model, [1:K, 1:nb], Bin)
     ksel = Dict{Tuple{Int,Int},VariableRef}()
     for p in 1:K, κ in qrange(kcap[p])
         ksel[(p, κ)] = @variable(model, binary = true)
@@ -552,39 +581,39 @@ function build_pricing_core(fd::FluidData; kcap::Vector{Int} = fd.K0,
     end
     for p in 1:K
         @constraint(model, sum(ksel[(p, κ)] for κ in qrange(kcap[p])) == 1)
-        @constraint(model, sum(free[p, τ] for τ in 1:T) == sum(κ * ksel[(p, κ)] for κ in qrange(kcap[p])))
+        @constraint(model, blk * sum(free[p, j] for j in 1:nb) == sum(κ * ksel[(p, κ)] for κ in qrange(kcap[p])))
     end
 
     obj = AffExpr(0.0)
     if isnothing(x0)
         # f(b) = Mc: penalty of the maintenance days that are not declared penalty-free
-        w_af = @variable(model, [1:K, 1:T], lower_bound = 0, upper_bound = 1)
-        for p in 1:K, τ in 1:T
+        w_af = @variable(model, [1:K, 1:nb], lower_bound = 0, upper_bound = 1)
+        for p in 1:K, j in 1:nb
             for m in fd.comps_of_pole[p]
-                @constraint(model, any_m[p, τ] >= ong(m, τ))
+                @constraint(model, any_m[p, j] >= ong(m, day1(j)))
             end
-            @constraint(model, w_af[p, τ] <= free[p, τ])
-            @constraint(model, w_af[p, τ] <= any_m[p, τ])
-            pen = inst.poles[p].daily_penalty[τ]
-            add_to_expression!(obj, pen, any_m[p, τ]); add_to_expression!(obj, -pen, w_af[p, τ])
+            @constraint(model, w_af[p, j] <= free[p, j])
+            @constraint(model, w_af[p, j] <= any_m[p, j])
+            pen = pen_blk(p, j)
+            add_to_expression!(obj, pen, any_m[p, j]); add_to_expression!(obj, -pen, w_af[p, j])
         end
     else
         # true cost c⊗(x0, b) (Section 2.2), linearised (Section 3.2, Column generation):
         # L ≥ ℓ_m(ñ_{m,τ}) for every m of p (maximum in eq:intro-capacity-loss), u = penalty of a
         # maintenance day not declared free, v = penalty of a day without maintenance not declared free
-        L = @variable(model, [1:K, 1:T], lower_bound = 0)
-        u = @variable(model, [1:K, 1:T], lower_bound = 0)
-        v = @variable(model, [1:K, 1:T], lower_bound = 0)
-        for p in 1:K, τ in 1:T
+        L = @variable(model, [1:K, 1:nb], lower_bound = 0)
+        u = @variable(model, [1:K, 1:nb], lower_bound = 0)
+        v = @variable(model, [1:K, 1:nb], lower_bound = 0)
+        for p in 1:K, j in 1:nb
             for m in fd.comps_of_pole[p]
-                @constraint(model, any_m[p, τ] >= ong(m, τ))
+                @constraint(model, any_m[p, j] >= ong(m, day1(j)))
                 ℓ0 = capacity_loss(fd, m, x0[m]); ℓ1 = capacity_loss(fd, m, 1)
-                @constraint(model, L[p, τ] >= ℓ0 - (ℓ0 - ℓ1) * done(m, τ))
+                @constraint(model, L[p, j] >= ℓ0 - (ℓ0 - ℓ1) * done(m, day1(j)))
             end
-            @constraint(model, u[p, τ] >= any_m[p, τ] - free[p, τ])
-            @constraint(model, v[p, τ] >= L[p, τ] - any_m[p, τ] - free[p, τ])
-            pen = inst.poles[p].daily_penalty[τ]
-            add_to_expression!(obj, pen, u[p, τ]); add_to_expression!(obj, pen, v[p, τ])
+            @constraint(model, u[p, j] >= any_m[p, j] - free[p, j])
+            @constraint(model, v[p, j] >= L[p, j] - any_m[p, j] - free[p, j])
+            pen = pen_blk(p, j)
+            add_to_expression!(obj, pen, u[p, j]); add_to_expression!(obj, pen, v[p, j])
         end
         for m in 1:M
             add_to_expression!(obj, fd.cc[m], z[m])
@@ -609,7 +638,7 @@ function build_pricing_core(fd::FluidData; kcap::Vector{Int} = fd.K0,
             y[(m, κ)] = yv
         end
     end
-    return PricingCore(model, z, ms, free, ksel, y, Dict{NTuple{3,Int},VariableRef}(), starts, obj)
+    return PricingCore(model, z, ms, free, ksel, y, Dict{NTuple{3,Int},VariableRef}(), starts, obj, blk)
 end
 
 "Indicator of A_m(b) = (mode, κ), as an affine expression of the pricing variables (0 if κ is not allowed)."
@@ -653,7 +682,9 @@ function solve_core!(core::PricingCore, fd::FluidData; pool_tol::Float64 = -1e-6
                 value(core.ms[(m, τ)]; result = r) > 0.5 && (start[m] = τ)
             end
         end
-        return Column(start, [[τ for τ in 1:T if value(core.free[p, τ]; result = r) > 0.5] for p in 1:K])
+        # declared days: every day of the blocks declared penalty-free
+        free_days = [[τ for τ in 1:T if value(core.free[p, (τ - 1) ÷ core.blk + 1]; result = r) > 0.5] for p in 1:K]
+        return Column(start, free_days)
     end
     extras = [column(r) for r in 2:result_count(core.model) if objective_value(core.model; result = r) < pool_tol]
     return column(1), objective_value(core.model), extras
@@ -669,6 +700,30 @@ struct PaperDuals
     π::Vector{Float64}                 # duals of master.cuts (≤ 0)
 end
 
+"Wentges smoothing of the duals of the Joint fluid LP: α center + (1 − α) du (missing entries count as 0)."
+function smoothed_duals(center::PaperDuals, du::PaperDuals, α::Float64)
+    mix(a, b) = Dict(k => α * get(a, k, 0.0) + (1 - α) * get(b, k, 0.0) for k in union(keys(a), keys(b)))
+    return PaperDuals(α * center.η + (1 - α) * du.η, mix(center.ν, du.ν), mix(center.λ, du.λ),
+                      du.ρG, du.λG, du.π)
+end
+
+"Reduced cost of the first-step column b at the duals du of the Joint fluid LP (eq:pricing-first, minus η)."
+function reduced_cost_first(fd::FluidData, master::PaperMaster, du::PaperDuals, col::Column)
+    v = first_step_cost(fd, master.x0, col) - du.η
+    master.H >= 2 || return v
+    for m in 1:fd.M
+        p = fd.pole_of[m]
+        k_next = quota_next(1, master.t0_cyc, master.k0[p], column_kappa(col, p), fd.K0[p])
+        v += sum(get(du.ν, (m, n, k_next), 0.0) * trans_prob(fd, m, n, master.x0[m], column_mode(col, m))
+                 for n in 1:fd.n_states[m])
+    end
+    return v
+end
+
+"Reduced cost of the column b at stage t ≥ 2 at the duals du of the Joint fluid LP (eq:pricing)."
+reduced_cost_t(fd::FluidData, du::PaperDuals, col::Column, t::Int) = column_penalty(fd, col) +
+    sum(get(du.λ, (m, column_mode(col, m), column_kappa(col, fd.pole_of[m]), t), 0.0) for m in 1:fd.M)
+
 read_duals(master::PaperMaster) = PaperDuals(dual(master.first),
     Dict(k => dual(c) for (k, c) in master.init), Dict(k => dual(c) for (k, c) in master.cons),
     Dict(k => dual(c) for (k, c) in master.vfirst), Dict(k => dual(c) for (k, c) in master.pcons),
@@ -679,9 +734,10 @@ First-step pricing problem (eq:pricing-first), extended with the duals of the or
 condition and of the t = 2 cuts: min over b ∈ B(x0) of the reduced cost of μ1_b.
 """
 function solve_pricing_first_paper(fd::FluidData, master::PaperMaster, du::PaperDuals;
-                                   time_limit::Float64 = 60.0, n_pool::Int = 1, tol::Float64 = 1e-6)
+                                   time_limit::Float64 = 60.0, n_pool::Int = 1, tol::Float64 = 1e-6,
+                                   blk::Int = pricing_block_len(fd))
     x0 = master.x0; k0 = master.k0
-    core = build_pricing_core(fd; kcap = k0, x0 = x0, time_limit = time_limit, n_pool = n_pool)
+    core = build_pricing_core(fd; kcap = k0, x0 = x0, time_limit = time_limit, n_pool = n_pool, blk = blk)
     if master.H >= 2
         for m in 1:fd.M
             p = fd.pole_of[m]
@@ -730,8 +786,9 @@ Pricing problem (eq:pricing) at stage t ≥ 2, extended with the duals of the or
 constraints and of the cuts of stage t: min over b ∈ B of the reduced cost of μ_{b,t}.
 """
 function solve_pricing_t_paper(fd::FluidData, master::PaperMaster, du::PaperDuals, t::Int;
-                               time_limit::Float64 = 60.0, n_pool::Int = 1, tol::Float64 = 1e-6)
-    core = build_pricing_core(fd; time_limit = time_limit, n_pool = n_pool)
+                               time_limit::Float64 = 60.0, n_pool::Int = 1, tol::Float64 = 1e-6,
+                               blk::Int = pricing_block_len(fd))
+    core = build_pricing_core(fd; time_limit = time_limit, n_pool = n_pool, blk = blk)
     for ((m, mode, κ, tt), λv) in du.λ
         tt == t && abs(λv) > 1e-12 && add_to_expression!(core.obj, λv, local_ind(core, fd, m, mode, κ))
     end
@@ -880,8 +937,17 @@ function _solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int}, k0::Vector{Int}, 
                               time_limit_pricing::Float64 = 60.0, n_pool::Int = 10,
                               max_cut_rounds::Int = 10, max_cuts_per_round::Int = 20, cut_tol::Float64 = 1e-6,
                               lp_method::Int = 1, lp_params::Union{Nothing,Vector{Pair{String,Int}}} = nothing,
+                              pricing::Symbol = :milp, gap_tol::Float64 = 0.0, smoothing::Float64 = 0.0,
                               verbose::Bool = false)
     t_begin = time()
+    # gap_tol > 0: stop as soon as the Lagrangian bound LB is within gap_tol (relative) of the master LP
+    # value. smoothing = α > 0: Wentges smoothing, see smoothed_duals. Both use the duals of the Joint
+    # fluid LP only (no order-2 pairs, no cuts) for smoothing.
+    smoothing > 0 && (!isempty(pairs) || cuts) && error("smoothing is only implemented for the Joint fluid LP")
+    # pricing problems: MILP (build_pricing_core) or dynamic programming over the poles (pricing_dp.jl)
+    pricing in (:milp, :dp) || error("pricing must be :milp or :dp")
+    price_first = pricing == :dp ? solve_pricing_first_dp : solve_pricing_first_paper
+    price_t = pricing == :dp ? solve_pricing_t_dp : solve_pricing_t_paper
     # Without the aggregation of Gurobi's presolve, the master LP of order 2 is solved fast and
     # reliably (with it, presolve wrongly declares the LP infeasible for long fluid horizons).
     params = isnothing(lp_params) ? (isempty(pairs) ? Pair{String,Int}[] : ["Aggregate" => 0]) : lp_params
@@ -901,11 +967,13 @@ function _solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int}, k0::Vector{Int}, 
         foreach(push_col!, pool)
     end
 
-    iterations = 0; converged = false; n_cuts = 0
+    iterations = 0; converged = false; n_cuts = 0; gap_stop = false
+    lb_best = -Inf; center = nothing   # best Lagrangian bound, and the duals at which it was obtained
     # cumulated computing times: master LP solves, pricing MILPs (built and solved), cut separation
     t_master = 0.0; t_pricing = 0.0; t_cuts = 0.0
     function column_generation!()
-        converged = false
+        converged = false; gap_stop = false
+        lb_best = -Inf; center = nothing   # the master changes when cuts are added
         for iter in 1:max_iter
             iterations += 1
             t_m = time(); solve_master!(master); t_m = time() - t_m; t_master += t_m
@@ -913,31 +981,61 @@ function _solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int}, k0::Vector{Int}, 
             du = read_duals(master)   # every dual is read before any column is added
             n_new = 0
             t_p = time()
+            # exact pricing at the duals of the master: new columns and Lagrangian bound
+            # LB = LP + Σ_t min(0, rc*_t), valid since Σ_b μ_{b,t} = 1 at every t (eq:fluid-first, and
+            # implied at t ≥ 2) and since the reduced costs of the variables q are ≥ 0 at the optimum
+            lb = lpv
             t0 = time()
-            col, rc, extras = solve_pricing_first_paper(fd, master, du; time_limit = time_limit_pricing,
-                                                        n_pool = n_pool, tol = tol)
+            col, rc, extras = price_first(fd, master, du; time_limit = time_limit_pricing,
+                                          n_pool = n_pool, tol = tol)
             t_pricing += time() - t0
+            isnothing(col) ? (lb = -Inf) : (lb += min(0.0, rc))
             if !isnothing(col) && rc < -tol
                 push_first!(col) && (n_new += 1)
                 foreach(c -> push_first!(c) && (n_new += 1), extras)
             end
             for t in 2:H
                 t0 = time()
-                col, rc, extras = solve_pricing_t_paper(fd, master, du, t; time_limit = time_limit_pricing,
-                                                        n_pool = n_pool, tol = tol)
+                col, rc, extras = price_t(fd, master, du, t; time_limit = time_limit_pricing,
+                                          n_pool = n_pool, tol = tol)
                 t_pricing += time() - t0
+                isnothing(col) ? (lb = -Inf) : (lb += min(0.0, rc))
                 (isnothing(col) || rc >= -tol) && continue
                 push_col!(col) && (n_new += 1)
                 foreach(c -> push_col!(c) && (n_new += 1), extras)
             end
+            if lb > lb_best
+                lb_best = lb; center = du
+            end
+            # Wentges smoothing: the pricing problems are also solved at α center + (1 − α) du, and
+            # the columns found are added if their reduced cost at du is negative
+            if smoothing > 0 && n_new > 0 && center !== du
+                ds = smoothed_duals(center, du, smoothing)
+                t0 = time()
+                col, _, extras = price_first(fd, master, ds; time_limit = time_limit_pricing, n_pool = n_pool, tol = tol)
+                for c in (isnothing(col) ? Column[] : vcat([col], extras))
+                    reduced_cost_first(fd, master, du, c) < -tol && push_first!(c) && (n_new += 1)
+                end
+                for t in 2:H
+                    col, _, extras = price_t(fd, master, ds, t; time_limit = time_limit_pricing, n_pool = n_pool, tol = tol)
+                    for c in (isnothing(col) ? Column[] : vcat([col], extras))
+                        reduced_cost_t(fd, du, c, t) < -tol && push_col!(c) && (n_new += 1)
+                    end
+                end
+                t_pricing += time() - t0
+            end
             if verbose
-                @printf("    iter %3d  master %.2fs  pricing %.2fs  new %3d  cuts %3d  LP %.6f\n",
-                        iterations, t_m, time() - t_p, n_new, length(master.cuts), lpv)
+                @printf("    iter %3d  master %.2fs  pricing %.2fs  new %3d  cuts %3d  LP %.6f  LB %.6f\n",
+                        iterations, t_m, time() - t_p, n_new, length(master.cuts), lpv, lb_best)
                 flush(stdout)   # the log of a long solve is written as it goes
             end
             if n_new == 0
                 converged = true
                 return
+            end
+            if gap_tol > 0 && lpv - lb_best <= gap_tol * max(abs(lpv), 1e-9)
+                gap_stop = true
+                break
             end
         end
         t_m = time(); solve_master!(master); t_master += time() - t_m
@@ -962,9 +1060,9 @@ function _solve_fluid_cg_paper(fd::FluidData, x0::Vector{Int}, k0::Vector{Int}, 
 
     weights = value.(master.μ1)
     best = master.cols1[argmax(weights)]
-    return best, (time = time() - t_begin, lp_value = objective_value(master.model),
+    return best, (time = time() - t_begin, lp_value = objective_value(master.model), lower_bound = lb_best,
                   t_master = t_master, t_pricing = t_pricing, t_cuts = t_cuts,
-                  iterations = iterations, converged = converged, n_cuts = n_cuts,
+                  iterations = iterations, converged = converged, gap_stop = gap_stop, n_cuts = n_cuts,
                   n_columns = length(master.cols1) + length(master.cols),
                   cols1 = master.cols1, cols = master.cols)
 end
@@ -1058,3 +1156,5 @@ function schedule_paper(fd::FluidData, x0::Vector{Int}, k0::Vector{Int}, maintai
     end
     return Column(start, free_days)
 end
+
+include(joinpath(@__DIR__, "pricing_dp.jl"))   # pricing problems by dynamic programming (pricing = :dp)

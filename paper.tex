@@ -23,6 +23,7 @@
 
 \newtheorem{proposition}{Proposition}
 \newtheorem{lemma}{Lemma}
+\newtheorem{theorem}[proposition]{Theorem}
 \newtheorem*{remark}{Remark}
 \newtheorem{corollary}[proposition]{Corollary}
 \newtheorem{example}[proposition]{Example}
@@ -632,6 +633,9 @@ we allow for stochastic policies.
 The MDP described above has three levels: a global level, a substation level and a component level, as represented on figure~\ref{fig:mdp-structure}. 
 The maintenance schedule is represented at the global level. The cost, the remaining quota and the declared days are represented at the substation level. 
 The degradation state and the maintenance decisions are represented at the component level (or local level).
+At the substation level, the remaining quota $k^s$ evolves with the number $\kappa^s$ of declared days, 
+an integer in $[0:K_0]$. At the component level, the degradation state $n_m$ evolves with the maintenance 
+decision $\delta_m$, a binary variable. The local state spaces and the local action spaces are therefore small. These local decisions are however coupled, because they are all determined by the global action, the maintenance schedule, which is combinatorial.
 
 \begin{figure}[!htb]
 \centering
@@ -728,18 +732,273 @@ states of all its components within a substation. Section~\ref{sec:intro-approx}
 
 \section{Fluid approximations}
 \label{sec:combinatorial}
-Linear programming is the standard tool to build tractable approximations of W-MDPs and
-D-MDPs~\cite{AdelmanMersereau2008, bertsimas2016}. We follow the same approach for the
-MDP of Section~\ref{sec:problem-statement}. Section~\ref{sec:fluid-lp} presents an exact LP, whose optimal value is
-the optimal value of the MDP but which is not tractable. Section~\ref{sec:marginal-polytopes} presents a general method
-to build LP approximations of the MDP. We build our approximations by making two independent choices, summarized in Table~\ref{tab:approximations}.
-The first choice is the representation of the joint action. The Joint fluid LP (JFLP), inspired by the fluid formulation of D-MDPs, represents its complete distribution, which requires column generation (Section~\ref{sec:full-fluid}). The
-Compact fluid LP (CFLP), inspired by the fluid formulation of W-MDPs, only represents its mean values, and imposes the
-constraints on the joint action in expectation (Section~\ref{sec:compact}). The second choice is the decomposition of
-the MDP into subsystems. In the decomposition of Section~\ref{sec:local-variables}, the remaining quota of a 
-substation is included in the local state of each of its components. In a lighter decomposition, it forms its 
-own subsystem (Section~\ref{sec:quota-subsystem}). Both representations of the joint action apply to both decompositions,
-which gives four approximations in total.
+
+Section~\ref{sec:fluid-lp} recalls the exact LP of the MDP, which is intractable. Section~\ref{sec:dag} interprets
+this LP in the framework of probabilistic graphical models and influence diagrams~\cite{parmentier2019integer}, and
+Section~\ref{sec:exact-local} explains why it is exact. Section~\ref{sec:approx-strategy} uses this framework to build
+tractable approximations, which are detailed in Sections~\ref{sec:full-fluid} to~\ref{sec:quota-subsystem}.
+Section~\ref{sec:fluid-policies} turns them into policies.
+
+% ------------------------------------------------------------
+\subsection{Exact LP}
+\label{sec:fluid-lp}
+% ------------------------------------------------------------
+
+A classical result~\cite{puterman1994} reformulates the MDP as a linear program over \emph{state-action occupancy
+measures}. Since the initial state $\mathbf{x}_\otimes$ is fixed, the first time step is described by the variables
+$\mu_{b,1} := \mathbb{P}^\pi(B_1 = b)$ for $b \in \mathcal{B}(\mathbf{x}_\otimes)$. For $t \in [2:T]$, $x_\otimes \in
+\mathcal{X}_\otimes$ and $b \in \mathcal{B}(x_\otimes)$, the variable
+\[
+  q_{x_\otimes,b,t} := \mathbb{P}^\pi\bigl(X_{\otimes,t} = x_\otimes,\, B_t = b\bigr)
+\]
+is the probability that the state at $t$ is $x_\otimes$ and that the joint action $b$ is applied. The MDP is then
+equivalent to the following LP
+\begin{subequations}\label{eq:LP1}
+\begin{align}
+J^\star \;=\; \min_{\mu,\,q}\quad
+& \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} c_\otimes(\mathbf{x}_\otimes, b)\, \mu_{b,1}
+  + \sum_{t=2}^{T} \sum_{x_{\otimes} \in \mathcal{X}_\otimes} \sum_{b \in \mathcal{B}(x_\otimes)}
+    c_{\otimes}(x_{\otimes},b)\, q_{x_{\otimes},b,t}
+\label{eq:LP1-obj}\\
+\text{s.t.}\quad
+& \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} \mu_{b,1} = 1,
+\label{eq:LP1-first}\\
+& \sum_{b \in \mathcal{B}(x_\otimes)} q_{x_\otimes,b,2}
+  = \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} p_\otimes(x_\otimes \mid \mathbf{x}_\otimes, b)\, \mu_{b,1}
+  && \forall\, x_\otimes \in \mathcal{X}_\otimes,
+\label{eq:LP1-initial}\\
+& \sum_{b \in \mathcal{B}(x_\otimes)} q_{x_\otimes,b,t}
+  = \sum_{x'_\otimes \in \mathcal{X}_\otimes} \sum_{b \in \mathcal{B}(x'_\otimes)}
+    p_\otimes(x_\otimes \mid x'_\otimes, b)\, q_{x'_\otimes,b,t-1}
+  && \forall\, x_\otimes \in \mathcal{X}_\otimes,\ t \in [3:T],
+\label{eq:LP1-flow}\\
+& \mu_{b,1} \geq 0, \quad q_{x_\otimes,b,t} \geq 0.
+\label{eq:LP1-nonneg}
+\end{align}
+\end{subequations}
+The objective~\eqref{eq:LP1-obj} is the expected total cost. Constraint~\eqref{eq:LP1-first} states that $\mu_{\cdot,1}$
+is a probability distribution over the admissible joint actions in the initial state, constraint~\eqref{eq:LP1-initial}
+gives the law of the state at $t = 2$, and constraints~\eqref{eq:LP1-flow} propagate the dynamics from one time step to
+the next. Any Markov policy $\pi$ induces a feasible solution of~\eqref{eq:LP1} whose objective value is $J(\pi)$.
+Conversely, a feasible solution $(\mu, q)$ is induced by the Markov policy defined by $\pi_1(b) := \mu_{b,1}$ and
+$\pi_t(b \mid x_\otimes) := q_{x_\otimes,b,t} / \sum_{b'} q_{x_\otimes,b',t}$ whenever the denominator is positive, the
+choice of $\pi_t(\cdot \mid x_\otimes)$ being arbitrary in the states of probability zero. The optimal value
+of~\eqref{eq:LP1} is therefore $J^\star$.
+
+% ------------------------------------------------------------
+\subsection{Bayesian network framework}
+\label{sec:dag}
+\label{sec:marginal-polytopes}
+% ------------------------------------------------------------
+
+We now place the exact LP in the framework of probabilistic graphical models and influence
+diagrams~\cite{wainwright2008graphical, parmentier2019integer}, which will guide the construction of tractable
+approximations.
+
+\paragraph{DAG of the trajectory.}
+The random variables of the trajectory $(B_1,X_{\otimes,2},B_2,\ldots,X_{\otimes,T},B_T)$ are the vertices of a directed
+acyclic graph (DAG) $G = (V, E)$, whose arcs encode the conditional independences of the MDP. The initial state is
+fixed and is therefore not a vertex. The states $X_{\otimes,t}$ are \emph{chance vertices}, whose conditional
+distribution given their parents is the transition kernel, and the joint actions $B_t$ are \emph{decision vertices},
+whose conditional distribution given their parents is chosen by the policy. The \emph{family} of a vertex $v$ is
+$\mathrm{fa}(v) := \{v\} \cup \mathrm{prt}(v)$, where $\mathrm{prt}(v)$ is the set of its parents in $G$. Here
+\[
+  \mathrm{fa}(B_1) = \{B_1\}, \quad
+  \mathrm{fa}(X_{\otimes,2}) = \{B_1, X_{\otimes,2}\}, \quad
+  \mathrm{fa}(B_t) = \{X_{\otimes,t}, B_t\}, \quad
+  \mathrm{fa}(X_{\otimes,t+1}) = \{X_{\otimes,t}, B_t, X_{\otimes,t+1}\} \quad (t \ge 2).
+\]
+Any Markov policy $\pi$ induces a distribution of the trajectory that factorizes on $G$,
+\[
+  \mathbb{P}^\pi(b_1, x_{\otimes,2}, \ldots, b_T) = \pi_1(b_1)\, p_\otimes(x_{\otimes,2} \mid \mathbf{x}_\otimes, b_1)
+    \prod_{t=2}^{T-1} p_\otimes(x_{\otimes,t+1} \mid x_{\otimes,t}, b_t) \prod_{t=2}^{T} \pi_t(b_t \mid x_{\otimes,t}).
+\]
+
+\paragraph{Cliques and marginals.}
+We consider a family $\mathcal{V}$ of subsets $C \subseteq V$ of vertices, called \emph{cliques}, and write $Y_C$ for
+the vector of the variables of $C$ and $y_C$ for its values. With every clique $C$ is associated a \emph{sufficient
+statistic} $\phi_C$, a vector-valued function of $Y_C$, and its \emph{marginal} $\tau_C := \mathbb{E}^\pi[\phi_C(Y_C)]$.
+Unless otherwise stated, $\phi_C$ is the vector of indicators $\big(\mathds{1}_{\{Y_C = y_C\}}\big)_{y_C}$, so that
+$\tau_C$ is the law of $Y_C$ and we write $\tau_C(y_C) := \mathbb{P}^\pi(Y_C = y_C)$. If the cost of every time step
+only depends on the variables of a single clique, the expected total cost is a linear function of the marginals.
+
+\paragraph{Marginal polytope.}
+The \emph{marginal polytope} of $\mathcal{V}$ is the set of marginals that can be obtained from a Markov policy,
+\[
+  \mathbb{M} := \bigl\{\,(\tau_C)_{C\in\mathcal{V}} \;\big|\; \exists\,\pi \text{ Markov policy},\
+  \tau_C = \mathbb{E}^\pi[\phi_C(Y_C)]\ \forall\,C\in\mathcal{V}\,\bigr\}.
+\]
+When the expected cost is linear in the marginals, minimizing it over $\mathbb{M}$ is equivalent to solving the MDP.
+For a general family $\mathcal{V}$, however, $\mathbb{M}$ has no tractable description~\cite{wainwright2008graphical}.
+
+\paragraph{Local polytope.}
+The \emph{local polytope} $\mathbb{L}$ is the outer approximation of $\mathbb{M}$ defined by the following
+necessary conditions on indicator marginals.
+\begin{enumerate}
+  \item \emph{Normalization}. For every $C \in \mathcal{V}$, $\tau_C$ is a probability distribution, supported on the
+        values $y_C$ in which every action is admissible in the corresponding state.
+  \item \emph{Consistency}. Two cliques $C, C'$ that share variables give the same law of $Y_{C \cap C'}$, that is,
+        $\sum_{y_{C \setminus C'}} \tau_C(y_C) = \sum_{y_{C' \setminus C}} \tau_{C'}(y_{C'})$.
+  \item \emph{Dynamics}. For every chance vertex $v$ and every clique $C \supseteq \mathrm{fa}(v)$, the conditional
+        distribution of $Y_v$ given its parents is the transition kernel $p_{v \mid \mathrm{prt}(v)}$,
+        \[
+          \tau_C(y_C) = p_{v \mid \mathrm{prt}(v)}\bigl(y_v \mid y_{\mathrm{prt}(v)}\bigr)
+          \sum_{y'_v} \tau_C\bigl(y'_v, y_{C \setminus \{v\}}\bigr) \qquad \forall\, y_C.
+        \]
+\end{enumerate}
+No such constraint is written for the decision vertices, whose conditional distribution is free. Since the marginals of
+any $\mathbb{P}^\pi$ satisfy these conditions, $\mathbb{M} \subseteq \mathbb{L}$. The inclusion is in general strict.
+
+\paragraph{Rooted junction tree and exactness.}
+The structure of the cliques determines whether the local polytope is exact.
+
+\begin{definition}[Rooted junction tree~\cite{parmentier2019integer}]
+\label{def:rjt}
+A \emph{rooted junction tree} (RJT) on $\mathcal{V}$ is a tree whose nodes are the cliques of $\mathcal{V}$, rooted at
+one of them, which satisfies the two following conditions.
+\begin{enumerate}[label=(\roman*)]
+  \item \emph{Running intersection}. For every vertex $v \in V$, the cliques that contain $v$ form a subtree.
+  \item \emph{Families}. For every vertex $v \in V$, $\mathrm{fa}(v) \subseteq C_v$, where $C_v$ is the clique
+        containing $v$ that is closest to the root.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[{\cite[Theorem~2]{parmentier2019integer}}]
+\label{thm:rjt}
+If the cliques of $\mathcal{V}$ can be arranged into an RJT, then $\mathbb{L} = \mathbb{M}$.
+\end{theorem}
+
+When no RJT exists, Theorem~\ref{thm:rjt} does not apply, and $\mathbb{L}$ is in general strictly larger than
+$\mathbb{M}$~\cite{wainwright2008graphical}. Optimizing over $\mathbb{L}$ then only gives an approximation of the MDP.
+
+% ------------------------------------------------------------
+\subsection{The exact LP as a local polytope}
+\label{sec:exact-local}
+% ------------------------------------------------------------
+
+The exact LP~\eqref{eq:LP1} fits directly into this framework. Its cliques are the families of the chance vertices of
+the DAG, together with the last decision,
+\[
+  \mathcal{V}_\otimes := \bigl\{\{B_1,X_{\otimes,2}\}\bigr\}
+  \cup\bigl\{\{X_{\otimes,t},B_t,X_{\otimes,t+1}\} \mid t\in[2:T-1]\bigr\}
+  \cup\bigl\{\{X_{\otimes,T},B_T\}\bigr\},
+\]
+with indicator statistics. We write $q_{b,x'_\otimes,1}$, $q_{x_\otimes,b,x'_\otimes,t}$ and $q_{x_\otimes,b,T}$ their
+marginals, and $\mathbb{M}_\otimes$ and $\mathbb{L}_\otimes$ the associated marginal and local polytopes. We first show
+that $\mathcal{V}_\otimes$ satisfies the assumption of Theorem~\ref{thm:rjt}, and then that $\mathbb{L}_\otimes$ is,
+up to a change of variables, the feasible set of~\eqref{eq:LP1}.
+
+\begin{lemma}\label{lem:chain-rjt}
+The chain of Figure~\ref{fig:clique-chain}, rooted at $\{B_1, X_{\otimes,2}\}$, is an RJT on $\mathcal{V}_\otimes$.
+\end{lemma}
+\begin{proof}
+Each state $X_{\otimes,t}$ belongs to exactly two consecutive cliques of the chain, and each joint action $B_t$ to
+exactly one, which gives the running intersection property. The clique closest to the root that contains $B_1$ or
+$X_{\otimes,2}$ is $\{B_1, X_{\otimes,2}\}$, which contains $\mathrm{fa}(B_1)$ and $\mathrm{fa}(X_{\otimes,2})$. For $t
+\ge 2$, the clique closest to the root that contains $B_t$ is $\{X_{\otimes,t}, B_t, X_{\otimes,t+1}\}$, or $\{X_{\otimes,T},
+B_T\}$ if $t = T$, which contains $\mathrm{fa}(B_t)$. For $t \in [2:T-1]$, the clique closest to the root that contains
+$X_{\otimes,t+1}$ is $\{X_{\otimes,t}, B_t, X_{\otimes,t+1}\}$, which is $\mathrm{fa}(X_{\otimes,t+1})$. This gives the
+condition on families.
+\end{proof}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    clu/.style={draw, fill=gray!10, rounded corners=6pt, inner sep=4pt,
+                minimum height=0.75cm, font=\footnotesize},
+    sep/.style={font=\scriptsize, above, text=black, inner sep=3pt},
+    flow/.style={very thick, blue!70!black}]
+  \node[clu] (d1) at (0, 0)    {$B_1,\,X_{\otimes,2}$};
+  \node[clu] (d2) at (4.1, 0)  {$X_{\otimes,2},\,B_2,\,X_{\otimes,3}$};
+  \node      (dots) at (7.6, 0) {$\cdots$};
+  \node[clu] (dm) at (11.0, 0) {$X_{\otimes,T-1},\,B_{T-1},\,X_{\otimes,T}$};
+  \node[clu] (dT) at (15.2, 0) {$X_{\otimes,T},\,B_T$};
+  \draw[flow] (d1) -- node[sep] {$X_{\otimes,2}$} (d2);
+  \draw[flow] (d2) -- node[sep] {$X_{\otimes,3}$} (dots);
+  \draw[flow] (dots) -- node[sep] {$X_{\otimes,T-1}$} (dm);
+  \draw[flow] (dm) -- node[sep] {$X_{\otimes,T}$} (dT);
+\end{tikzpicture}
+\caption{The cliques of the exact LP. An edge links two consecutive cliques and is labeled by the state they share.}
+\label{fig:clique-chain}
+\end{figure}
+
+\begin{proposition}\label{prop:exact-marginal}
+The change of variables
+\[
+  \mu_{b,1} := \sum_{x'_\otimes} q_{b,x'_\otimes,1}, \qquad
+  q_{x_\otimes,b,t} := \sum_{x'_\otimes} q_{x_\otimes,b,x'_\otimes,t} \quad \forall t \in [2:T-1]
+\]
+is a bijection from $\mathbb{L}_\otimes$ onto the feasible set of~\eqref{eq:LP1}, which preserves the expected cost.
+\end{proposition}
+\begin{proof}
+The dynamics constraints of $\mathbb{L}_\otimes$ give $q_{b,x'_\otimes,1} = p_\otimes(x'_\otimes \mid
+\mathbf{x}_\otimes, b)\, \mu_{b,1}$ and $q_{x_\otimes,b,x'_\otimes,t} = p_\otimes(x'_\otimes \mid x_\otimes, b)\,
+q_{x_\otimes,b,t}$, so that the marginals of the cliques are determined by the state-action probabilities and the
+change of variables is injective. With these expressions, the normalization of $\{B_1, X_{\otimes,2}\}$
+is~\eqref{eq:LP1-first}, the consistency of the law of $X_{\otimes,2}$ between the first two cliques
+is~\eqref{eq:LP1-initial}, the consistency of the law of $X_{\otimes,t}$ for $t \ge 3$ is~\eqref{eq:LP1-flow}, and the
+normalization of the other cliques follows from these constraints. Conversely, these expressions map every feasible
+solution of~\eqref{eq:LP1} to a point of $\mathbb{L}_\otimes$.
+\end{proof}
+
+\begin{corollary}\label{cor:exact-lp}
+$\mathbb{L}_\otimes = \mathbb{M}_\otimes$, and the optimal value of~\eqref{eq:LP1} is $J^\star$.
+\end{corollary}
+\begin{proof}
+By Lemma~\ref{lem:chain-rjt} and Theorem~\ref{thm:rjt}, $\mathbb{L}_\otimes = \mathbb{M}_\otimes$. By
+Proposition~\ref{prop:exact-marginal}, solving~\eqref{eq:LP1} thus amounts to minimizing the expected cost over
+$\mathbb{M}_\otimes$, that is, over the marginals of the Markov policies, which gives $J^\star$.
+\end{proof}
+Corollary~\ref{cor:exact-lp} recovers the exactness of~\eqref{eq:LP1}, shown in Section~\ref{sec:fluid-lp} with the
+classical argument, from the structure of the cliques alone. This is the viewpoint we use below to build
+approximations. Their cliques admit no RJT, so that Theorem~\ref{thm:rjt} no longer applies.
+
+% ------------------------------------------------------------
+\subsection{Intractability and approximation strategy}
+\label{sec:approx-strategy}
+% ------------------------------------------------------------
+
+\paragraph{Why the exact LP is intractable.}
+The cliques of $\mathcal{V}_\otimes$ involve the joint state $X_{\otimes,t}$ and the joint action $B_t$. The exact
+LP~\eqref{eq:LP1} thus has one variable per joint state, admissible joint action and time step. The number of joint
+states $|\mathcal{X}_\otimes| = \prod_m N_m \cdot (K_0+1)^S$ grows exponentially with the number of components $M$, and
+so does the number of joint actions.
+
+\paragraph{Approximation strategy.}
+To obtain a tractable LP, we decompose the MDP into subsystems, as in Section~\ref{sec:local-variables}. Each subsystem
+has a local state and a local action, which is a function of the joint action. The local actions can thus be added to
+the DAG as chance vertices with parent $B_t$ and a deterministic conditional distribution. By~\eqref{eq:joint-transition},
+the next local state of a subsystem then only depends on its local state and its local action. We use two kinds of
+cliques. A \emph{local clique} contains the local state of one subsystem at $t$, its local action at $t$ and its local
+state at $t+1$, for instance $\{X_{m,t}, A_{m,t}, X_{m,t+1}\}$ in the decomposition of
+Section~\ref{sec:local-variables}. It contains the family of the next local state, so that the dynamics of each
+subsystem is imposed exactly. A \emph{joint action clique} contains $B_t$ and all the local actions at $t$, and links
+them. No clique contains the joint state, which has two consequences shared by all our approximations.
+\begin{enumerate}
+  \item \emph{Cost}. The penalty of a substation depends jointly on the degradation states of all its components, which
+        belong to no common clique. Its expectation is therefore not a linear function of the marginals. At $t \ge 2$,
+        we replace the cost by an upper bound that is a sum of terms, each depending on the variables of a single
+        clique, so that its expectation is linear in the marginals. This bound depends on the variables available in
+        the local cliques, and thus on the decomposition (Sections~\ref{sec:intro-approx}
+        and~\ref{sec:quota-subsystem}).
+  \item \emph{Relaxation}. The family of cliques admits no RJT (see below), so that the local polytope, on which we
+        optimize, is in general strictly larger than the marginal polytope. The LP thus represents the law of each
+        component, but not the correlations between components that the policy creates through the joint action.
+\end{enumerate}
+Within this common scheme, two choices remain, which are independent of each other.
+\begin{enumerate}[label=(\alph*)]
+  \item \emph{Decomposition into subsystems}, which determines the local cliques, and therefore the cost
+        approximation. In the decomposition of Section~\ref{sec:local-variables}, the remaining quota of a substation is
+        included in the local state of each of its components. Alternatively, it forms a subsystem of its own, and the
+        local state of a component reduces to its degradation state.
+  \item \emph{Sufficient statistic of the joint action cliques}. With indicator statistics, the marginal of $B_t$ is
+        its full distribution $(\mu_{b,t})_{b\in\mathcal{B}}$, which has exponentially many entries and requires column
+        generation. With the statistic $B_t$ itself, encoded as a vector of binary variables, the marginal is the mean
+        $\bar b_t = \mathbb{E}[B_t]$, which has polynomial size but gives weaker consistency constraints.
+\end{enumerate}
+Combining these two choices gives the four approximations of Table~\ref{tab:approximations}. We call them \emph{fluid
+LPs}, since the Joint fluid LP generalizes the fluid LP of D-MDPs~\cite{bertsimas2016} and the Compact fluid LP that of
+W-MDPs~\cite{AdelmanMersereau2008}.
 
 \begin{table}[h]
 \centering
@@ -747,329 +1006,46 @@ which gives four approximations in total.
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{|l|c|c|}
 \hline
- & \multicolumn{2}{c|}{\textbf{Representation of the joint action}} \\
+ & \multicolumn{2}{c|}{\textbf{(b) Statistic of the joint action $B_t$}} \\
 \cline{2-3}
-\textbf{Decomposition} & Complete distribution of $B_t$ & Marginals of $B_t$ \\
+\textbf{(a) Decomposition into subsystems} & Indicators (full distribution) & $B_t$ (mean) \\
 \hline
-Remaining quota in every subsystem & Joint fluid LP (JFLP) & Compact fluid LP (CFLP) \\
+Remaining quota in every component & Joint fluid LP (JFLP) & Compact fluid LP (CFLP) \\
  & Section~\ref{sec:full-fluid} & Section~\ref{sec:compact} \\
 \hline
 Remaining quota as own subsystem & JFLP-Q & CFLP-Q \\
- & Section~\ref{sec:quota-subsystem} & Section~\ref{sec:quota-subsystem} \\
+ & \multicolumn{2}{c|}{Section~\ref{sec:quota-subsystem}} \\
 \hline
 \end{tabular}
-\caption{The four approximations, according to the decomposition of the MDP into subsystems (rows) and to the
-representation of the joint action (columns).}
+\caption{The four fluid approximations, according to the decomposition of the MDP into subsystems (rows) and to the
+sufficient statistic of the joint action (columns).}
 \label{tab:approximations}
 \end{table}
 
-\subsection{Exact LP}
-\label{sec:fluid-lp}
+\paragraph{Clique graph.}
+Figure~\ref{fig:non-tree-graph} represents the cliques of the JFLP and the variables they share.
 
-As in the standard MDP formulation in probabilities~\cite{manne_linear_1960}, for $t \in [2:T]$, $x_\otimes \in \mathcal{X}_\otimes$ and 
-$b \in \mathcal{B}(x_\otimes)$, we introduce the variable $q_{x_\otimes,b,t}$
-representing the probability that the state at $t$ is $x_\otimes$ and that the joint action $b$ is applied. At the first
-time step, since the current state $\mathbf{x}_\otimes$ is fixed, representing the distribution over the first joint action is enough.
-For $b \in \mathcal{B}(\mathbf{x}_\otimes)$, the variable $\mu_{b,1}$ represents the probability that the joint action
-$b$ is applied at the first time step. We consider the following LP:
-\begin{subequations}\label{eq:LP1}
-\begin{align}
-\min_{\mu,\,q} \quad
-& \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} c_\otimes(\mathbf{x}_\otimes, b)\, \mu_{b,1} \ +\ \sum_{t=2}^{T} \sum_{x_{\otimes} \in \mathcal{X}_{\otimes}} \sum_{b \in \mathcal{B}(x_\otimes)}
-c_{\otimes}(x_{\otimes},b)\,q_{x_{\otimes},b,t}
-\label{eq:LP1-objective}\\
-\text{s.t.} \quad
-& \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} \mu_{b,1} = 1
-\label{eq:LP1-first}\\
-& \sum_{b \in \mathcal{B}(x_\otimes)} q_{x_{\otimes},b,2} = \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} p_\otimes(x_\otimes \mid \mathbf{x}_\otimes, b)\, \mu_{b,1}
-&& \forall\, x_{\otimes} \in \mathcal{X}_{\otimes}
-\label{eq:LP1-initial}\\
-& \sum_{b \in \mathcal{B}(x_\otimes)} q_{x_{\otimes},b,t}
-= \sum_{x^{\prime}_{\otimes} \in \mathcal{X}_{\otimes}} \sum_{b \in \mathcal{B}(x'_\otimes)}
-p_{\otimes}(x_{\otimes} \mid x^{\prime}_{\otimes},b)\,
-q_{x^{\prime}_{\otimes},b,t-1}
-&& \forall x_{\otimes} \in \mathcal{X}_{\otimes},\; t \in [3:T]
-\label{eq:LP1-flow}\\
-& \mu_{b,1} \geq 0
-&& \forall b \in \mathcal{B}(\mathbf{x}_\otimes)
-\nonumber\\
-& q_{x_\otimes,b,t} \geq 0
-&& \forall x_\otimes \in \mathcal{X}_\otimes,\; b \in \mathcal{B}(x_\otimes),\; t \in [2:T].
-\label{eq:LP1-nonnegative}
-\end{align}
-\end{subequations}
-The objective~\eqref{eq:LP1-objective} is the expected total cost, in which the cost of the first time step is the cost $c_\otimes(\mathbf{x}_\otimes, b)$ of $b$ in the current state. Constraint~\eqref{eq:LP1-first} states that
-$\mu_{\cdot,1}$ is a probability distribution over the admissible joint actions in the current state,
-constraint~\eqref{eq:LP1-initial} gives the law of the state at $t = 2$, and constraint~\eqref{eq:LP1-flow} enforces the
-MDP dynamics from one time step to the next. We would like to solve~\eqref{eq:LP1}, but we cannot. It has one variable per state, joint action and time step, the
-number of states grows exponentially with the number of components $M$, and $\mathcal{B}(x_\otimes)$ is too large to be
-enumerated. We will thus consider formulations involving a much smaller number of variables.
-
-\subsection{Marginal and local polytopes}
-\label{sec:marginal-polytopes}
-
-To build such formulations, we first examine more closely how~\eqref{eq:LP1} is constructed, and derive from it a
-general methodology that we then apply to obtain lighter formulations. Each variable of~\eqref{eq:LP1} is the
-probability that a subset of variables of the Bayesian network takes given values, here the global state and the global
-action
-variables of a given time step. Since the cost decomposes over time, the expected cost is a linear function of these
-variables. This suggests a general method to build LP approximations of the MDP. We first define subsets of variables
-and sufficient statistics on these subsets. We then write an LP whose variables are the associated marginals and whose
-objective is a linear function of these marginals. Two questions then arise. Which vectors of probabilities can
-actually be obtained from a policy, and which constraints between these probabilities can be written explicitly? The
-theory of probabilistic graphical models~\cite{wainwright2008graphical} answers these questions with the notions of
-marginal polytope and local polytope, which we now introduce, together with the general methodology to build LP
-approximations of the MDP.
-
-\paragraph{Subsets of variables.} We group the random variables of the trajectory into \emph{subsets} of a few
-variables. To recover the LP~\eqref{eq:LP1}, we consider the subsets $(X_{\otimes,t}, B_t, X_{\otimes,t+1})$ for $t \in
-[1:T-1]$, and the subset $(X_{\otimes,T}, B_T)$ of the last time step.
-
-\paragraph{Sufficient statistics.} A \emph{sufficient statistic} of a subset is a function of the variables of this
-subset. The expectation of a sufficient statistic is called a \emph{marginal}. For example a sufficient statistic can
-be the indicator that the variables take a given value, and the marginal is the probability that the variables take
-this value. To recover the LP~\eqref{eq:LP1}, we consider the following sufficient statistics.
-\begin{itemize}
-\item For the subset $(X_{\otimes,t}, B_t, X_{\otimes,t+1})$, the indicators $\mathds{1}_{\{X_{\otimes,t} = x_\otimes,\,
-B_t = b,\, X_{\otimes,t+1} = x'_\otimes\}}$ for $x_\otimes, x'_\otimes \in \mathcal{X}_\otimes$ and $b \in
-\mathcal{B}(x_\otimes)$. Their marginals are
-\[
-q_{x_\otimes,b,x'_\otimes,t} := \mathbb{E}\big[\mathds{1}_{\{X_{\otimes,t} = x_\otimes,\, B_t = b,\, X_{\otimes,t+1} =
-x'_\otimes\}}\big] = \mathbb{P}\big(X_{\otimes,t} = x_\otimes,\, B_t = b,\, X_{\otimes,t+1} = x'_\otimes\big),
-\]
-the probabilities that the state is $x_\otimes$ at $t$, that the joint action $b$ is applied, and that the next state
-is $x'_\otimes$.
-\item For the subset $(X_{\otimes,T}, B_T)$, the indicators $\mathds{1}_{\{X_{\otimes,T} = x_\otimes,\, B_T = b\}}$ for
-$x_\otimes \in \mathcal{X}_\otimes$ and $b \in \mathcal{B}(x_\otimes)$, whose marginals are
-$q_{x_\otimes,b,T} := \mathbb{E}\big[\mathds{1}_{\{X_{\otimes,T} = x_\otimes,\, B_T = b\}}\big] =
-\mathbb{P}\big(X_{\otimes,T} = x_\otimes,\, B_T = b\big)$.
-\end{itemize}
-
-\paragraph{Marginal polytope.} The marginal polytope $\mathbb{M}_\otimes$ is the set of the marginals of the trajectory
-of the MDP under some Markov policy $\pi$, whose law $\mathbb{P}^\pi$ is determined by $\pi$ and by the transition
-probabilities $p_\otimes$,
-\begin{equation}
-\label{eq:marg-poly}
-\begin{aligned}
-\mathbb{M}_\otimes := \Big\{ q \ \Big|\ \exists \pi \text{ Markov policy},\
-& q_{x,b,x',t} = \mathbb{P}^\pi(X_{\otimes,t} = x, B_t = b, X_{\otimes,t+1} = x') \\
-& \qquad \forall x, x' \in \mathcal{X}_\otimes,\ b \in \mathcal{B}(x),\ t \in [1:T-1], \\
-& q_{x,b,T} = \mathbb{P}^\pi(X_{\otimes,T} = x, B_T = b) \quad \forall x \in \mathcal{X}_\otimes,\ b \in
-\mathcal{B}(x) \Big\}.
-\end{aligned}
-\end{equation}
-
-\paragraph{Local polytope.} In general, the marginal polytope has a number of facets that grows exponentially with the
-number of variables~\cite{wainwright2008graphical}, so that it cannot be used directly in an LP. It is therefore useful
-to build approximations of the marginal polytope. As is standard in the theory of probabilistic graphical models, we
-call \emph{local polytope} a polytope of marginals that are not necessarily achievable, but that satisfy a
-family of constraints that are necessary, but not sufficient, for belonging to the marginal polytope. These constraints
-are of four kinds. The \emph{normalization constraints} state that the marginals of the indicators of a subset sum to
-one. The \emph{local consistency constraints} state that two subsets that share variables must be consistent. In addition to these two standard families, and since our
-Bayesian network represents an MDP, we impose a \emph{first state constraint} and \emph{dynamics constraints}, which
-are necessary to satisfy the initial state and the dynamics of the MDP. We now write these constraints for the subsets
-introduced above. The variables $q$ are only defined for admissible joint actions, $b \in \mathcal{B}(x)$, which
-gives the admissibility constraints. The normalization constraints are
-\begin{subequations}
-\label{eq:local-exact-norm}
-\begin{align}
-& \sum_{x \in \mathcal{X}_\otimes} \sum_{b \in \mathcal{B}(x)} \sum_{x' \in \mathcal{X}_\otimes} q_{x,b,x',t} = 1
-&& \forall t \in [1:T-1],\\
-& \sum_{x \in \mathcal{X}_\otimes} \sum_{b \in \mathcal{B}(x)} q_{x,b,T} = 1.
-\end{align}
-\end{subequations}
-Since the state at $t = 1$ is the current
-state $\mathbf{x}_\otimes$, the first state constraint is
-\begin{equation}
-\label{eq:local-exact-first}
-q_{x,b,x',1} = 0 \qquad \forall x \in \mathcal{X}_\otimes \setminus \{\mathbf{x}_\otimes\},\ b \in
-\mathcal{B}(x),\ x' \in \mathcal{X}_\otimes,
-\end{equation}
-The dynamics constraints are
-\begin{equation}
-\label{eq:local-exact-dyn}
-q_{x,b,x',t} = p_\otimes(x' \mid x, b) \sum_{x'' \in \mathcal{X}_\otimes} q_{x,b,x'',t} \quad \forall x, x'
-\in \mathcal{X}_\otimes,\ b \in \mathcal{B}(x),\ t \in [1:T-1].
-\end{equation}
-To write the consistency constraints, it is useful to represent the subsets by a graph, whose vertices are the subsets
-and whose edges link two subsets that share variables, each edge being labeled by the shared variables. For the subsets
-above, this graph is the chain of Figure~\ref{fig:clique-chain}, in which the subsets of time steps $t$ and $t+1$ share
-the state $X_{\otimes,t+1}$. The consistency constraint of this edge states that both subsets give the same law of
-$X_{\otimes,t+1}$, which reads
-\begin{subequations}
-\label{eq:local-exact-cons}
-\begin{align}
-& \sum_{x' \in \mathcal{X}_\otimes} \sum_{b \in \mathcal{B}(x')} q_{x',b,x,t} = \sum_{b \in \mathcal{B}(x)}
-\sum_{x'' \in \mathcal{X}_\otimes} q_{x,b,x'',t+1} && \forall x \in \mathcal{X}_\otimes,\ t \in [1:T-2],\\
-& \sum_{x' \in \mathcal{X}_\otimes} \sum_{b \in \mathcal{B}(x')} q_{x',b,x,T-1} = \sum_{b \in \mathcal{B}(x)}
-q_{x,b,T} && \forall x \in \mathcal{X}_\otimes.
-\end{align}
-\end{subequations}
-The local polytope is then
-\begin{equation}
-\label{eq:local-poly-exact}
-\mathbb{L}_\otimes := \Big\{ q \ge 0 \ \Big|\ q \text{ satisfies}~\eqref{eq:local-exact-norm},~\eqref{eq:local-exact-first},~\eqref{eq:local-exact-dyn}
-\text{ and}~\eqref{eq:local-exact-cons} \Big\},
-\end{equation}
-that is, the set of the nonnegative marginals that satisfy the normalization constraints~\eqref{eq:local-exact-norm},
-the first state constraint~\eqref{eq:local-exact-first}, the dynamics constraints~\eqref{eq:local-exact-dyn} and the
-consistency constraints~\eqref{eq:local-exact-cons}.
-Since these constraints are necessary, the marginal polytope is contained in the local polytope, i.e.,
-$\mathbb{M}_\otimes \subseteq \mathbb{L}_\otimes$. Proposition~\ref{prop:exact-marginal} below shows that, up to a
-change of variables, $\mathbb{L}_\otimes$ is exactly the feasible set of~\eqref{eq:LP1}.
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}[
-    clu/.style={draw, fill=gray!10, rounded corners=6pt, inner sep=4pt, minimum height=0.75cm, font=\footnotesize},
-    sep/.style={font=\scriptsize, above, text=black, inner sep=3pt},
-    flow/.style={very thick, blue!70!black}]
-  \node[clu] (d1) at (0, 0)    {$B_1, X_{\otimes,2}$};
-  \node[clu] (d2) at (4.1, 0)  {$X_{\otimes,2}, B_2, X_{\otimes,3}$};
-  \node      (dots) at (7.2, 0) {$\cdots$};
-  \node[clu] (dm) at (10.5, 0) {$X_{\otimes,T-1}, B_{T-1}, X_{\otimes,T}$};
-  \node[clu] (dT) at (14.4, 0) {$X_{\otimes,T}, B_T$};
-  \draw[flow] (d1) -- node[sep] {$X_{\otimes,2}$} (d2);
-  \draw[flow] (d2) -- node[sep] {$X_{\otimes,3}$} (dots);
-  \draw[flow] (dots) -- node[sep] {$X_{\otimes,T-1}$} (dm);
-  \draw[flow] (dm) -- node[sep] {$X_{\otimes,T}$} (dT);
-\end{tikzpicture}
-\caption{Graph associated with the local polytope $\mathbb{L}_\otimes$.}
-\label{fig:clique-chain}
-\end{figure}
-
-\begin{proposition}
-\label{prop:exact-marginal}
-Up to the change of variables
-\[
-\mu_{b,1} := \sum_{x'} q_{\mathbf{x}_\otimes,b,x',1}, \qquad q_{x,b,t} := \sum_{x'} q_{x,b,x',t} \ \ \forall t
-\in [2:T-1],
-\]
-the feasible set of the LP~\eqref{eq:LP1} is the local polytope $\mathbb{L}_\otimes$ defined
-in~\eqref{eq:local-poly-exact}, i.e., this change of variables is a bijection from $\mathbb{L}_\otimes$ onto the
-feasible set of~\eqref{eq:LP1}. Moreover, the local polytope is equal to the marginal polytope, i.e., $\mathbb{L}_\otimes
-= \mathbb{M}_\otimes$. Hence the optimal value of~\eqref{eq:LP1} is $J^\star$.
+\begin{proposition}\label{prop:no-rjt}
+If $M \ge 2$ and $T \ge 3$, the cliques of each of the four fluid LPs cannot be arranged into an RJT.
 \end{proposition}
-
 \begin{proof}
-By the first state constraint~\eqref{eq:local-exact-first}, the only nonzero variables of the first time step are the
-$q_{\mathbf{x}_\otimes,b,x',1}$. With the change of variables, the dynamics constraints~\eqref{eq:local-exact-dyn} read $q_{\mathbf{x}_\otimes,b,x',1} =
-p_\otimes(x' \mid \mathbf{x}_\otimes, b)\, \mu_{b,1}$ and $q_{x,b,x',t} = p_\otimes(x' \mid x, b)\, q_{x,b,t}$, so
-that the marginals are determined by the variables $(\mu, q)$ of~\eqref{eq:LP1}. The normalization constraint~\eqref{eq:local-exact-norm} at $t = 1$
-is~\eqref{eq:LP1-first}, and the normalization constraints at $t \ge 2$ follow from it and from the consistency
-constraints. By the first state and dynamics constraints, the left-hand side of the consistency
-constraint~\eqref{eq:local-exact-cons} is $\sum_{b} p_\otimes(x \mid \mathbf{x}_\otimes, b)\, \mu_{b,1}$ for $t = 1$,
-and $\sum_{x',b} p_\otimes(x \mid x', b)\, q_{x',b,t}$ for $t \ge 2$, and its right-hand side is $\sum_b q_{x,b,t+1}$,
-so that the consistency constraints are the flow constraints~\eqref{eq:LP1-initial}--\eqref{eq:LP1-flow}. Finally,
-the admissibility constraints are the domains of the variables of~\eqref{eq:LP1}. Conversely, the marginals defined from a
-feasible $(\mu, q)$ by the expressions above satisfies~\eqref{eq:local-exact-norm}--\eqref{eq:local-exact-cons}, so
-that the change of variables is a bijection. We have $\mathbb{M}_\otimes \subseteq \mathbb{L}_\otimes$, and the element of
-$\mathbb{M}_\otimes$ given by a Markov policy $\pi$ achieves objective value $J(\pi)$. Conversely, the image $(\mu, q)$
-of an element of $\mathbb{L}_\otimes$ is obtained in this way from the policy that draws $B_1$ according to
-$\mu_{\cdot,1}$, and $B_t$ according to $\pi_t(b \mid x_{\otimes}) = q_{x_{\otimes},b,t} / \sum_{b^{\prime}}
-q_{x_{\otimes},b^{\prime},t}$ at $t \ge 2$ if the denominator is positive (any admissible distribution otherwise), and
-its objective value is the cost of this policy.
+We give the proof for the JFLP, and it is the same for the three other approximations. Each degradation state
+$N_{m,t+1}$ belongs to exactly two cliques, the local cliques of component $m$ at $t$ and $t+1$, and each maintenance
+decision $\Delta_{m,t}$ belongs to exactly two cliques, the local clique of component $m$ at $t$ and the joint action
+clique at $t$. By the running intersection property, a junction tree must therefore contain the edges between these
+pairs of cliques. These edges form cycles, such as the cycle through $B_{t-1}$, the two local cliques of component $1$,
+$B_t$ and the two local cliques of component $2$ in Figure~\ref{fig:non-tree-graph}. Hence no tree satisfies the running
+intersection property.
 \end{proof}
 
-\begin{comment}
-\begin{proof}
-Given a Markov policy $\pi$, $\mu_{b,1} = \mathbb{P}^\pi(B_1 = b)$ and $q_{x_\otimes,b,t} = \mathbb{P}^\pi(X_{\otimes,t}
-= x_\otimes, B_t = b)$ satisfy~\eqref{eq:LP1-first}--\eqref{eq:LP1-nonnegative}, so that $\mathbb{M} \subseteq
-\mathbb{L}_\otimes$, and the objective value of $(\mu, q)$ is $J(\pi)$.
-
-Conversely, let $(\mu, q) \in \mathbb{L}_\otimes$. We use the junction tree theorem~\cite[Prop.~2.1]{wainwright2008graphical},
-which applies to a tree whose nodes are groups of variables and whose edges are labeled by the intersections of the
-groups they link, provided that every variable belonging to two nodes belongs to all the nodes of the path between them.
-The chain of Figure~\ref{fig:clique-chain} satisfies this property, since $X_{\otimes,t}$ only belongs to two
-consecutive nodes and $B_t$ to a single node. We define the distributions of the nodes and of the separators by
-\begin{align*}
-\tau_1(b, x') &:= \mu_{b,1}\, p_\otimes(x' \mid \mathbf{x}_\otimes, b), &
-\tau_t(x, b, x') &:= q_{x,b,t}\, p_\otimes(x' \mid x, b) \quad t \in [2:T-1], \\
-\tau_T(x, b) &:= q_{x,b,T}, &
-\nu_t(x) &:= \sum_{b \in \mathcal{B}(x)} q_{x,b,t} \quad t \in [2:T].
-\end{align*}
-They are nonnegative by~\eqref{eq:LP1-nonnegative}. The marginal of $\tau_1$ on $X_{\otimes,2}$ and the marginal of
-$\tau_{t-1}$ on $X_{\otimes,t}$ are equal to $\nu_2$ and $\nu_t$ by~\eqref{eq:LP1-initial} and~\eqref{eq:LP1-flow}
-respectively, and the marginal of $\tau_t$ and of $\tau_T$ on $X_{\otimes,t}$ is $\nu_t$ by definition. Since $\tau_1$
-sums to $1$ by~\eqref{eq:LP1-first}, all these distributions sum to $1$ by induction on $t$. The normalization and
-marginalization conditions~\cite[Eq.~(2.13)]{wainwright2008graphical} hold, so that by the junction tree theorem the
-$\tau_t$ are the marginals of the distribution~\cite[Eq.~(2.12)]{wainwright2008graphical}
-\[
-P(b_1, x_2, b_2, \dots, x_T, b_T) := \tau_1(b_1, x_2) \prod_{t=2}^{T-1} \frac{\tau_t(x_t, b_t, x_{t+1})}{\nu_t(x_t)}\
-\frac{\tau_T(x_T, b_T)}{\nu_T(x_T)},
-\]
-with the convention $0/0 = 0$. Let $\pi$ be the Markov policy that draws $B_1$ according to $\mu_{\cdot,1}$, and $B_t$
-according to $\pi_t(b \mid x) := q_{x,b,t} / \nu_t(x)$ at $t \ge 2$ if $\nu_t(x) > 0$, and according to any distribution
-on $\mathcal{B}(x)$ otherwise. It is admissible since $q_{x,b,t}$ is only defined for $b \in \mathcal{B}(x)$.
-For every trajectory such that $\nu_t(x_t) > 0$ for all $t \in [2:T]$, substituting the definitions of the $\tau_t$
-gives
-\[
-P(b_1, x_2, \dots, b_T) = \mu_{b_1,1}\, p_\otimes(x_2 \mid \mathbf{x}_\otimes, b_1) \prod_{t=2}^{T-1} \pi_t(b_t \mid x_t)\,
-p_\otimes(x_{t+1} \mid x_t, b_t)\ \pi_T(b_T \mid x_T),
-\]
-whose right-hand side is the probability $P^\pi(b_1, x_2, \dots, b_T)$ of the trajectory under $\pi$. Since $P$ vanishes
-on the other trajectories and sums to $1$, $P^\pi$ sums to $1$ on these trajectories, hence vanishes on the other ones,
-and $P = P^\pi$. Hence
-$\mu_{b,1} = \mathbb{P}^\pi(B_1 = b)$ and $q_{x,b,t} = \tau_t$ marginalized on $(X_{\otimes,t}, B_t)$, i.e., $q_{x,b,t} =
-\mathbb{P}^\pi(X_{\otimes,t} = x, B_t = b)$, so that $(\mu, q) \in \mathbb{M}$, and the objective value of $(\mu, q)$ is
-$J(\pi)$. Therefore $\mathbb{L}_\otimes = \mathbb{M}$, and the optimal value of~\eqref{eq:LP1} is the minimum of $J(\pi)$
-over Markov policies, i.e., $J^\star$.
-\end{proof}
-\end{comment}
-
-In general, the marginal polytope is strictly included in the local polytope. We will see in
-Section~\ref{sec:why-gap} that the equality $\mathbb{L}_\otimes = \mathbb{M}_\otimes$ obtained here is explained by the
-structure of the graph of Figure~\ref{fig:clique-chain}.
-Note that the variables of the local polytope are the distributions of the subsets of
-variables whose joint distribution is known. In the LP, the variables are the parts of these distributions that are
-degrees of freedom. The exact LP is intractable because its subsets contain the joint state
-and the joint action, so that its number of variables is proportional to the number of joint
-states and to the number of joint actions, which are both too large to be enumerated explicitly. In what follows we explain how to build
-tractable approximations following the same 
-methodology, with smaller subsets of variables. 
-
-
-\subsection{Joint fluid LP}
-\label{sec:full-fluid}
-Our first approximation is built in the same way as the classical fluid approximations of D-MDPs, whose variables are
-local distributions. This removes the first of the two difficulties of the exact LP~\eqref{eq:LP1}, namely that its
-number of variables grows with the size of the joint state space. The number of variables of our LP still grows with
-the size of the joint action space, but we show that this second difficulty can be handled by column
-generation~\cite{desrosiers2005primer}. Column generation is efficient in
-practice as soon as the pricing problem can be solved efficiently. We show that the pricing problem, which consists in
-finding a maintenance schedule of minimum reduced cost, can be reformulated as a small MILP.
-
-\paragraph{Subsets of variables and sufficient statistics.} In the fluid approximation of D-MDPs of Bertsimas and
-Mišić~\cite{bertsimas2016}, the variables are the probabilities of the local states and local actions of the
-subsystems, and the probabilities of the global actions. Compared with the exact LP, we therefore replace the subsets
-$(X_{\otimes,t}, B_t, X_{\otimes,t+1})$ of the joint states by two types of smaller subsets, the \emph{local subsets}
-of every component $m$ and the \emph{joint action subsets} $B_t$, and keep the indicators of their values as
-sufficient statistics (Table~\ref{tab:subsets-joint}). The associated graph is represented in Figure~\ref{fig:non-tree-graph}.
-
-\begin{table}[h]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-\begin{tabular}{|l|l|l|}
-\hline
-Subset & Sufficient statistics & Marginals \\
-\hline
-$(X_{m,t}, A_{m,t}, X_{m,t+1})$, $t \in [1:T-1]$ & $\mathds{1}_{\{X_{m,t} = x,\, A_{m,t} = a,\, X_{m,t+1} = x'\}}$,
-$x, x' \in \mathcal{X}_m$, $a \in \mathcal{A}_m(x)$ & $q^m_{x,a,x',t}$ \\
-$(X_{m,T}, A_{m,T})$ & $\mathds{1}_{\{X_{m,T} = x,\, A_{m,T} = a\}}$, $x \in \mathcal{X}_m$, $a \in \mathcal{A}_m(x)$ &
-$q^m_{x,a,T}$ \\
-$B_1$ & $\mathds{1}_{\{B_1 = b\}}$, $b \in \mathcal{B}(\mathbf{x}_\otimes)$ & $\mu_{b,1}$ \\
-$B_t$, $t \in [2:T]$ & $\mathds{1}_{\{B_t = b\}}$, $b \in \mathcal{B}$ & $\mu_{b,t}$ \\
-\hline
-\end{tabular}
-\caption{Subsets of variables, sufficient statistics and marginals of the Joint fluid LP, for every component $m \in
-[M]$.}
-\label{tab:subsets-joint}
-\end{table}
+By Proposition~\ref{prop:no-rjt}, Theorem~\ref{thm:rjt} does not apply to the fluid LPs, and their local polytopes are
+in general strictly larger than their marginal polytopes. Section~\ref{sec:hierarchy} studies this gap.
 
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[
-    clu/.style={draw, fill=gray!10, rounded corners=6pt, inner sep=4pt, minimum height=0.75cm, font=\footnotesize},
+    clu/.style={draw, fill=gray!10, rounded corners=6pt, inner sep=4pt,
+                minimum height=0.75cm, font=\footnotesize},
     sub/.style={clu, minimum width=3.6cm},
     sep/.style={font=\scriptsize, fill=white, text=black, inner sep=1.5pt, align=center},
     flow/.style={very thick, blue!70!black},
@@ -1081,523 +1057,291 @@ $B_t$, $t \in [2:T]$ & $\mathds{1}_{\{B_t = b\}}$, $b \in \mathcal{B}$ & $\mu_{b
   \node[sub] (d1b) at (6, 2.2)    {$X_{1,t}, A_{1,t}, X_{1,t+1}$};
   \node[sub] (d2b) at (6, -2.2)   {$X_{2,t}, A_{2,t}, X_{2,t+1}$};
   \node[clu] (bb)  at (9.9, 0)    {$B_t$};
-  % quota consistency between the two components (drawn first, so that the other edges are on top)
   \draw[quota] (d1a) -- node[sep, pos=0.22] {$K^s_t$} (d2b);
   \draw[quota] (d2a) -- node[sep, pos=0.22] {$K^s_t$} (d1b);
-  \draw[quota] (d1a) -- node[sep] {$K^s_{t-1}$, $|\text{FREE}^s_{t-1}|$,\\$K^s_t$} (d2a);
-  \draw[quota] (d1b) -- node[sep] {$K^s_t$, $|\text{FREE}^s_t|$,\\$K^s_{t+1}$} (d2b);
-  % local flow constraints
+  \draw[quota] (d1a) -- node[sep] {$K^s_{t-1}$\\$K^s_t$} (d2a);
+  \draw[quota] (d1b) -- node[sep] {$K^s_t$\\$K^s_{t+1}$} (d2b);
   \draw[flow] (d1a) -- node[sep] {$X_{1,t}$} (d1b);
   \draw[flow] (d2a) -- node[sep] {$X_{2,t}$} (d2b);
-  % consistency with the joint action
   \draw[cons] (ba) -- node[sep] {$A_{1,t-1}$} (d1a);
   \draw[cons] (ba) -- node[sep] {$A_{2,t-1}$} (d2a);
   \draw[cons] (bb) -- node[sep] {$A_{1,t}$} (d1b);
   \draw[cons] (bb) -- node[sep] {$A_{2,t}$} (d2b);
 \end{tikzpicture}
-\caption{Graph associated with the local polytope $\mathbb{L}^{\mathrm{J}}$, for two components of the same
-substation $s$. }
+\caption{Clique graph of the Joint fluid LP, for two components of the same substation $s$. The node $B_t$ stands for
+         the joint action clique $\{B_t, A_{1,t}, \ldots, A_{M,t}\}$. An edge links two cliques that share variables,
+         and is labeled by these variables.}
 \label{fig:non-tree-graph}
 \end{figure}
 
-\paragraph{Marginal polytope.}
-\label{sec:marginal-local}
-The values of the marginals that can be obtained from a Markov policy form the \emph{fluid
-marginal polytope}
-\begin{equation}
-\label{eq:local-marg-poly}
-\begin{aligned}
-\mathbb{M}^{\mathrm{J}} := \Big\{ (\mu, q) \ \Big|\ \exists \pi \text{ Markov policy},\
-& \mu_{b,1} = \mathbb{P}^\pi(B_1 = b) \quad \forall b \in \mathcal{B}(\mathbf{x}_\otimes), \\
-& \mu_{b,t} = \mathbb{P}^\pi(B_t = b) \quad \forall b \in \mathcal{B},\ t \in [2:T], \\
-& q^m_{x,a,x',t} = \mathbb{P}^\pi\big(X_{m,t} = x,\, A_{m,t} = a,\, X_{m,t+1} = x'\big) \\
-& \qquad \forall m \in [M],\ x, x' \in \mathcal{X}_m,\ a \in \mathcal{A}_m(x),\ t \in [1:T-1], \\
-& q^m_{x,a,T} = \mathbb{P}^\pi\big(X_{m,T} = x,\, A_{m,T} = a\big) \\
-& \qquad \forall m \in [M],\ x \in \mathcal{X}_m,\ a \in \mathcal{A}_m(x) \Big\}.
-\end{aligned}
-\end{equation}
+% ------------------------------------------------------------
+\subsection{Joint fluid LP}
+\label{sec:full-fluid}
+% ------------------------------------------------------------
+
+\paragraph{Cliques and marginals.}
+The cliques of the Joint fluid LP and their marginals are given in Table~\ref{tab:subsets-joint}. At the first time
+step, the local states are known and the exact cost only depends on $B_1$, so that the law $\mu_{\cdot,1}$ of $B_1$ is
+enough. We write $\mathbb{M}^{\mathrm{J}}$ and $\mathbb{L}^{\mathrm{J}}$ the associated marginal and local polytopes.
+The variables are only defined for admissible actions, $a \in \mathcal{A}_m(x)$, and $b \in
+\mathcal{B}(\mathbf{x}_\otimes)$ at $t = 1$, which encodes the quota constraint~\eqref{eq:intro-quota-constraint}.
+
+\begin{table}[h]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|l|l|}
+\hline
+Clique & Sufficient statistic & Marginal \\
+\hline
+$\{B_1, A_{1,1}, \ldots, A_{M,1}\}$ & $\mathds{1}_{\{B_1 = b\}}$, $b \in \mathcal{B}(\mathbf{x}_\otimes)$ & $\mu_{b,1}$ \\
+$\{X_{m,t}, A_{m,t}, X_{m,t+1}\}$, $t \in [2:T-1]$ & $\mathds{1}_{\{X_{m,t} = x,\, A_{m,t} = a,\, X_{m,t+1} = x'\}}$,
+$a \in \mathcal{A}_m(x)$ & $q^m_{x,a,x',t}$ \\
+$\{X_{m,T}, A_{m,T}\}$ & $\mathds{1}_{\{X_{m,T} = x,\, A_{m,T} = a\}}$, $a \in \mathcal{A}_m(x)$ & $q^m_{x,a,T}$ \\
+$\{B_t, A_{1,t}, \ldots, A_{M,t}\}$, $t \in [2:T]$ & $\mathds{1}_{\{B_t = b\}}$, $b \in \mathcal{B}$ & $\mu_{b,t}$ \\
+\hline
+\end{tabular}
+\caption{Cliques, sufficient statistics and marginals of the Joint fluid LP, for every component $m \in [M]$. The
+Compact fluid LP uses the statistic $B_t$ and the marginal $\bar b_t$ for the joint action cliques, at every $t \in
+[T]$, and its local cliques start at $t = 1$ (Section~\ref{sec:compact}).}
+\label{tab:subsets-joint}
+\label{tab:subsets-compact}
+\end{table}
 
 \paragraph{Cost approximation.}
 \label{sec:intro-approx}
-We want to solve an LP whose variables are the marginals associated with the sufficient statistics above. Its
-objective should express, or approximate, the expected cost as a linear combination of these variables. Since the marginals are here
-probabilities, this holds for any cost approximation that decomposes over the subsets, i.e., is a sum of terms that each depend on
-the variables of a single subset. At the first time step, the true cost $c_\otimes(\mathbf{x}_\otimes, b)$ only depends on $B_1$, and
-its expectation is linear in $\mu_{\cdot,1}$. At $t \ge 2$, the true cost does not have this form, since the
-penalty~\eqref{eq:intro-penalty} depends jointly on the degradation states of the components of a substation. We
-therefore replace it by a separable approximation. We define the \emph{maintenance cost} and the \emph{failure cost} of
-component $m$
+We give here the cost approximation for the decomposition of Section~\ref{sec:local-variables}, which is used by the
+JFLP and the CFLP. The decomposition with a quota subsystem requires a different one
+(Section~\ref{sec:quota-subsystem}). At the first time step, the cost $c_\otimes(\mathbf{x}_\otimes, B_1)$ only depends
+on $B_1$, and its expectation is linear in $\mu_{\cdot,1}$. At $t \ge 2$, the penalty~\eqref{eq:intro-penalty} depends
+jointly on the degradation states of the components of a substation, and we replace it by a separable approximation. We define the \emph{maintenance
+cost} of the joint action $b$ and the \emph{failure cost} of component $m$
 \begin{align}
-c^{\mathrm{maint}} \ &:=\ \sum_{s} \sum_{\tau \notin \text{Free}^s} m^s_\tau,
+c^{\mathrm{maint}}(b) \ &:=\ \sum_{s \in [S]} \sum_{\tau \notin \text{Free}^s} m^s_\tau,
 \label{eq:intro-maintenance-cost}\\
-c^{\mathrm{fail}}_m \ &:=\ \big(60 - \kappa_m\big)\, \ell_m(n_m),
+c^{\mathrm{fail}}_m(x, a) \ &:=\ \big(60 - \kappa\big)\, \ell_m(n) \qquad \text{for } x = (n, k),\ a = (\delta, \kappa),
 \label{eq:intro-failure-cost}
 \end{align}
-and the \emph{local cost} $c^{\mathrm{loc}}_m := \delta_m c^{\mathrm{rep}}_m + c^{\mathrm{fail}}_m$. We write $\tilde c_m(x, a) :=
-c^{\mathrm{loc}}_m$, which only depends on the local state and the local action of component $m$, and $f(b) :=
-c^{\mathrm{maint}}$, the \emph{joint action cost}, which only depends on $b$. The approximation of the cost is
+and the \emph{local cost} $\tilde c_m(x, a) := \delta\, c^{\mathrm{rep}}_m + c^{\mathrm{fail}}_m(x, a)$, which only
+depends on the local state and the local action of component $m$. We write $f(b) := c^{\mathrm{maint}}(b)$ for the
+\emph{joint action cost}, which only depends on $b$. The approximation of the cost is
 \begin{equation}
 \label{eq:cost_approx}
-\tilde c_\otimes(x_\otimes,b) = \sum_{m \in [M]} \tilde c_m\big(x, A_m(b)\big) + f(b).
+\tilde c_\otimes(x_\otimes,b) := \sum_{m \in [M]} \tilde c_m\big(x_m, A_m(b)\big) + f(b),
 \end{equation}
-This approximation is moreover an upper bound of the true cost,
+and it is an upper bound of the true cost,
 \begin{equation}
 \label{eq:intro-cost-approx}
-c^{\mathrm{tot}} \ \le\ \sum_{m \in [M]} c^{\mathrm{loc}}_m \ +\ c^{\mathrm{maint}},
+c_\otimes(x_\otimes, b) \ \le\ \tilde c_\otimes(x_\otimes, b) \qquad \forall\, x_\otimes \in \mathcal{X}_\otimes,\ b \in
+\mathcal{B}(x_\otimes),
 \end{equation}
-since it mainly replaces the maximum of the nonnegative losses of the components of a substation by their sum
-(Appendix~\ref{app:cost-bound}). The bound is tight when no component of the substation is maintained and at most
-one of its components is degraded. Since components of offshore substations are chosen for their high reliability,
-simultaneous degradations are rare, and we prefer an overestimation of the penalties to an underestimation, given
-their high cost.
-
-The expectation of the approximation~\eqref{eq:cost_approx} at $t \ge 2$ is a linear function of the marginals of the
-subsets. Indeed, by linearity of the expectation, and since each term only depends on the variables of a single subset,
+since it mainly replaces the maximum of the nonnegative capacity losses of the components of a substation by their sum
+(Appendix~\ref{app:cost-bound}). The bound is tight when no component of the substation is maintained and at most one
+of its components is degraded. Since the components of offshore substations are chosen for their high reliability,
+simultaneous degradations are rare, and we prefer to overestimate the penalties rather than underestimate them, given
+their high cost. By linearity of the expectation, and since each term of~\eqref{eq:cost_approx} only depends on the
+variables of a single clique, the expected approximate cost is linear in the marginals,
 \begin{equation}
 \label{eq:cost_approx_expectation}
-\begin{aligned}
 \mathbb{E}\big[\tilde c_\otimes(X_{\otimes,t}, B_t)\big]
-&= \sum_{m \in [M]} \mathbb{E}\big[\tilde c_m(X_{m,t}, A_{m,t})\big] + \mathbb{E}\big[f(B_t)\big] \\
-&= \sum_{m \in [M]} \sum_{x, a} \tilde c_m(x, a)\, \mathbb{P}\big(X_{m,t} = x,\, A_{m,t} = a\big)
-+ \sum_{b \in \mathcal{B}} f(b)\, \mathbb{P}(B_t = b) \\
-&= \sum_{m \in [M]} \sum_{x, a} \tilde c_m(x, a) \sum_{x'} q^m_{x,a,x',t} + \sum_{b \in \mathcal{B}} f(b)\,
-\mu_{b,t}
-\end{aligned}
+= \sum_{m \in [M]} \sum_{x, a} \tilde c_m(x, a)\, q^m_{x,a,t} + \sum_{b \in \mathcal{B}} f(b)\, \mu_{b,t}
+\qquad \forall\, t \in [2:T],
 \end{equation}
-for $t \in [2:T-1]$, and the same expression with $q^m_{x,a,T}$ in place of $\sum_{x'} q^m_{x,a,x',t}$ at
-$t = T$.
+where $q^m_{x,a,t} := \sum_{x'} q^m_{x,a,x',t}$ for $t \in [2:T-1]$.
 
-\paragraph{Local polytope.} The local polytope $\mathbb{L}^{\mathrm{J}}$ is defined by the constraints of
-Section~\ref{sec:marginal-polytopes} for the subsets above. The variables are only defined for admissible actions,
-$a \in \mathcal{A}_m(x)$ and $b \in \mathcal{B}(\mathbf{x}_\otimes)$ at $t = 1$, which gives the admissibility
-constraints, and in particular the quota constraint~\eqref{eq:intro-quota-constraint}. The normalization constraints
-are
-\begin{subequations}
-\label{eq:fluid-local-norm}
-\begin{align}
-& \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} \mu_{b,1} = 1, \qquad \sum_{b \in \mathcal{B}} \mu_{b,t} = 1
-\quad \forall t \in [2:T], \\
-& \sum_{x \in \mathcal{X}_m} \sum_{a \in \mathcal{A}_m(x)} \sum_{x' \in \mathcal{X}_m} q^m_{x,a,x',t} = 1
-\quad \forall m \in [M],\ t \in [1:T-1], \\
-& \sum_{x \in \mathcal{X}_m} \sum_{a \in \mathcal{A}_m(x)} q^m_{x,a,T} = 1 \quad \forall m \in [M].
-\end{align}
-\end{subequations}
-Since the local state of component $m$ at $t = 1$ is $\mathbf{x}_m$, the first state constraints are
-\begin{equation}
-\label{eq:fluid-local-first}
-q^m_{x,a,x',1} = 0 \qquad \forall m \in [M],\ x \in \mathcal{X}_m \setminus \{\mathbf{x}_m\},\ a \in
-\mathcal{A}_m(x),\ x' \in \mathcal{X}_m.
-\end{equation}
-Since no subset contains the joint state, we have no marginals on the joint states, and we cannot impose the joint
-dynamics. However, we can impose the local dynamics through dynamics constraints on the marginals of the subsets
-$(X_{m,t}, A_{m,t}, X_{m,t+1})$,
-\begin{equation}
-\label{eq:fluid-local-dyn}
-\begin{aligned}
-& q^m_{x,a,x',t} = p_m(x' \mid x, a) \sum_{x'' \in \mathcal{X}_m} q^m_{x,a,x'',t} \\
-& \qquad \forall m \in [M],\ x, x' \in \mathcal{X}_m,\ a \in \mathcal{A}_m(x),\ t \in [1:T-1].
-\end{aligned}
-\end{equation}
-The graph of the subsets is represented in Figure~\ref{fig:non-tree-graph}, and gives three types of consistency
-constraints. The edges labeled $X_{m,t+1}$ (blue) state that two consecutive subsets of component $m$ give the same law
-of $X_{m,t+1}$,
-\begin{subequations}
-\label{eq:fluid-local-cons-x}
-\begin{align}
-& \sum_{x' \in \mathcal{X}_m} \sum_{a \in \mathcal{A}_m(x')} q^m_{x',a,x,t} = \sum_{a \in \mathcal{A}_m(x)}
-\sum_{x'' \in \mathcal{X}_m} q^m_{x,a,x'',t+1} \quad \forall m \in [M],\ x \in \mathcal{X}_m,\ t \in [1:T-2], \\
-& \sum_{x' \in \mathcal{X}_m} \sum_{a \in \mathcal{A}_m(x')} q^m_{x',a,x,T-1} = \sum_{a \in \mathcal{A}_m(x)}
-q^m_{x,a,T} \quad \forall m \in [M],\ x \in \mathcal{X}_m.
-\end{align}
-\end{subequations}
-The edges labeled $A_{m,t}$ (black) state that the subset of component $m$ and the subset $B_t$ give the same law of
-$A_{m,t}$,
-\begin{subequations}
-\label{eq:fluid-local-cons-a}
-\begin{align}
-& \sum_{x \in \mathcal{X}_m \mid a \in \mathcal{A}_m(x)} \sum_{x' \in \mathcal{X}_m} q^m_{x,a,x',t} = \sum_{b \mid A_m(b) = a} \mu_{b,t}
-\quad \forall m \in [M],\ a \in \mathcal{A}_m,\ t \in [1:T-1], \\
-& \sum_{x \in \mathcal{X}_m \mid a \in \mathcal{A}_m(x)} q^m_{x,a,T} = \sum_{b \mid A_m(b) = a} \mu_{b,T} \quad \forall m \in [M],\ a \in
-\mathcal{A}_m.
-\end{align}
-\end{subequations}
-The edges (gray) between the subsets at $t$ of two components $m, m' \in \mathcal{M}^s$ of the same substation state
-that they give the same law of their shared quota variables $(K^s_t, |\text{FREE}^s_t|, K^s_{t+1})$,
-\begin{subequations}
-\label{eq:fluid-local-cons-q}
-\begin{align}
-& \sum_{n, \delta, n'} q^m_{(n,k),(\delta,\kappa),(n',k'),t} = \sum_{n, \delta, n'}
-q^{m'}_{(n,k),(\delta,\kappa),(n',k'),t} \quad \forall s \in [S],\ m, m' \in \mathcal{M}^s\!,\ k, \kappa, k' \in
-[0:K_0],\ t \in [1:T-1], \\
-& \sum_{n, \delta} q^m_{(n,k),(\delta,\kappa),T} = \sum_{n, \delta} q^{m'}_{(n,k),(\delta,\kappa),T} \quad
-\forall s \in [S],\ m, m' \in \mathcal{M}^s\!,\ k, \kappa \in [0:K_0].
-\end{align}
-\end{subequations}
-The diagonal edges labeled $K^s_t$ give constraints that follow from~\eqref{eq:fluid-local-cons-x}
-and~\eqref{eq:fluid-local-cons-q}, so that we do not write them. The local polytope is then
-\begin{equation}
-\label{eq:fluid-local-poly}
-\mathbb{L}^{\mathrm{J}} := \Big\{ (\mu, q) \ge 0 \ \Big|\ (\mu, q) \text{
-satisfies}~\eqref{eq:fluid-local-norm}\text{--}\eqref{eq:fluid-local-cons-q} \Big\}.
-\end{equation}
-Since these constraints are necessary, $\mathbb{M}^{\mathrm{J}} \subseteq \mathbb{L}^{\mathrm{J}}$.
-
-\paragraph{Joint fluid LP.} We consider the following LP:
+\paragraph{Joint fluid LP.}
+Writing the constraints of Section~\ref{sec:dag} for the cliques of Table~\ref{tab:subsets-joint} and minimizing the
+expected approximate cost gives the following LP, whose optimal value we denote by $Z$.
 \begin{subequations}\label{eq:fluid}
 \begin{align}
-\min_{q,\mu} \quad
+Z \;:=\; \min_{q,\mu} \quad
 & \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} c_\otimes(\mathbf{x}_\otimes, b)\, \mu_{b,1}
-\nonumber\\
-& \ +\ \sum_{t=2}^{T} \Bigg( \sum_{m,\, x,\, a} \tilde c_m(x,a)\, q^m_{x,a,t}
-+ \sum_{b \in \mathcal{B}} f(b)\, \mu_{b,t} \Bigg)
+  + \sum_{t=2}^{T} \Bigl( \sum_{m,\, x,\, a} \tilde c_m(x,a)\, q^m_{x,a,t}
+    + \sum_{b \in \mathcal{B}} f(b)\, \mu_{b,t} \Bigr)
 \label{eq:fluid-obj}\\
 \text{s.t.} \quad
 & \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} \mu_{b,1} = 1
 \label{eq:fluid-first}\\
 & \sum_{a \in \mathcal{A}_m(x)} q^m_{x,a,2} = \sum_{b \in \mathcal{B}(\mathbf{x}_\otimes)} p_m\big(x \mid
-\mathbf{x}_m, A_m(b)\big)\, \mu_{b,1}
-&& \forall m \in [M], x \in \mathcal{X}_m
+  \mathbf{x}_m, A_m(b)\big)\, \mu_{b,1}
+  && \forall m \in [M],\ x \in \mathcal{X}_m
 \label{eq:fluid-initial}\\
 & \sum_{a \in \mathcal{A}_m(x)} q^m_{x,a,t}
-= \sum_{x',\, a} p_m(x \mid x',a)\, q^m_{x',a,t-1}
-&& \forall m \in [M], x \in \mathcal{X}_m, t \in [3:T]
+  = \sum_{x' \in \mathcal{X}_m} \sum_{a \in \mathcal{A}_m(x')} p_m(x \mid x',a)\, q^m_{x',a,t-1}
+  && \forall m \in [M],\ x \in \mathcal{X}_m,\ t \in [3:T]
 \label{eq:fluid-flow}\\
 & \sum_{x \in \mathcal{X}_m \mid a \in \mathcal{A}_m(x)} q^m_{x,a,t}
-= \sum_{b \in \mathcal{B} \mid A_m(b)=a} \mu_{b,t}
-&& \forall m \in [M], a \in \mathcal{A}_m, t \in [2:T]
+  = \sum_{b \in \mathcal{B} \mid A_m(b)=a} \mu_{b,t}
+  && \forall m \in [M],\ a \in \mathcal{A}_m,\ t \in [2:T]
 \label{eq:fluid-consistency}\\
 & \sum_{n, \delta} q^m_{(n,k),(\delta,\kappa),t} = \sum_{n, \delta} q^{m'}_{(n,k),(\delta,\kappa),t}
-&& \forall s \in [S], m, m' \in \mathcal{M}^s\!, k, \kappa \in [0:K_0], t \in [2:T]
+  && \forall s \in [S],\ m, m' \in \mathcal{M}^s\!,\ k, \kappa \in [0:K_0],\ t \in [2:T]
 \label{eq:fluid-copies}\\
-& q^m_{x,a,t} \geq 0
-&& \forall m \in [M], x \in \mathcal{X}_m, a \in \mathcal{A}_m(x), t \in [2:T]
-\nonumber\\
-& \mu_{b,1} \geq 0 \quad \forall b \in \mathcal{B}(\mathbf{x}_\otimes), \qquad \mu_{b,t} \geq 0
-&& \forall b \in \mathcal{B}, t \in [2:T].
+& q^m_{x,a,t} \geq 0, \quad \mu_{b,1} \geq 0, \quad \mu_{b,t} \geq 0.
 \label{eq:fluid-nonneg}
 \end{align}
 \end{subequations}
-In~\eqref{eq:fluid}, the variable $q^m_{(n,k),(\delta,\kappa),t}$ is only defined for $\kappa \le k$. Note that the cost
-is only approximated at $t \ge 2$: since the first state is known, it is possible to represent the exact cost at first stage without
-representing the distribution of the joint state. The proposition that follows show that the feasible set 
-of~\eqref{eq:fluid} is (up to a change of variables) the local polytope $\mathbb{L}^{\mathrm{J}}$.
+Constraint~\eqref{eq:fluid-first} is the normalization of $\mu_{\cdot,1}$. Constraints~\eqref{eq:fluid-initial}
+and~\eqref{eq:fluid-flow} state that consecutive cliques of a component give the same law of its local state.
+Constraints~\eqref{eq:fluid-consistency} state that the local clique of a component and the joint action clique give the
+same law of its local action, and constraints~\eqref{eq:fluid-copies} that two components of the same substation give
+the same law of the quota variables of this substation. The following proposition makes this correspondence precise.
 
 \begin{proposition}
 \label{prop:fluid-relaxation}
-Up to the change of variables
+The change of variables
 \begin{equation}
 \label{eq:fluid-change}
-q^m_{x,a,t} := \sum_{x'} q^m_{x,a,x',t} \quad \forall t \in [2:T-1],
+q^m_{x,a,t} := \sum_{x'} q^m_{x,a,x',t} \quad \forall t \in [2:T-1]
 \end{equation}
-the feasible set of~\eqref{eq:fluid} is exactly the local polytope $\mathbb{L}^{\mathrm{J}}$. Hence it contains
-$\mathbb{M}^{\mathrm{J}}$.
+is a bijection from $\mathbb{L}^{\mathrm{J}}$ onto the feasible set of~\eqref{eq:fluid}, which preserves the expected
+approximate cost. In particular, this feasible set contains the image of $\mathbb{M}^{\mathrm{J}}$.
 \end{proposition}
 
 \begin{proof}
-The proof follows that of Proposition~\ref{prop:exact-marginal}. For $t \ge 2$, the dynamics
-constraints~\eqref{eq:fluid-local-dyn} give $q^m_{x,a,x',t} = p_m(x' \mid x, a)\, q^m_{x,a,t}$, the admissibility constraints are the domains of the
-variables, the normalization constraint of $B_1$ is~\eqref{eq:fluid-first}, the normalization constraints at $t \ge 2$
-are redundant, the consistency constraints~\eqref{eq:fluid-local-cons-x} are the flow
-constraints~\eqref{eq:fluid-initial}--\eqref{eq:fluid-flow}, and the converse gives the bijection, as in this proof.
-Two points are new. First, there is no variable $q^m$ at $t = 1$, and the first state, dynamics and consistency
-constraints~\eqref{eq:fluid-local-cons-a} with $B_1$ give $q^m_{x,a,x',1} = \mathds{1}_{\{x = \mathbf{x}_m\}}\,
-p_m(x' \mid \mathbf{x}_m, a) \sum_{b \mid A_m(b) = a} \mu_{b,1}$. Second, $\mathbb{L}^{\mathrm{J}}$ contains
-consistency constraints with the joint action and between the components. The consistency
-constraints~\eqref{eq:fluid-local-cons-a} at $t \ge 2$ are~\eqref{eq:fluid-consistency}. Since $K^s_{t+1} =
-\phi_t(K^s_t, |\text{FREE}^s_t|)$, the consistency constraints~\eqref{eq:fluid-local-cons-q} at $t \ge 2$
-are~\eqref{eq:fluid-copies}, and at $t = 1$ they are redundant, since both sides are the law of $(\mathbf{k}^s,
-\kappa^s(B_1), \phi_1(\mathbf{k}^s, \kappa^s(B_1)))$ under $\mu_{\cdot,1}$.
+The proof follows that of Proposition~\ref{prop:exact-marginal}. The dynamics constraints of the local cliques give
+$q^m_{x,a,x',t} = p_m(x' \mid x, a)\, q^m_{x,a,t}$, so that the change of variables is injective. The law of $X_{m,2}$
+given by the first joint action clique is $\sum_b p_m(x \mid \mathbf{x}_m, A_m(b))\, \mu_{b,1}$, so that its
+consistency with the local clique at $t = 2$ is~\eqref{eq:fluid-initial}, and the consistency of the law of $X_{m,t}$
+for $t \ge 3$ is~\eqref{eq:fluid-flow}. The consistency of the law of $A_{m,t}$ is~\eqref{eq:fluid-consistency}. Since
+$K^s_{t+1} = \phi_t(K^s_t, |\text{FREE}^s_t|)$, the consistency of the law of $(K^s_t, |\text{FREE}^s_t|, K^s_{t+1})$
+between two components of $\mathcal{M}^s$ is~\eqref{eq:fluid-copies}. Finally, the normalization of $\mu_{\cdot,1}$
+is~\eqref{eq:fluid-first}, and the other normalization constraints are implied. Summing~\eqref{eq:fluid-initial}
+and~\eqref{eq:fluid-flow} over $x$ shows by induction that $\sum_{x,a} q^m_{x,a,t} = 1$, and
+summing~\eqref{eq:fluid-consistency} over $a$ then gives $\sum_{b} \mu_{b,t} = 1$, since the sets $\{b \mid A_m(b) =
+a\}$ partition $\mathcal{B}$. The objective is preserved by~\eqref{eq:cost_approx_expectation}.
 \end{proof}
 
-\begin{remark}
-Proposition~\ref{prop:fluid-relaxation} does not imply $Z \le J^\star$, because of the cost approximation. 
-\end{remark}
+Proposition~\ref{prop:fluid-relaxation} shows that~\eqref{eq:fluid} is a relaxation of the MDP with the approximate
+cost $\tilde c_\otimes$ at $t \ge 2$, so that $Z$ is a lower bound on the optimal value of this MDP. It does not imply
+$Z \le J^\star$, since the relaxation decreases the optimal value while the cost approximation~\eqref{eq:intro-cost-approx}
+increases it. When the cost is separable, as for D-MDPs, there is no cost approximation and $Z \le J^\star$
+(Appendix~\ref{sec:dmdp}).
 
 \paragraph{Column generation.}
 \label{sec:column-generation}
-The variables $\mu_{b,t}$ are indexed by $\mathcal{B}(\mathbf{x}_\otimes)$ at $t = 1$ and by $\mathcal{B}$ at $t \ge
-2$, which cannot be enumerated. We generate them by column generation~\cite{desrosiers2005primer}, at every time
-step: we solve a restricted master problem (RMP) over subsets $\mathcal{B}'_1 \subseteq \mathcal{B}(\mathbf{x}_\otimes)$ and
-$\mathcal{B}'_t \subseteq \mathcal{B}$, $t \ge 2$. We write $\eta$ for the dual variable of~\eqref{eq:fluid-first},
-$\nu^m_{x}$ for the dual variable of~\eqref{eq:fluid-initial} for $m$ and $x$, and $\lambda^{m,a}_t$ for the dual
-variable of~\eqref{eq:fluid-consistency} for $m$, $a$ and $t$, with signs chosen so that the reduced costs of the
-columns are
+The variables $\mu_{b,t}$ are indexed by $\mathcal{B}(\mathbf{x}_\otimes)$ at $t = 1$ and by $\mathcal{B}$ at $t \ge 2$,
+which cannot be enumerated. We generate them by column generation~\cite{desrosiers2005primer}. We solve a restricted
+master problem (RMP) over subsets $\mathcal{B}'_1 \subseteq \mathcal{B}(\mathbf{x}_\otimes)$ and $\mathcal{B}'_t
+\subseteq \mathcal{B}$, $t \ge 2$. We write $\eta$ for the dual variable of~\eqref{eq:fluid-first}, $\nu^m_{x}$ for the
+dual variable of~\eqref{eq:fluid-initial} for $m$ and $x$, and $\lambda^{m,a}_t$ for the dual variable
+of~\eqref{eq:fluid-consistency} for $m$, $a$ and $t$, with signs chosen so that the reduced costs of the columns are
 \[
 \overline{c}(b,1) = c_\otimes(\mathbf{x}_\otimes, b) + \sum_{m \in [M]} \sum_{x \in \mathcal{X}_m} \nu^m_{x}\,
 p_m\big(x \mid \mathbf{x}_m, A_m(b)\big) - \eta,
 \qquad
 \overline{c}(b,t) = f(b) + \sum_{m \in [M]} \lambda^{m,A_m(b)}_t \quad (t \ge 2).
 \]
-The RMP solution is optimal for~\eqref{eq:fluid} if no column has a negative reduced cost. Finding the column of most
-negative reduced cost amounts to solving, at the first time step, the \emph{first-step pricing problem}
+The columns $\mu_{b,t}$, $t \ge 2$, have no normalization constraint, since it is implied (proof of
+Proposition~\ref{prop:fluid-relaxation}). The solution of the RMP is optimal for~\eqref{eq:fluid} if no column has a
+negative reduced cost. Finding the column of most negative reduced cost amounts to solving, at the first time step,
+the \emph{first-step pricing problem}
 \begin{equation}\label{eq:pricing-first}
-  \min_{b \in \mathcal{B}(\mathbf{x}_\otimes)} \left[ c_\otimes(\mathbf{x}_\otimes, b) + \sum_{m \in [M]} \sum_{x \in
-  \mathcal{X}_m} \nu^m_{x}\, p_m\big(x \mid \mathbf{x}_m, A_m(b)\big) \right],
+  \min_{b \in \mathcal{B}(\mathbf{x}_\otimes)} \Big[ c_\otimes(\mathbf{x}_\otimes, b) + \sum_{m \in [M]} \sum_{x \in
+  \mathcal{X}_m} \nu^m_{x}\, p_m\big(x \mid \mathbf{x}_m, A_m(b)\big) \Big],
 \end{equation}
 and, at every time step $t \ge 2$, the \emph{pricing problem}
 \begin{equation}\label{eq:pricing}
-  \min_{b \in \mathcal{B}} \left[ f(b) + \sum_{m \in [M]} \lambda^{m,A_m(b)}_t \right].
+  \min_{b \in \mathcal{B}} \Big[ f(b) + \sum_{m \in [M]} \lambda^{m,A_m(b)}_t \Big].
 \end{equation}
-Both pricing problems can be written as MILPs, by encoding a joint action with binary variables. Three terms need
-to be linearized, the maintenance indicator $m^s_\tau$, which is a maximum over the components of the substation, the
-products of $m^s_\tau$ and of the indicator that day $\tau$ is a declared day in the joint action cost $f$, and
-the dual terms, which depend on the local actions. We encode the start days, the repairs and the declared days with binary indicators, and replace the maximum and the products by continuous variables bounded by these indicators.
-The number of declared days of substation $s$ is encoded by the binary indicators
-$\chi^s_\kappa$, $\kappa \in [0:K_0]$, equal to $1$ if $s$ declares $\kappa$ days. A
-joint action is then encoded by the vector $b$ of all these variables, on which $f(b)$ and $c_\otimes(\mathbf{x}_\otimes, b)$ are linear. The
-complete MILPs are given in Appendix~\ref{app:maintenance-problem}.
+Both pricing problems are MILPs, obtained by encoding a joint action with binary variables. The number of declared
+days of substation $s$ is encoded by the binary indicators $\chi^s_\kappa$, $\kappa \in [0:K_0]$, equal to $1$ if $s$
+declares $\kappa$ days. A joint action is then encoded by a vector $b$ of binary and auxiliary continuous variables, on
+which $f(b)$ and $c_\otimes(\mathbf{x}_\otimes, b)$ are linear (Appendix~\ref{app:maintenance-problem}). Column
+generation is possible because only the local actions are shared between the local cliques and the joint action
+cliques. Since the local actions take few values, the consistency constraints~\eqref{eq:fluid-consistency} are few,
+and only the number of variables is large.
 
-\begin{algorithm}[H]
-\caption{Column generation for the Joint fluid LP~\eqref{eq:fluid}}
-\label{alg:column-generation}
-\begin{algorithmic}[1]
-\State Initialize $\mathcal{B}'_1 \subseteq \mathcal{B}(\mathbf{x}_\otimes)$ and $\mathcal{B}'_t \subseteq \mathcal{B}$ for $t \in [2:T]$
-\Repeat
-    \State Solve the RMP over $(\mathcal{B}'_t)_{t \in [T]}$ and retrieve the duals $\eta$, $\nu^m_{x}$ and $\lambda^{m,a}_t$
-    \For{$t = 1, \ldots, T$}
-        \State Solve the pricing problem~\eqref{eq:pricing-first} (if $t = 1$) or~\eqref{eq:pricing} (if $t \ge 2$) to obtain $b^\star$ and $\overline{c}(b^\star,t)$
-        \If{$\overline{c}(b^\star,t) < 0$}
-            \State $\mathcal{B}'_t \gets \mathcal{B}'_t \cup \{b^\star\}$
-        \EndIf
-    \EndFor
-\Until{no improving column is found or the iteration limit is reached}
-\end{algorithmic}
-\end{algorithm}
-
-The tractability of the Joint fluid LP comes from the structure of the MDP, which allows us to build convenient subsets
-of variables. More precisely, since the dynamics of a component only depend on its local action, we put the local
-action, and not the joint action, in the subsets of the component. The only variables shared by the subsets of the
-components and the subsets $B_t$ are thus the local actions, which take their values in a small set. The consistency
-constraints~\eqref{eq:fluid-consistency} between these subsets can therefore be written for each value of the local
-action, which gives a polynomial number of constraints. Only the number of variables is large, and not the number of
-constraints, which makes column generation possible.
-
+% ------------------------------------------------------------
 \subsection{Compact fluid LP}
 \label{sec:compact}
+% ------------------------------------------------------------
 
-In the classical fluid approximations of W-MDPs~\cite{AdelmanMersereau2008}, the variables are the probabilities of the
-local states and local actions, and the constraints that couple the local actions are only imposed in expectation.
-Since these constraints are linear in the local actions, this amounts to imposing them on the mean values of the local
-actions. We show that the same
-approach applies to our problem. It gives a formulation that can be solved directly, without column generation, but
-whose approximation is a priori looser than that of the Joint fluid LP.
+The Compact fluid LP keeps the cliques of the Joint fluid LP, and only changes the sufficient statistic of the joint
+action cliques, at every time step including the first one. This statistic is the vector $B_t$ of the variables of the
+MILP encoding of the joint actions, and its marginal is the vector $\bar b_t := \mathbb{E}[B_t]$ of the means of these
+variables (Table~\ref{tab:subsets-joint}). Since the law of $B_1$ is no longer represented, the local cliques are also
+used at $t = 1$, with variables $q^m_{x,a,1}$. We write $\bar{\mathcal{B}}$ and $\bar{\mathcal{B}}(\mathbf{x}_\otimes)$
+for the polytopes obtained from the encodings of $\mathcal{B}$ and $\mathcal{B}(\mathbf{x}_\otimes)$ by relaxing every
+binary variable into $[0,1]$, and extend $\delta_m$, $\chi^s_\kappa$, $f$ and $c_\otimes(\mathbf{x}_\otimes, \cdot)$ to
+them linearly. Since $f$ and $c_\otimes(\mathbf{x}_\otimes, \cdot)$ are linear in the encoding,
+$\mathbb{E}[f(B_t)] = f(\bar b_t)$ and $\mathbb{E}[c_\otimes(\mathbf{x}_\otimes, B_1)] = c_\otimes(\mathbf{x}_\otimes,
+\bar b_1)$.
 
-\paragraph{Subsets of variables and sufficient statistics.} Compared with the Joint fluid LP, the Compact fluid LP
-keeps the same subsets and only changes the sufficient statistic of the joint action subsets $B_t$, at every time step
-including the first one (Table~\ref{tab:subsets-compact}). The sufficient statistic of $B_t$ is the vector $B_t$
-itself, that is the vector of the variables of the MILP encoding of the joint actions
-(Section~\ref{sec:column-generation}), and its marginal is the vector $\bar b_t := \mathbb{E}[B_t]$ of the means of
-these variables.
-
-\begin{table}[h]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-\begin{tabular}{|l|l|l|}
-\hline
-Subset & Sufficient statistics & Marginals \\
-\hline
-$(X_{m,t}, A_{m,t}, X_{m,t+1})$, $t \in [1:T-1]$ & $\mathds{1}_{\{X_{m,t} = x,\, A_{m,t} = a,\, X_{m,t+1} = x'\}}$,
-$x, x' \in \mathcal{X}_m$, $a \in \mathcal{A}_m(x)$ & $q^m_{x,a,x',t}$ \\
-$(X_{m,T}, A_{m,T})$ & $\mathds{1}_{\{X_{m,T} = x,\, A_{m,T} = a\}}$, $x \in \mathcal{X}_m$, $a \in \mathcal{A}_m(x)$ &
-$q^m_{x,a,T}$ \\
-$B_t$, $t \in [T]$ & $B_t$ & $\bar b_t$ \\
-\hline
-\end{tabular}
-\caption{Subsets of variables, sufficient statistics and marginals of the Compact fluid LP, for every component $m
-\in [M]$. Only the last row differs from Table~\ref{tab:subsets-joint}.}
-\label{tab:subsets-compact}
-\end{table}
-
-\paragraph{Marginal polytope.} The values of these marginals that can be obtained from a Markov policy form the polytope
-\begin{equation}
-\label{eq:compact-marg-poly}
-\begin{aligned}
-\mathbb{M}^{\mathrm{C}} := \Big\{ (q, \bar b) \ \Big|\ & \exists \pi \text{ Markov policy},\ \forall m, x,
-a, x', t,\ \ \bar b_t = \mathbb{E}^\pi[B_t], \\
-& q^m_{x,a,x',t} = \mathbb{P}^\pi\big(X_{m,t} = x,\, A_{m,t} = a,\, X_{m,t+1} = x'\big), \\
-& q^m_{x,a,T} = \mathbb{P}^\pi\big(X_{m,T} = x,\, A_{m,T} = a\big) \Big\}.
-\end{aligned}
-\end{equation}
-This set has too many facets to admit a tractable description.
-
-\paragraph{Local polytope.} The local polytope $\mathbb{L}^{\mathrm{C}}$ is built as $\mathbb{L}^{\mathrm{J}}$
-in Section~\ref{sec:full-fluid}, and only the constraints that involve the subsets $B_t$ change. The first state
-constraints~\eqref{eq:fluid-local-first} and the dynamics constraints~\eqref{eq:fluid-local-dyn} are the same, as well
-as the normalization constraints of the local subsets. There is no normalization constraint for the subsets $B_t$,
-since their marginals are means and not probability distributions. We write $\bar{\mathcal{B}}$ and
-$\bar{\mathcal{B}}(\mathbf{x}_\otimes)$ the polytopes obtained from the encodings of $\mathcal{B}$ and
-$\mathcal{B}(\mathbf{x}_\otimes)$ by relaxing every binary variable into $[0,1]$, and extend $\delta_m$, $\chi^s_\kappa$, $f$
-and $c_\otimes(\mathbf{x}_\otimes, \cdot)$ to them linearly. The marginal $\bar b_t$ lies in $\mathrm{conv}(\mathcal{B})
-\subseteq \bar{\mathcal{B}}$ for $t \ge 2$, and in $\mathrm{conv}(\mathcal{B}(\mathbf{x}_\otimes)) \subseteq
-\bar{\mathcal{B}}(\mathbf{x}_\otimes)$ for $t = 1$. The admissibility constraints of the subsets $B_t$ only impose that
-these means belong to the relaxed polytopes,
-\begin{equation}
-\label{eq:compact-local-adm}
-\bar b_1 \in \bar{\mathcal{B}}(\mathbf{x}_\otimes), \qquad \bar b_t \in \bar{\mathcal{B}} \quad \forall t \in [2:T].
-\end{equation}
-The constraint~\eqref{eq:compact-local-adm} that $\bar b_t$ belongs to $\bar{\mathcal{B}}$ is the analogue of the
-normalization constraint when the marginals are means and not probability distributions. In particular, we do not impose that $\bar b_t$ is the mean of a distribution over admissible joint actions, that is,
-that it belongs to $\mathrm{conv}(\mathcal{B})$, or to $\mathrm{conv}(\mathcal{B}(\mathbf{x}_\otimes))$ at $t = 1$. The
-consistency constraints between consecutive subsets of a component~\eqref{eq:fluid-local-cons-x} and between the
-components of a same substation~\eqref{eq:fluid-local-cons-q} are the same. Only the consistency constraints between
-the subsets $B_t$ and the local subsets change, since the marginal of $B_t$ is now its mean. The joint action $B_t$
-contains the binary variables $\delta_m$ and $\chi^s_\kappa$ of the MILP encoding. The means of the binary variables 
-can be interpreted as probabilities. For instance,
-$\delta_m(\bar b_t)$ is the probability that component $m$ is maintained at $t$, and $\chi^s_\kappa(\bar b_t)$ the
-probability that substation $s$ declares $\kappa$ days. The mean $\bar b_t$ thus gives the distribution of
-$\Delta_{m,t}$ and the distribution of $|\text{FREE}^{s(m)}_t|$, but not their joint distribution. The consistency
-constraints are as follows:
-\begin{subequations}
-\label{eq:compact-local-cons-a}
+The local polytope changes in two ways. First, the normalization of $\mu_{\cdot,t}$ is replaced by the constraint that
+$\bar b_t$ belongs to $\bar{\mathcal{B}}$, or to $\bar{\mathcal{B}}(\mathbf{x}_\otimes)$ at $t = 1$. This is weaker than
+requiring that $\bar b_t$ is the mean of a distribution over admissible joint actions, that is, that it belongs to
+$\mathrm{conv}(\mathcal{B})$. Second, the means of the binary variables are probabilities, $\delta_m(\bar b_t) =
+\mathbb{P}(\Delta_{m,t} = 1)$ and $\chi^{s}_\kappa(\bar b_t) = \mathbb{P}(|\text{FREE}^{s}_t| = \kappa)$. The mean $\bar
+b_t$ thus gives the law of each coordinate of the local action $A_{m,t} = (\Delta_{m,t}, |\text{FREE}^{s(m)}_t|)$, but
+not their joint law. The consistency constraints~\eqref{eq:fluid-consistency} are therefore replaced by
+\begin{subequations}\label{eq:compact-local-cons}
 \begin{align}
-& \sum_{\kappa} \sum_{x \in \mathcal{X}_m \mid (1,\kappa) \in \mathcal{A}_m(x)} \sum_{x' \in \mathcal{X}_m}
-q^m_{x,(1,\kappa),x',t} = \delta_m(\bar b_t), \nonumber \\
-& \sum_{\delta} \sum_{x \in \mathcal{X}_m \mid (\delta,\kappa) \in \mathcal{A}_m(x)} \sum_{x' \in \mathcal{X}_m}
-q^m_{x,(\delta,\kappa),x',t} = \chi^{s(m)}_\kappa(\bar b_t) \nonumber \\
-& \qquad \forall m \in [M],\ \kappa \in [0:K_0],\ t \in [1:T-1], \\
-& \sum_{\kappa} \sum_{x \in \mathcal{X}_m \mid (1,\kappa) \in \mathcal{A}_m(x)} q^m_{x,(1,\kappa),T} =
-\delta_m(\bar b_T), \qquad
-\sum_{\delta} \sum_{x \in \mathcal{X}_m \mid (\delta,\kappa) \in \mathcal{A}_m(x)} q^m_{x,(\delta,\kappa),T} =
-\chi^{s(m)}_\kappa(\bar b_T)
-\nonumber \\
-& \qquad \forall m \in [M],\ \kappa \in [0:K_0].
+& \sum_\kappa\sum_{x \in \mathcal{X}_m \mid (1,\kappa)\in\mathcal{A}_m(x)} q^m_{x,(1,\kappa),t}
+  =\delta_m(\bar b_t) && \forall m \in [M],\ t \in [T],
+\label{eq:compact-delta}\\
+& \sum_\delta\sum_{x \in \mathcal{X}_m \mid (\delta,\kappa)\in\mathcal{A}_m(x)} q^m_{x,(\delta,\kappa),t}
+  =\chi^{s(m)}_\kappa(\bar b_t) && \forall m \in [M],\ \kappa \in [0:K_0],\ t \in [T].
+\label{eq:compact-chi}
 \end{align}
 \end{subequations}
-They replace the consistency constraints~\eqref{eq:fluid-local-cons-a} of $\mathbb{L}^{\mathrm{J}}$.
-
-\paragraph{Cost approximation.} At $t \ge 2$, we use the same separable approximation as in
-Section~\ref{sec:full-fluid}. Since $f$ and $c_\otimes(\mathbf{x}_\otimes, \cdot)$ are linear,
-$\mathbb{E}[f(B_t)] = f(\mathbb{E}[B_t]) = f(\bar b_t)$, and $\mathbb{E}[c_\otimes(\mathbf{x}_\otimes, B_1)] =
-c_\otimes(\mathbf{x}_\otimes, \bar b_1)$.
-
-\paragraph{LP.} We consider the following LP:
+The Compact fluid LP is
 \begin{subequations}\label{eq:compact-fluid}
 \begin{align}
-\min_{q,\,\bar b} \quad
-& c_\otimes(\mathbf{x}_\otimes, \bar b_1) \ +\ \sum_{t=2}^{T} \Bigg( \sum_{m,\, x,\, a} \tilde c_m(x,a)\,
-q^m_{x,a,t} \;+\; f(\bar b_t) \Bigg)
+Z^{\mathrm{C}} \;:=\; \min_{q,\,\bar b} \quad
+& c_\otimes(\mathbf{x}_\otimes, \bar b_1)
+  + \sum_{t=2}^{T}\Bigl(\sum_{m,\, x,\, a}\tilde c_m(x,a)\,q^m_{x,a,t}+f(\bar b_t)\Bigr)
 \label{eq:compact-fluid-obj}\\
 \text{s.t.} \quad
 & \sum_{a \in \mathcal{A}_m(x)} q^m_{x,a,1} = \mathds{1}_{\{x = \mathbf{x}_m\}}
-&& \forall m \in [M], x \in \mathcal{X}_m
+  && \forall m \in [M],\ x \in \mathcal{X}_m
 \label{eq:compact-fluid-initial}\\
-& \sum_{a \in \mathcal{A}_m(x)} q^m_{x,a,t}
-= \sum_{x^{\prime},\, a} p_m(x \mid x^{\prime},a)\, q^m_{x^{\prime},a,t-1}
-&& \forall m \in [M], x \in \mathcal{X}_m, t \in [2:T]
-\nonumber\\
-& \sum_{\kappa} \sum_{x \in \mathcal{X}_m \mid (1,\kappa) \in \mathcal{A}_m(x)} q^m_{x,(1,\kappa),t} = \delta_m(\bar b_t)
-&& \forall m \in [M], t \in [T]
-\label{eq:compact-fluid-consistency}\\
-& \sum_{\delta} \sum_{x \in \mathcal{X}_m \mid (\delta,\kappa) \in \mathcal{A}_m(x)} q^m_{x,(\delta,\kappa),t} = \chi^{s(m)}_\kappa(\bar b_t)
-&& \forall m \in [M], \kappa \in [0:K_0], t \in [T]
-\label{eq:compact-fluid-consistency-kappa}\\
-& \sum_{n, \delta} q^m_{(n,k),(\delta,\kappa),t} = \sum_{n, \delta} q^{m'}_{(n,k),(\delta,\kappa),t}
-&& \forall s \in [S], m, m' \in \mathcal{M}^s\!, k, \kappa \in [0:K_0], t \in [T]
-\nonumber\\
-& \bar b_1 \in \bar{\mathcal{B}}(\mathbf{x}_\otimes)
-\label{eq:compact-fluid-first}\\
-& \bar b_t \in \bar{\mathcal{B}}
-&& \forall t \in [2:T]
-\label{eq:compact-fluid-bt}\\
-& q^m_{x,a,t} \ge 0
-&& \forall m \in [M], x \in \mathcal{X}_m, a \in \mathcal{A}_m(x), t \in [T].
-\label{eq:compact-fluid-nonneg}
+& \text{flow constraints~\eqref{eq:fluid-flow} for } t \in [2:T], \text{ and quota
+  constraints~\eqref{eq:fluid-copies} for } t \in [T],\nonumber\\
+& \text{consistency constraints~\eqref{eq:compact-delta}--\eqref{eq:compact-chi}},\nonumber\\
+& \bar b_1\in\bar{\mathcal{B}}(\mathbf{x}_\otimes),\quad
+  \bar b_t\in\bar{\mathcal{B}}\ \ \forall t\in[2:T],\quad q\ge 0.\nonumber
 \end{align}
 \end{subequations}
-Problem~\eqref{eq:compact-fluid} is of polynomial size, so that it is solved directly, without
-column generation. We denote by $Z^{\mathrm{C}}$ its optimal value. We first show that the feasible set
-of~\eqref{eq:compact-fluid} is indeed the local polytope $\mathbb{L}^{\mathrm{C}}$.
+Problem~\eqref{eq:compact-fluid} has polynomial size and is solved directly, without column generation. As for the
+Joint fluid LP, its feasible set is the local polytope of its cliques up to the change of
+variables~\eqref{eq:fluid-change}, extended to $t = 1$.
 
-\begin{proposition}
-\label{cor:compact-relaxation}
-Up to the change of variables
-\begin{equation}
-\label{eq:compact-change}
-q^m_{x,a,t} := \sum_{x'} q^m_{x,a,x',t} \quad \forall t \in [1:T-1],
-\end{equation}
-the marginals $q^m_{x,a,T}$ of the last time step being kept, the feasible set of~\eqref{eq:compact-fluid}
-is the local polytope $\mathbb{L}^{\mathrm{C}}$. Hence $\mathbb{M}^{\mathrm{C}}$ is contained in it.
+\begin{proposition}\label{prop:compactLP}
+The Compact fluid LP is a relaxation of the Joint fluid LP, and $Z^{\mathrm{C}}\le Z$.
 \end{proposition}
-
 \begin{proof}
-The proof is the same as that of Proposition~\ref{prop:fluid-relaxation}, with three differences. First, the change of
-variables is extended to $t = 1$, so that the dynamics constraints give $q^m_{x,a,x',t} = p_m(x' \mid x, a)\,
-q^m_{x,a,t}$ at every time step, and the first state and normalization constraints of the local subsets at $t = 1$
-give the initial condition~\eqref{eq:compact-fluid-initial}. Second, the consistency
-constraints~\eqref{eq:compact-local-cons-a} with the subsets $B_t$
-are~\eqref{eq:compact-fluid-consistency}--\eqref{eq:compact-fluid-consistency-kappa}, and the admissibility
-constraints~\eqref{eq:compact-local-adm} are~\eqref{eq:compact-fluid-first}--\eqref{eq:compact-fluid-bt}. Third, the
-constraints of $\mathbb{L}^{\mathrm{C}}$ are necessary, since the mean of a binary variable is a probability, and
-the mean of a distribution over $\mathcal{B}$, or over $\mathcal{B}(\mathbf{x}_\otimes)$ at $t = 1$, belongs to its
-convex hull, which is contained in $\bar{\mathcal{B}}$, or in $\bar{\mathcal{B}}(\mathbf{x}_\otimes)$. Hence
-$\mathbb{M}^{\mathrm{C}} \subseteq \mathbb{L}^{\mathrm{C}}$.
+Let $(\mu, q)$ be feasible for~\eqref{eq:fluid}. We define $\bar b_t := \sum_b \mu_{b,t}\, b$ for $t \in [T]$, where each
+$b$ is encoded with its auxiliary variables at their values in~\eqref{eq:app-milp}, $q^m_{\mathbf{x}_m,a,1} :=
+\sum_{b \mid A_m(b) = a} \mu_{b,1}$, and $q^m_{x,a,1} := 0$ for $x \neq \mathbf{x}_m$. As shown in the proof of Proposition~\ref{prop:fluid-relaxation}, $\mu_{\cdot,t}$ is
+a probability distribution, so that $\bar b_t \in \mathrm{conv}(\mathcal{B}) \subseteq \bar{\mathcal{B}}$, and $\bar b_1
+\in \bar{\mathcal{B}}(\mathbf{x}_\otimes)$. The variables $q^m_{\cdot,\cdot,1}$ satisfy~\eqref{eq:compact-fluid-initial},
+and~\eqref{eq:fluid-initial} becomes the flow constraint at $t = 2$. By linearity, $\delta_m(\bar b_t) = \sum_{b \mid
+\delta_m(b) = 1} \mu_{b,t}$ and $\chi^{s(m)}_\kappa(\bar b_t) = \sum_{b \mid \kappa^{s(m)}(b) = \kappa} \mu_{b,t}$, and
+summing~\eqref{eq:fluid-consistency} over one coordinate of the local action gives~\eqref{eq:compact-delta}
+and~\eqref{eq:compact-chi}. Finally, $f(\bar b_t) = \sum_b \mu_{b,t}\, f(b)$ and $c_\otimes(\mathbf{x}_\otimes, \bar
+b_1) = \sum_b \mu_{b,1}\, c_\otimes(\mathbf{x}_\otimes, b)$ by linearity, so that the objective is preserved.
 \end{proof}
+The Compact fluid LP thus avoids column generation, at the price of a weaker approximation.
 
-We now show
-that the Compact fluid LP is a weaker approximation than the Joint fluid LP. We thus gain tractability, since column
-generation is no longer needed, but we lose quality of the approximation.
-
-\begin{proposition}
-\label{prop:compactLP}
-The map $P_{\mathrm{c}} : (\mu, q) \mapsto (q, \bar b)$, with $\bar b_t := \sum_{b} \mu_{b,t}\, b$ for every $t \in [T]$ and
-$q^m_{\mathbf{x}_m,a,1} := \sum_{b \mid A_m(b) = a} \mu_{b,1}$, preserves the objective value and satisfies
-\[
-\mathbb{M}^{\mathrm{C}} \ =\ P_{\mathrm{c}}\big(\mathbb{M}^{\mathrm{J}}\big) \ \subseteq\
-P_{\mathrm{c}}\big(\mathbb{L}^{\mathrm{J}}\big) \ \subseteq\ \mathbb{L}^{\mathrm{C}}.
-\]
-Hence $Z^{\mathrm{C}} \le Z$.
-\end{proposition}
-
-\begin{proof}
-It is clear that $P_{\mathrm{c}}(\mathbb{M}^{\mathrm{J}}) = \mathbb{M}^{\mathrm{C}}$ and
-$P_{\mathrm{c}}(\mathbb{M}^{\mathrm{J}}) \subseteq P_{\mathrm{c}}(\mathbb{L}^{\mathrm{J}})$ since
-$\mathbb{M}^{\mathrm{J}} \subseteq \mathbb{L}^{\mathrm{J}}$. Let now $(\mu, q) \in \mathbb{L}^{\mathrm{J}}$, and $(q, \bar b) = P_{\mathrm{c}}(\mu, q)$.
-By~\eqref{eq:fluid-first}, $\mu_{\cdot,1}$ is a probability distribution over $\mathcal{B}(\mathbf{x}_\otimes)$, so that
-$\bar b_1 \in \mathrm{conv}(\mathcal{B}(\mathbf{x}_\otimes)) \subseteq \bar{\mathcal{B}}(\mathbf{x}_\otimes)$, and
-$q^m_{\cdot,\cdot,1}$ satisfies~\eqref{eq:compact-fluid-initial}. With this definition of $q^m_{\cdot,\cdot,1}$,
-\eqref{eq:fluid-initial} is the flow constraint at $t = 2$. Summing the flow constraints over $x$ shows by induction
-that $\sum_{x,a} q^m_{x,a,t} = 1$ for every $t$, and summing~\eqref{eq:fluid-consistency} over $a$, since the
-sets $\{b \mid A_m(b) = a\}$ partition $\mathcal{B}$, gives $\sum_b \mu_{b,t} = 1$. Hence $\bar b_t$ is a convex
-combination of points of $\mathcal{B} \subseteq \bar{\mathcal{B}}$, and $\bar b_t \in \bar{\mathcal{B}}$ by convexity.
-By linearity, $\delta_m(\bar b_t) = \sum_b \mu_{b,t}\, \delta_m(b)$ and
-$\chi^{s(m)}_\kappa(\bar b_t) = \sum_{b \mid \kappa^{s(m)}(b) = \kappa} \mu_{b,t}$, which,
-by~\eqref{eq:fluid-consistency} summed over the values of the other coordinate of the local action, gives the
-consistency constraints~\eqref{eq:compact-fluid-consistency}--\eqref{eq:compact-fluid-consistency-kappa}. The other
-constraints are unchanged. Since $f$ and $c_\otimes(\mathbf{x}_\otimes, \cdot)$ are linear, $f(\bar b_t) = \sum_b
-\mu_{b,t} f(b)$ and $c_\otimes(\mathbf{x}_\otimes, \bar b_1) = \sum_b \mu_{b,1}\, c_\otimes(\mathbf{x}_\otimes, b)$.
-Taking an optimal solution of~\eqref{eq:fluid} gives $Z^{\mathrm{C}}
-\le Z$.
-\end{proof}
-
-\begin{comment}
-The expected failure cost $\mathbb E[f(X)]$, where
-$f(X) = \max(\text{price} - \min_m \text{cap}_m(X_m), 0)$, depends on the joint state of all
-subsystems and is intractable to compute exactly. When failures are rare, the probability of
-two or more subsystems being simultaneously degraded below the price threshold is negligible,
-so the joint cost is well approximated by a sum of individual contributions:
-$\mathbb E[f(X)] \approx \sum_m \sum_{x_m} \delta_m(x_m)\, q_m(x_m)$, where $\delta_m(x_m)$ is
-the expected cost when only subsystem $c$ is in state $x_m$ and all others operate at full
-capacity. If simultaneous degradations are more frequent, this approximation overestimates the
-true cost, because the marginal impact of a second degraded subsystem is smaller once a first
-already limits capacity, and pairwise corrections can be added.
-\end{comment}
-
+% ------------------------------------------------------------
 \subsection{Fluid LPs with a quota subsystem}
 \label{sec:quota-subsystem}
+% ------------------------------------------------------------
 
-Instead of including the remaining quota of a substation in the local state of each of its components, we can
-introduce, for every substation $s$, an additional subsystem representing its remaining quota, with state $k \in
-[0:K_0]$, action $\kappa \in [0:K_0]$, deterministic transitions given by the quota
-dynamics~\eqref{eq:intro-quota-dynamics}, and no cost. The local state and the local action of component $m$ are then
-its degradation state $N_{m,t}$ and its maintenance decision $\Delta_{m,t}$.
+In the alternative decomposition, every substation $s$ has a \emph{quota subsystem}, whose local state is the remaining
+quota $K^s_t \in [0:K_0]$, whose local action is the number of declared days $|\text{FREE}^s_t| \in [0:K_0]$, whose
+transitions are given by the quota dynamics~\eqref{eq:intro-quota-dynamics}, and which has no cost. The local state of
+component $m$ reduces to its degradation state $N_{m,t}$, and its local action to its maintenance decision
+$\Delta_{m,t}$.
 
-\paragraph{Subsets of variables and sufficient statistics.} Compared with the Joint and Compact fluid LPs, the local
-subsets of the components no longer contain the remaining quota, and every substation $s$ has its own local subsets,
-which contain its remaining quota and its number of declared days (Table~\ref{tab:subsets-quota}). The sufficient
-statistic of the joint action subsets $B_t$ is chosen as in the Joint fluid LP or as in the Compact fluid LP. The
-quota being enforced through the subsets of the quota subsystems, the joint actions of the time steps $t \ge 2$ are
-taken in the set $\mathcal{B}$ of feasible schedules (Section~\ref{sec:model-details}).
+\paragraph{Cliques and marginals.}
+The local cliques and their marginals are given in Table~\ref{tab:subsets-quota}. The joint action cliques are those of
+the JFLP for the JFLP-Q, and those of the CFLP for the CFLP-Q. Unlike in Sections~\ref{sec:full-fluid}
+and~\ref{sec:compact}, the local cliques of two components of the same substation share no variable, and the quota
+constraints~\eqref{eq:fluid-copies} disappear. The local cliques of the components and of the quota subsystems are only
+linked through the joint action cliques. The quota constraint~\eqref{eq:intro-quota-constraint} is imposed on the
+quota subsystems, by $r^s_{k,\kappa,t} = 0$ for $\kappa > k$.
 
 \begin{table}[h]
 \centering
@@ -1605,97 +1349,82 @@ taken in the set $\mathcal{B}$ of feasible schedules (Section~\ref{sec:model-det
 \renewcommand{\arraystretch}{1.3}
 \begin{tabular}{|l|l|l|}
 \hline
-Subset & Sufficient statistics & Marginals \\
+Clique & Sufficient statistic & Marginal \\
 \hline
-$(N_{m,t}, \Delta_{m,t}, N_{m,t+1})$, $t \in [1:T-1]$ & $\mathds{1}_{\{N_{m,t} = n,\, \Delta_{m,t} = \delta,\,
-N_{m,t+1} = n'\}}$, $n, n' \in [N_m]$, $\delta \in \{0,1\}$ & $q^m_{n,\delta,n',t}$ \\
-$(N_{m,T}, \Delta_{m,T})$ & $\mathds{1}_{\{N_{m,T} = n,\, \Delta_{m,T} = \delta\}}$, $n \in [N_m]$, $\delta \in
-\{0,1\}$ & $q^m_{n,\delta,T}$ \\
-$(K^s_t, |\text{FREE}^s_t|, K^s_{t+1})$, $t \in [1:T-1]$ & $\mathds{1}_{\{K^s_t = k,\, |\text{FREE}^s_t| = \kappa,\,
-K^s_{t+1} = k'\}}$, $k, k', \kappa \in [0:K_0]$ & $r^s_{k,\kappa,k',t}$ \\
-$(K^s_T, |\text{FREE}^s_T|)$ & $\mathds{1}_{\{K^s_T = k,\, |\text{FREE}^s_T| = \kappa\}}$, $k, \kappa \in [0:K_0]$ &
-$r^s_{k,\kappa,T}$ \\
-$B_t$, $t \in [T]$ & as in Table~\ref{tab:subsets-joint} (JFLP-Q) or Table~\ref{tab:subsets-compact} (CFLP-Q) & $\mu_{b,t}$ or $\bar b_t$ \\
+$\{N_{m,t}, \Delta_{m,t}, N_{m,t+1}\}$ & $\mathds{1}_{\{N_{m,t} = n,\, \Delta_{m,t} = \delta,\, N_{m,t+1} = n'\}}$ &
+$q^m_{n,\delta,n',t}$ \\
+$\{N_{m,T}, \Delta_{m,T}\}$ & $\mathds{1}_{\{N_{m,T} = n,\, \Delta_{m,T} = \delta\}}$ & $q^m_{n,\delta,T}$ \\
+$\{K^s_t, |\text{FREE}^s_t|, K^s_{t+1}\}$ & $\mathds{1}_{\{K^s_t = k,\, |\text{FREE}^s_t| = \kappa,\, K^s_{t+1} =
+k'\}}$ & $r^s_{k,\kappa,k',t}$ \\
+$\{K^s_T, |\text{FREE}^s_T|\}$ & $\mathds{1}_{\{K^s_T = k,\, |\text{FREE}^s_T| = \kappa\}}$ & $r^s_{k,\kappa,T}$ \\
 \hline
 \end{tabular}
-\caption{Subsets of variables, sufficient statistics and marginals of the fluid LPs with a quota subsystem, for every
-component $m \in [M]$ and every substation $s \in [S]$.}
+\caption{Local cliques, sufficient statistics and marginals of the fluid LPs with a quota subsystem, for every
+component $m \in [M]$ and every substation $s \in [S]$. As in Table~\ref{tab:subsets-joint}, the local cliques start at
+$t = 2$ for the JFLP-Q and at $t = 1$ for the CFLP-Q.}
 \label{tab:subsets-quota}
 \end{table}
-Unlike in Sections~\ref{sec:full-fluid} and~\ref{sec:compact}, the subsets of two components of the same substation
-share no variable. In the graph of Figure~\ref{fig:non-tree-graph}, the edges between the two components are removed,
-and the subsets of the components are only linked through the subsets $B_t$, which they share with the subsets of the
-quota subsystems.
 
-\paragraph{Cost approximation.} At the first time step, we keep the true cost $c_\otimes(\mathbf{x}_\otimes, b)$. At
-$t \ge 2$, the failure cost~\eqref{eq:intro-failure-cost} depends jointly on the degradation state $n$ of component $m$
-and on the number $\kappa^{s(m)}$ of declared days, which now belong to different subsets. We therefore
-replace it by the upper bound $60\,\ell_m(n)$, and write
+\paragraph{Cost approximation.}
+At the first time step, we keep the true cost $c_\otimes(\mathbf{x}_\otimes, b)$. At $t \ge 2$, the failure
+cost~\eqref{eq:intro-failure-cost} of component $m$ depends jointly on its degradation state $n$ and on the number
+$\kappa$ of declared days of its substation, which now belong to different cliques. Since $\kappa \ge 0$, we replace
+it by the upper bound $60\,\ell_m(n)$, which gives the local cost
 \[
-\tilde c_m(n,\delta) := \delta c^{\mathrm{rep}}_m + 60\,\ell_m(n).
+\tilde c_m(n,\delta) := \delta\, c^{\mathrm{rep}}_m + 60\,\ell_m(n).
 \]
-The quota subsystems have no cost, and the joint action cost is $f(b)$ as in Section~\ref{sec:full-fluid}.
+The quota subsystems have no cost, and the joint action cost is $f(b)$, as in Section~\ref{sec:full-fluid}. This
+approximation is still an upper bound of the true cost, looser than~\eqref{eq:cost_approx}, since it ignores the
+penalty-free days in the failure cost.
 
-\paragraph{Fluid LPs with a quota subsystem.} Representing the complete distribution of the joint action, as in
-Section~\ref{sec:full-fluid}, gives the \emph{Joint fluid LP with quota subsystem} (JFLP-Q)~\eqref{eq:fluid-quota-subsystem}, which is solved by
-column generation. Representing only its marginals, as in Section~\ref{sec:compact}, gives the \emph{Compact fluid LP with quota subsystem} (CFLP-Q)~\eqref{eq:compact-light}, which is solved directly. Both LPs are given in Appendix~\ref{app:light}.
+\paragraph{LPs.}
+Minimizing the expected approximate cost over the local polytope gives the \emph{Joint fluid LP with quota subsystem}
+(JFLP-Q)~\eqref{eq:fluid-quota-subsystem}, solved by column generation, and the \emph{Compact fluid LP with quota
+subsystem} (CFLP-Q)~\eqref{eq:compact-light}, solved directly. Both are given in Appendix~\ref{app:light}. They have fewer
+variables than the JFLP and the CFLP, but they no longer represent the joint law of the degradation state of a
+component and of the remaining quota of its substation, and their cost approximation is looser.
 
-
+% ------------------------------------------------------------
 \subsection{Fluid policies}
 \label{sec:fluid-policies}
+% ------------------------------------------------------------
 
-The optimal value of a fluid LP gives an estimate of the cost, but this estimate may be poor, since the LP
-approximates both the dynamics and the cost. Instead, we apply the reoptimization-based policies of the
-literature~\cite{cooper2002, bertsimas2016, gast2022lpupdate}.
-At each period, with current state $\tilde{x}_\otimes$, we solve the Joint fluid LP~\eqref{eq:fluid} or the Compact
-fluid LP~\eqref{eq:compact-fluid} with initial state $\mathbf{x}_\otimes = \tilde{x}_\otimes$, and apply a joint action
-built from the first-step solution. Our fluid policies take as parameter a
-\emph{fluid horizon}. At time step $t$, instead of solving the chosen fluid LP over all $T-t+1$ remaining time
-steps, we solve it over only the next $\bar{H} \in [T-t+1]$ time steps. At each
-decision epoch, the problem is solved over a truncated horizon, only the first-stage decision is applied,
-and the whole procedure is repeated at the next epoch with the newly observed state. This is the principle underlying model
-predictive control (MPC)~\cite{mayne2000, rawlings2017}. Using
-$\bar{H} < T-t+1$ trades off solution quality for computation time. This is justified when the dynamics of the
-time steps furthest from $t$ have little influence on the decision made at $t$. With the Joint fluid LP, as in~\cite{bertsimas2016}, we apply the joint action of largest weight in the first-step
-solution,
-\[
-\pi_t(\tilde{x}_\otimes) \in \arg\max_{b \in \mathcal{B}'_1} \mu^\star_{b,1}.
-\]
-Since the columns of the first time step are generated in $\mathcal{B}(\tilde{x}_\otimes)$, this joint action is
-admissible in the current state. With the Compact fluid LP, the first-step solution $\bar b_1^\star$ is a point of the relaxation
-$\bar{\mathcal{B}}(\tilde{x}_\otimes)$, which is in general not integral, and thus not an admissible joint action. A
-policy can however be extracted from the compact formulation with a heuristic that builds an admissible joint action from
-this continuous variable. We maintain the components $m$ such that $\delta_m(\bar b_1^\star) > 1/2$, the most degraded
-first, each one starting on the earliest start day compatible with the technician capacity, and a component that does
-not fit in the period being left unmaintained. Each substation $s$ then declares as many days as its remaining quota in
-the current state $\tilde{x}_\otimes$ allows, without exceeding its number of days with a positive capacity loss, and places them on its days of
+The optimal value of a fluid LP gives an estimate of the cost, which may be poor since the LP approximates both the
+distribution of the trajectory and the cost. We therefore use the fluid LPs within reoptimization-based
+policies~\cite{cooper2002, bertsimas2016, gast2022lpupdate}, following the principle of model predictive control
+(MPC)~\cite{mayne2000,rawlings2017}. At each time step $t$, with current state $\tilde x_\otimes$, we solve the chosen
+fluid LP with initial state $\mathbf{x}_\otimes = \tilde x_\otimes$ over a truncated horizon of $\bar H \le T-t+1$ time
+steps, called the \emph{fluid horizon}, apply a joint action built from the first-step solution, and repeat at the next
+time step with the newly observed state. A fluid horizon $\bar H < T-t+1$ trades solution quality for computation time,
+and is justified when the time steps far from $t$ have little influence on the decision at $t$.
+
+With the JFLP and the JFLP-Q, as in~\cite{bertsimas2016}, we apply the joint action of largest weight in the first-step
+solution, $\pi_t(\tilde x_\otimes)\in\arg\max_{b\in\mathcal{B}'_1}\mu^\star_{b,1}$. Since the columns of the first time
+step are generated in $\mathcal{B}(\tilde x_\otimes)$, this joint action is admissible. With the CFLP and the CFLP-Q,
+the first-step solution $\bar b_1^\star$ is in general fractional, and thus not an admissible joint action. We build
+one with a rounding heuristic. We maintain the components $m$ such that $\delta_m(\bar b_1^\star) > 1/2$, the most
+degraded first, each one starting on the earliest start day compatible with the technician capacity, a component that
+does not fit in the period being left unmaintained. Each substation $s$ then declares as many days as its remaining
+quota allows, without exceeding its number of days with a positive capacity loss, and places them on its days of
 largest capacity loss, that is, on its maintenance days first.
-
 
 \section{Hierarchy of approximations}
 \label{sec:hierarchy}
 
-\subsection{Limits of the fluid approximation}
 \label{sec:why-gap}
-The approximations of Section~\ref{sec:combinatorial} are not exact. First, they approximate the cost. Second, they
-approximate the distribution of the trajectory. The theory of probabilistic graphical models shows that the
-structure of the graph of the subsets determines whether there is a gap between the marginal polytope, on which we
-would like to optimize, and the local polytope, on which we actually optimize. For the exact LP, the graph of Figure~\ref{fig:clique-chain} is a tree, and every variable shared by two subsets
-belongs to all the subsets of the path between them. By the junction tree
-theorem~\cite[Prop.~2.1]{wainwright2008graphical}, locally consistent marginals are then always the marginals of a
-single joint distribution, which gives another view of Proposition~\ref{prop:exact-marginal}. On the contrary, the
-graph of Figure~\ref{fig:non-tree-graph} contains cycles. The theory of probabilistic graphical models then shows
-that the local polytope is in general a strict relaxation of the marginal polytope~\cite{wainwright2008graphical}, so
-that the Joint fluid LP~\eqref{eq:fluid} is a priori not exact. Moreover, the local polytope only imposes the dynamics of
-each component, and not the joint dynamics of the components (Section~\ref{sec:full-fluid}). The fluid approximation can therefore be poor. In the remainder of this section, we present two ways to
-improve it. \emph{Higher-order formulations} carry the pseudomarginals of pairs, triples, etc.\ of variables as new
+The fluid LPs of Section~\ref{sec:combinatorial} approximate the cost by the separable upper
+bound~\eqref{eq:intro-cost-approx}, and optimize over a local polytope that is in general strictly larger than the
+marginal polytope (Proposition~\ref{prop:no-rjt}). Both approximations come from the fact that each clique contains the
+variables of a single component. The resulting gap can be arbitrarily large. Appendix~\ref{sec:dmdp} gives a family of
+D-MDPs, for which the cost is exact, on which the fluid LP is arbitrarily far from the optimal value. In this section,
+we present two ways to reduce this gap, by using cliques that contain several components. \emph{Higher-order formulations} carry the pseudomarginals of pairs, triples, etc.\ of variables as new
 variables of the LP (Section~\ref{sec:higher-order}). Their size, however, grows quickly with the order, so that they
 rapidly become intractable. This motivates the study of \emph{lift-and-project}, which adds to the LP inequalities
 that hold whenever these higher-order marginals exist, without adding them as variables
 (Section~\ref{sec:lift-and-project}). We hope that a few cuts, added at the right places, give a good formulation that
-is lighter than the higher-order formulations. Appendix~\ref{sec:dmdp} gives a family of D-MDPs for which the fluid
-approximation is arbitrarily bad. It shows that the order-$2$ fluid LP tightens the approximation, and that adding a
-small number of lift-and-project cuts gives a formulation as tight as the order-$2$ fluid LP.
+is lighter than the higher-order formulations. On the D-MDPs of Appendix~\ref{sec:dmdp}, the order-$2$ fluid LP strictly
+tightens the fluid LP, and closes the gap for two or three subsystems, and adding a small number of lift-and-project cuts to the fluid LP gives a formulation as tight as the
+order-$2$ fluid LP.
 
 
 
@@ -1736,7 +1465,7 @@ $(X_{G,t}, A_{G,t}, X_{G,t+1})$, $t \in [1:T-1]$ & $\mathds{1}_{\{X_{G,t} = x_G,
 x'_G\}}$, $x_G, x'_G \in \mathcal{X}_G$, $a_G \in \mathcal{A}_G(x_G)$ & $q^G_{x_G,a_G,x'_G,t}$ \\
 $(X_{G,T}, A_{G,T})$ & $\mathds{1}_{\{X_{G,T} = x_G,\, A_{G,T} = a_G\}}$, $x_G \in \mathcal{X}_G$, $a_G \in
 \mathcal{A}_G(x_G)$ & $q^G_{x_G,a_G,T}$ \\
-$B_t$, $t \in [T]$ & as in Table~\ref{tab:subsets-joint} or Table~\ref{tab:subsets-compact} & $\mu_{b,t}$ or $\bar
+$B_t$, $t \in [T]$ & as in Table~\ref{tab:subsets-joint} & $\mu_{b,t}$ or $\bar
 b_t$ \\
 \hline
 \end{tabular}
@@ -2414,6 +2143,11 @@ Manne, A.~S. (1960).
 M.~L.~Puterman,
 \newblock \emph{Markov Decision Processes: Discrete Stochastic Dynamic Programming},
 \newblock John Wiley \& Sons, New York, 1994.
+
+\bibitem{parmentier2019integer}
+A.~Parmentier, V.~Cohen, V.~Leclère, G.~Obozinski, and J.~Salmon,
+\newblock Integer programming on the junction tree polytope for influence diagrams,
+\newblock \emph{INFORMS Journal on Optimization}, 2(3):209--228, 2020.
 
 \bibitem{koller2009}
 D.~Koller and N.~Friedman,
